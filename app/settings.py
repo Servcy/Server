@@ -102,7 +102,7 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_THROTTLE_RATES": {
         "anon": "60/minute",
-        "user": "60/minute",
+        "user": "120/minute",
     },
     "DATE_INPUT_FORMATS": ["%d/%m/%Y"],
     "DATETIME_FORMAT": "%d/%m/%Y %H:%M",
