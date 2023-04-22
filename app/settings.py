@@ -29,7 +29,6 @@ ALLOWED_HOSTS = ["*"]
 # Application definition
 THIRD_PARTY_APPS = [
     "drf_spectacular",  # required for swagger ui
-    "rest_framework",  # required for rest framework
     "corsheaders",  # required for cors
     "storages",  # required for s3
     "rest_framework",  # required for rest framework
@@ -38,7 +37,7 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
-    "auth",
+    "iam",
 ]
 
 INSTALLED_APPS = [
@@ -228,3 +227,6 @@ TWILIO_NUMBER = config.get("twilio", "from_number")
 
 # Frontend
 FRONTEND_URL = config.get("main", "frontend_url")
+
+# User Model
+AUTH_USER_MODEL = "iam.User"
