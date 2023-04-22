@@ -1,6 +1,7 @@
 [main]
 secret_key = 
-debug = True
+host_type = development
+frontend_url = http://localhost:3000
 
 [database]
 host = 
@@ -8,3 +9,21 @@ name =
 user = 
 password = 
 port = 5432
+
+[aws]
+bucket = 
+access = 
+secret = 
+region = 
+
+[sendgrid]
+key = 
+endpoint = 
+verification_template_id = 
+from_email = 
+
+[twilio]
+account_sid = 
+auth_token = 
+verify_service_id = 
+from_number = 

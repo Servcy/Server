@@ -2,7 +2,7 @@
 name = "servcy-server"
 version = "0.1.0"
 description = ""
-authors = ["Megham Garg <gargmegham3@gmail.com>"]
+authors = ["Megham Garg <megham@servcy.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
@@ -18,7 +18,9 @@ pydantic = "^1.10.7"
 mypy = "^1.2.0"
 psycopg2 = "^2.9.6"
 configparser = "^5.3.0"
-drf-yasg = "^1.21.5"
+django-crum = "^0.7.9"
+twilio = "^8.1.0"
+django-filter = "^23.1"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.3.0"
