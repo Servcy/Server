@@ -446,6 +446,21 @@ files = [
 Django = ">=1.8"
 
 [[package]]
+name = "django-crum"
+version = "0.7.9"
+description = "Django middleware to capture current request and user."
+category = "main"
+optional = false
+python-versions = "*"
+files = [
+    {file = "django-crum-0.7.9.tar.gz", hash = "sha256:65e9bc0f070a663fafc4d9e357f45fd4e6f01838b20a9e2fb7670f5706754288"},
+    {file = "django_crum-0.7.9-py2.py3-none-any.whl", hash = "sha256:037cc8b822975bb1d41cd24269b59a512cc77448fadc3f34ab9a17b229b4b471"},
+]
+
+[package.dependencies]
+django = ">=1.8"
+
+[[package]]
 name = "django-storages"
 version = "1.13.2"
 description = "Support for many storage backends in Django"
@@ -1511,4 +1526,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "3.11.1"
-content-hash = "f6d7f68c3bbe710b190bea331a13ba0d719ddfe634daee1ca117cb566075e6d6"
+content-hash = "339fd4bdd9ccd4c79a8bbdb293a0724305365a97debb539318673d303708b65e"

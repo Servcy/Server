@@ -1,3 +1,4 @@
+import datetime
 from configparser import RawConfigParser
 from pathlib import Path
 
@@ -13,6 +14,8 @@ SECRET_KEY = config.get("main", "SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+
+APPEND_SLASH = False
 
 ALLOWED_HOSTS = []
 
@@ -43,6 +46,9 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
+    "crum.CurrentRequestUserMiddleware",
+    "middlewares.RequestUUIDMiddleware",
 ]
 
 ROOT_URLCONF = "app.urls"
@@ -63,7 +69,44 @@ TEMPLATES = [
     },
 ]
 
+
+REST_FRAMEWORK = {
+    "DEFAULT_FILTER_BACKENDS": ("django_filters.rest_framework.DjangoFilterBackend",),
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 1000,
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
+    "DEFAULT_THROTTLE_CLASSES": (
+        "rest_framework.throttling.AnonRateThrottle",  # for anonymous users
+        "rest_framework.throttling.UserRateThrottle",  # for authenticated users
+    ),
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "60/minute",
+        "user": "60/minute",
+    },
+    "DATE_INPUT_FORMATS": ["%d/%m/%Y"],
+    "DATETIME_FORMAT": "%d/%m/%Y %H:%M",
+    "DATE_FORMAT": "%d/%m/%Y",
+}
+
+
 WSGI_APPLICATION = "app.wsgi.application"
+
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": datetime.timedelta(minutes=90),
+    "REFRESH_TOKEN_LIFETIME": datetime.timedelta(days=7),
+}
+
+
+# Admin Developer Settings
+ADMINS = [
+    ("Megham", "megham@servcy.com"),
+]
 
 
 # Database
