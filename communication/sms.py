@@ -4,7 +4,6 @@ import traceback
 from django.conf import settings
 from twilio.rest import Client
 
-
 logger = logging.getLogger(__name__)
 
 

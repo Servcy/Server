@@ -34,6 +34,7 @@ THIRD_PARTY_APPS = [
     "rest_framework",  # required for rest framework
     "rest_framework_simplejwt",  # required for jwt
     "django_crontab",  # required for cron jobs
+    "django_filters",  # required for filtering
 ]
 
 LOCAL_APPS = [
@@ -167,24 +168,6 @@ DATABASES = {
 }
 
 
-# Password validation
-# https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
-    },
-]
-
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 LANGUAGE_CODE = "en-us"
@@ -217,11 +200,14 @@ MEDIAFILES_LOCATION = "media"
 # Sendgrid
 SENDGRID_API_KEY = config.get("sendgrid", "key")
 SEND_EMAIL_ENDPOINT = config.get("sendgrid", "endpoint")
+SENDGRID_VERIFICATION_TEMPLATE_ID = config.get("sendgrid", "verification_template_id")
+SENDGRID_FROM_EMAIL = config.get("sendgrid", "from_email")
 
 
 # Twilio
 TWILIO_ACCOUNT_SID = config.get("twilio", "account_sid")
 TWILIO_AUTH_TOKEN = config.get("twilio", "auth_token")
+TWILLIO_VERIFY_SERVICE_ID = config.get("twilio", "verify_service_id")
 TWILIO_NUMBER = config.get("twilio", "from_number")
 
 
