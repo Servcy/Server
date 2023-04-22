@@ -10,9 +10,13 @@
 2. Python version 3.11.1
 
 ### Installing Dependencies
-
-`poetry install`
+```
+poetry install
+```
 
 ### Running server
+```
+poetry shell && python manange.py runserver
+```
 
-`poetry shell && python manange.py runserver`
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
