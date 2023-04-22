@@ -1,4 +1,5 @@
 import datetime
+import os
 from configparser import RawConfigParser
 from pathlib import Path
 
@@ -10,26 +11,24 @@ CONFIG_FILE = BASE_DIR / "config.ini"
 config = RawConfigParser()
 config.read(CONFIG_FILE)
 
+
 SECRET_KEY = config.get("main", "SECRET_KEY")
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+
 APPEND_SLASH = False
 
-ALLOWED_HOSTS = []
+
+# CORS
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
-INSTALLED_APPS = [
-    "django.contrib.admin",
-    "django.contrib.auth",
-    "django.contrib.contenttypes",
-    "django.contrib.sessions",
-    "django.contrib.messages",
-    "django.contrib.staticfiles",
-    "django.contrib.staticfiles",  # required for serving swagger ui's css/js files
-    "drf_yasg",  # required for swagger ui
+THIRD_PARTY_APPS = [
+    "drf_spectacular",  # required for swagger ui
     "rest_framework",  # required for rest framework
     "corsheaders",  # required for cors
     "storages",  # required for s3
@@ -37,6 +36,22 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",  # required for jwt
     "django_crontab",  # required for cron jobs
 ]
+
+LOCAL_APPS = [
+    "auth",
+]
+
+INSTALLED_APPS = [
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+]
+
+INSTALLED_APPS += THIRD_PARTY_APPS
+INSTALLED_APPS += LOCAL_APPS
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -51,7 +66,9 @@ MIDDLEWARE = [
     "middlewares.RequestUUIDMiddleware",
 ]
 
+
 ROOT_URLCONF = "app.urls"
+
 
 TEMPLATES = [
     {
@@ -94,12 +111,40 @@ REST_FRAMEWORK = {
 }
 
 
+if config.get("main", "HOST_TYPE") == "development":
+    REST_FRAMEWORK["DEFAULT_SCHEMA_CLASS"] = "drf_spectacular.openapi.AutoSchema"
+    SPECTACULAR_SETTINGS = {
+        "TITLE": "Servcy APIs",
+        "DESCRIPTION": "One For All Platform: A Django RESTful API server for servcy.com which intends to save time & money for freelance agencies",
+        "VERSION": "1.0.0",
+        "SERVE_INCLUDE_SCHEMA": False,
+        "SWAGGER_UI_SETTINGS": {
+            "deepLinking": True,
+            "displayOperationId": True,
+            "displayRequestDuration": True,
+            "filter": True,
+            "docExpansion": False,
+            "showExtensions": True,
+        },
+    }
+
+
+# SECURITY WARNING: CORS Settings
+CORS_ALLOW_CREDENTIALS = True  # its value determines whether the server allows cookies in the cross-site HTTP requests.
+CORS_ORIGIN_WHITELIST = (  # for development only
+    "http://127.0.0.1:3000",
+    "http://localhost:3000",
+)
+CORS_ORIGIN_REGEX_WHITELIST = (r"^https://.*\.servcy\.com$",)  # for production only
+
+
 WSGI_APPLICATION = "app.wsgi.application"
 
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": datetime.timedelta(minutes=90),
-    "REFRESH_TOKEN_LIFETIME": datetime.timedelta(days=7),
+    "ACCESS_TOKEN_LIFETIME": datetime.timedelta(minutes=15),
+    "REFRESH_TOKEN_LIFETIME": datetime.timedelta(days=1),
+    "ROTATE_REFRESH_TOKENS": True,
 }
 
 
@@ -151,8 +196,35 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
-STATIC_URL = "static/"
+STATIC_ROOT = os.path.join(BASE_DIR, "static")
+STATIC_URL = "/static/"
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+# S3 Settings
+AWS_STORAGE_BUCKET_NAME = config.get("aws", "bucket")
+AWS_S3_REGION_NAME = config.get("aws", "region")
+AWS_ACCESS_KEY_ID = config.get("aws", "access")
+AWS_SECRET_ACCESS_KEY = config.get("aws", "secret")
+AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com"
+DEFAULT_FILE_STORAGE = "storage.MediaS3BotoStorage"
+MEDIAFILES_LOCATION = "media"
+
+
+# Sendgrid
+SENDGRID_API_KEY = config.get("sendgrid", "key")
+SEND_EMAIL_ENDPOINT = config.get("sendgrid", "endpoint")
+
+
+# Twilio
+TWILIO_ACCOUNT_SID = config.get("twilio", "account_sid")
+TWILIO_AUTH_TOKEN = config.get("twilio", "auth_token")
+TWILIO_NUMBER = config.get("twilio", "from_number")
+
+
+# Frontend
+FRONTEND_URL = config.get("main", "frontend_url")
