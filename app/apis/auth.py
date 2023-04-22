@@ -115,8 +115,10 @@ class Authentication(APIView):
         response:
             - code: 200
                 message: Verification code verified
-            - code: 400
+            - code: 406
                 message: Email or phone number is required
+            - code: 400
+                message: Verification code is invalid
             - code: 500
                 message: An error occurred while verifying verification code
         """
@@ -129,7 +131,7 @@ class Authentication(APIView):
             if not receiver:
                 return Response(
                     {"message": "Email or phone number is required!"},
-                    status.HTTP_400_BAD_REQUEST,
+                    status.HTTP_406_NOT_ACCEPTABLE,
                 )
             account_sid = settings.TWILIO_ACCOUNT_SID
             auth_token = settings.TWILIO_AUTH_TOKEN
@@ -140,7 +142,12 @@ class Authentication(APIView):
                 to=receiver,
                 code=code,
             )
-            return Response(verification.status, status.HTTP_200_OK)
+            if verification.status == "approved":
+                return Response(status.HTTP_200_OK)
+            return Response(
+                {"message": "Verification code is invalid!"},
+                status.HTTP_400_BAD_REQUEST,
+            )
         except Exception:
             logger.error(
                 f"An error occurred while verifying verification code\n{traceback.format_exc()}"
