@@ -2,6 +2,11 @@
 
 - Save your hours, and effort. Manage all your clients from the same platform.
 
+## Features
+
+1. Passwordless authentication using Twilio & SendGrid RESTful APIs
+    - Supports Whatsapp, Email & Phone number as OTP channel
+
 ## Getting started
 
 ### Setup Prerequisites
