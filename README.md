@@ -4,7 +4,8 @@
 
 ## Features
 
-1. Password less authentication using Twilio & SendGrid RESTful APIs
+1. Passwordless authentication using Twilio & SendGrid RESTful APIs
+    - Supports Whatsapp, Email & Phone number as OTP channel
 
 ## Getting started
 
