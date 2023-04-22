@@ -2,6 +2,10 @@
 
 - Save your hours, and effort. Manage all your clients from the same platform.
 
+## Features
+
+1. Password less authentication using Twilio & SendGrid RESTful APIs
+
 ## Getting started
 
 ### Setup Prerequisites
