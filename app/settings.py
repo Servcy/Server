@@ -28,7 +28,6 @@ ALLOWED_HOSTS = ["*"]
 
 # Application definition
 THIRD_PARTY_APPS = [
-    "drf_spectacular",  # required for swagger ui
     "corsheaders",  # required for cors
     "storages",  # required for s3
     "rest_framework",  # required for rest framework
@@ -109,24 +108,6 @@ REST_FRAMEWORK = {
     "DATETIME_FORMAT": "%d/%m/%Y %H:%M",
     "DATE_FORMAT": "%d/%m/%Y",
 }
-
-
-if config.get("main", "HOST_TYPE") == "development":
-    REST_FRAMEWORK["DEFAULT_SCHEMA_CLASS"] = "drf_spectacular.openapi.AutoSchema"
-    SPECTACULAR_SETTINGS = {
-        "TITLE": "Servcy APIs",
-        "DESCRIPTION": "One For All Platform: A Django RESTful API server for servcy.com which intends to save time & money for freelance agencies",
-        "VERSION": "1.0.0",
-        "SERVE_INCLUDE_SCHEMA": False,
-        "SWAGGER_UI_SETTINGS": {
-            "deepLinking": True,
-            "displayOperationId": True,
-            "displayRequestDuration": True,
-            "filter": True,
-            "docExpansion": False,
-            "showExtensions": True,
-        },
-    }
 
 
 # SECURITY WARNING: CORS Settings

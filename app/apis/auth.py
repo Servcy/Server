@@ -2,7 +2,6 @@ import logging
 import traceback
 
 from django.conf import settings
-from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -16,10 +15,6 @@ class Authentication(APIView):
     authentication_classes = []
     permission_classes = []
 
-    @extend_schema(
-        tags=["Authentication"],
-        operation_id="Authentication - Send verification code",
-    )
     def get(self, request):
         """
         Send verification code to email or phone number
@@ -90,10 +85,6 @@ class Authentication(APIView):
                 status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-    @extend_schema(
-        tags=["Authentication"],
-        operation_id="Authentication - Verify code",
-    )
     def post(self, request):
         """
         Verify verification code
