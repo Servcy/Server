@@ -43,6 +43,10 @@ LOCAL_APPS = [
     "iam",
 ]
 
+OTHER_APPS = [
+    "communication",
+]
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -215,7 +219,7 @@ LOG_HANDLER_DEFAULTS = {
 }
 LOG_HANDLERS = {}
 LOG_LOGGERS = {}
-for app in LOCAL_APPS:
+for app in [*LOCAL_APPS, *OTHER_APPS]:
     LOG_HANDLERS[app] = {
         **LOG_HANDLER_DEFAULTS,
         "filename": os.path.join(LOG_PATH, f"{app}.log"),
