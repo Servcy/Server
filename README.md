@@ -9,6 +9,7 @@
 1. Poetry should be installed
 2. Python version 3.11.1
 3. `cp config.ini.example config.ini`
+4. `mkdir logs`
 
 ### Installing Dependencies
 

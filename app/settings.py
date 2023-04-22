@@ -15,8 +15,11 @@ config.read(CONFIG_FILE)
 SECRET_KEY = config.get("main", "SECRET_KEY")
 
 
+HOST_TYPE = config.get("main", "host_type")
+
+
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = HOST_TYPE == "development"
 
 
 APPEND_SLASH = False
@@ -195,5 +198,62 @@ TWILIO_NUMBER = config.get("twilio", "from_number")
 # Frontend
 FRONTEND_URL = config.get("main", "frontend_url")
 
+
 # User Model
 AUTH_USER_MODEL = "iam.User"
+
+
+# Log Settings
+LOG_PATH = os.path.join(BASE_DIR, "logs")
+LOG_HANDLER_DEFAULTS = {
+    "level": "DEBUG",
+    "class": "logging.handlers.RotatingFileHandler",
+    "maxBytes": 1024 * 1024 * 10,
+    "backupCount": 5,
+    "formatter": "verbose_raw",
+    "filters": ["add_user_id", "add_req_id"],
+}
+LOG_HANDLERS = {}
+LOG_LOGGERS = {}
+for app in LOCAL_APPS:
+    LOG_HANDLERS[app] = {
+        **LOG_HANDLER_DEFAULTS,
+        "filename": os.path.join(LOG_PATH, f"{app}.log"),
+    }
+    LOG_LOGGERS[app] = {
+        "handlers": [app],
+        "level": "DEBUG",
+        "propagate": True,
+    }
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose_raw": {
+            "format": "[%(asctime)s] %(levelname)s %(user_identity)s %(request_id)s [%(name)s:%(lineno)s] %(message)s",
+            "datefmt": "%d/%b/%Y %H:%M:%S",
+        },
+        "simple": {"format": "%(levelname)s %(message)s"},
+    },
+    "filters": {
+        "require_debug_false": {"()": "django.utils.log.RequireDebugFalse"},
+        "add_user_id": {"()": "app.custom_logging.UserIdentifier"},
+        "add_req_id": {"()": "app.custom_logging.RequestIdentifier"},
+    },
+    "handlers": {
+        **LOG_HANDLERS,
+        "core": {
+            **LOG_HANDLER_DEFAULTS,
+            "filename": os.path.join(LOG_PATH, "core.log"),
+        },
+    },
+    "loggers": {
+        **LOG_LOGGERS,
+        "django": {"handlers": ["core"], "propagate": True, "level": "ERROR"},
+        "django.request": {
+            "handlers": ["main"],
+            "level": "DEBUG",
+            "propagate": False,
+        },
+    },
+}
