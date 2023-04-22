@@ -211,7 +211,7 @@ LOG_HANDLER_DEFAULTS = {
     "maxBytes": 1024 * 1024 * 10,
     "backupCount": 5,
     "formatter": "verbose_raw",
-    "filters": ["add_user_id", "add_req_id"],
+    "filters": ["user_id", "req_id"],
 }
 LOG_HANDLERS = {}
 LOG_LOGGERS = {}
@@ -230,15 +230,15 @@ LOGGING = {
     "disable_existing_loggers": False,
     "formatters": {
         "verbose_raw": {
-            "format": "[%(asctime)s] %(levelname)s %(user_identity)s %(request_id)s [%(name)s:%(lineno)s] %(message)s",
+            "format": "[%(asctime)s] %(levelname)s %(user_identity)s %(request_identity)s [%(name)s:%(lineno)s] %(message)s",
             "datefmt": "%d/%b/%Y %H:%M:%S",
         },
         "simple": {"format": "%(levelname)s %(message)s"},
     },
     "filters": {
         "require_debug_false": {"()": "django.utils.log.RequireDebugFalse"},
-        "add_user_id": {"()": "app.custom_logging.UserIdentifier"},
-        "add_req_id": {"()": "app.custom_logging.RequestIdentifier"},
+        "user_id": {"()": "logs.UserIdentifier"},
+        "req_id": {"()": "logs.RequestIdentifier"},
     },
     "handlers": {
         **LOG_HANDLERS,
