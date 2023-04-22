@@ -1,0 +1,18 @@
+[MASTER]
+# List of plugins (as comma separated values of python module names) to load,
+# usually to register additional checkers.
+load-plugins=pylint_django
+
+# DJANGO_SETTINGS_MODULE location for pylint_django plugin.
+django-settings-module=app.settings
+
+[MESSAGES CONTROL]
+# Disable the message, report, category or checker with the given id(s). You
+# can either give multiple identifiers separated by comma (,) or put this
+# option multiple times (only on the command line, not in the configuration
+# file where it should appear only once).
+disable=line-too-long # Black will handle these
+
+[FORMAT]
+# Maximum number of characters on a single line.
+max-line-length=120

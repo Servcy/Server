@@ -1,0 +1,10 @@
+[main]
+secret_key = 
+debug = True
+
+[database]
+host = 
+name = 
+user = 
+password = 
+port = 5432

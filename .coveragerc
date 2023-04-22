@@ -1,0 +1,18 @@
+[run]
+data_file = .coverage/coverage.raw
+branch = True
+omit =
+    */.venv/*
+    */venv/*
+    */tests/*
+    */test*.py
+
+[report]
+skip_empty = True
+precision = 2
+
+[lcov]
+output = .coverage/coverage.lcov
+
+[html]
+directory = .coverage/coverage_html

@@ -1,0 +1,20 @@
+*.pyc
+*.log
+*.log~
+*.xml
+*.pdf
+*.pkl
+*.ini
+.DS_Store
+
+# Editors
+.idea
+*.vscode
+
+# Project
+servcy/__pycache__/*.*
+logs/*
+env/
+.venv/
+.coverage/
+.autogen/
