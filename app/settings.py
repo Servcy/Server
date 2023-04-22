@@ -251,7 +251,7 @@ LOGGING = {
         **LOG_LOGGERS,
         "django": {"handlers": ["core"], "propagate": True, "level": "ERROR"},
         "django.request": {
-            "handlers": ["main"],
+            "handlers": ["core"],
             "level": "DEBUG",
             "propagate": False,
         },
