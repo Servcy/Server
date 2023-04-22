@@ -8,13 +8,16 @@
 
 1. Poetry should be installed
 2. Python version 3.11.1
+3. `cp config.ini.example config.ini`
 
 ### Installing Dependencies
+
 ```
 poetry install
 ```
 
 ### Running server
+
 ```
 poetry shell && python manange.py runserver
 ```
