@@ -9,7 +9,7 @@ class AccountsRepository:
     def create(self, email: str, phone_number: str) -> User:
         user = User.objects.create_user(
             email=email,
-            phone_number=phone_number,
+            phone_number=f"+{phone_number}",
             username=email,
             password=None,
         )
