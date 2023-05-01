@@ -45,6 +45,7 @@ LOCAL_APPS = [
 
 OTHER_APPS = [
     "communication",
+    "app",
 ]
 
 INSTALLED_APPS = [
