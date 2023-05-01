@@ -11,7 +11,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     phone_regex = RegexValidator(
         regex=r"^\+?1?\d{9,15}$", message="Please enter a valid phone number"
     )
-    phone_number = models.CharField(validators=[phone_regex], max_length=17, blank=True)
+    phone_number = models.CharField(
+        validators=[phone_regex], max_length=17, blank=True, null=True
+    )
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
     use_2fa = models.BooleanField(default=False)

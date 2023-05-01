@@ -34,13 +34,18 @@ THIRD_PARTY_APPS = [
     "corsheaders",  # required for cors
     "storages",  # required for s3
     "rest_framework",  # required for rest framework
-    "rest_framework_simplejwt",  # required for jwt
+    "rest_framework_simplejwt.token_blacklist",  # required for jwt
     "django_crontab",  # required for cron jobs
     "django_filters",  # required for filtering
 ]
 
 LOCAL_APPS = [
     "iam",
+]
+
+OTHER_APPS = [
+    "communication",
+    "app",
 ]
 
 INSTALLED_APPS = [
@@ -215,7 +220,7 @@ LOG_HANDLER_DEFAULTS = {
 }
 LOG_HANDLERS = {}
 LOG_LOGGERS = {}
-for app in LOCAL_APPS:
+for app in [*LOCAL_APPS, *OTHER_APPS]:
     LOG_HANDLERS[app] = {
         **LOG_HANDLER_DEFAULTS,
         "filename": os.path.join(LOG_PATH, f"{app}.log"),
