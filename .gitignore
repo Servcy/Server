@@ -13,7 +13,7 @@
 
 # Project
 servcy/__pycache__/*.*
-logs/*
+*.log
 env/
 .venv/
 .coverage/

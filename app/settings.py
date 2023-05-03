@@ -123,6 +123,8 @@ CORS_ALLOW_CREDENTIALS = True  # its value determines whether the server allows 
 CORS_ORIGIN_WHITELIST = (  # for development only
     "http://127.0.0.1:3000",
     "http://localhost:3000",
+    "18.211.102.188",
+    "44.209.0.12",
 )
 CORS_ORIGIN_REGEX_WHITELIST = (r"^https://.*\.servcy\.com$",)  # for production only
 
