@@ -5,7 +5,7 @@
 ## Features
 
 1. Passwordless authentication using Twilio & SendGrid RESTful APIs
-    - Supports Whatsapp, Email & Phone number as OTP channel
+   - Supports Whatsapp, Email & Phone number as OTP channel
 
 ## Getting started
 
@@ -13,7 +13,7 @@
 
 1. Poetry should be installed
 2. Python version 3.11.1
-3. `cp config.ini.example config.ini`
+3. `cp config/config.ini.example config/config.ini`
 4. `mkdir logs`
 
 ### Installing Dependencies

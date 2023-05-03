@@ -7,7 +7,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # `config.ini` is a file that contains the secret key and other sensitive information
-CONFIG_FILE = BASE_DIR / "config.ini"
+CONFIG_FILE = BASE_DIR / "config/config.ini"
 config = RawConfigParser()
 config.read(CONFIG_FILE)
 
