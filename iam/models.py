@@ -2,7 +2,7 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.core.validators import RegexValidator
 from django.db import models
 
-from .managers import UserAccountManager
+from iam.managers import UserAccountManager
 
 
 class User(AbstractBaseUser, PermissionsMixin):
