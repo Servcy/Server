@@ -17,7 +17,7 @@ class AccountsRepository:
 
     def get(self, email: str, phone_number: str) -> User:
         try:
-            user = User.objects.get(email=email, phone_number=phone_number)
+            user = User.objects.get(email=email, phone_number=f"+{phone_number}")
         except User.DoesNotExist:
             user = None
         return user

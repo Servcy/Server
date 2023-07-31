@@ -11,25 +11,16 @@ CONFIG_FILE = BASE_DIR / "config/config.ini"
 config = RawConfigParser()
 config.read(CONFIG_FILE)
 
-
-SECRET_KEY = config.get("main", "SECRET_KEY")
-
+SECRET_KEY = config.get("main", "secret_key")
 
 HOST_TYPE = config.get("main", "host_type")
 
-
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = HOST_TYPE == "development"
-
 
 APPEND_SLASH = False
 
-
-# CORS
 ALLOWED_HOSTS = ["*"]
 
-
-# Application definition
 THIRD_PARTY_APPS = [
     "corsheaders",  # required for cors
     "storages",  # required for s3
@@ -44,7 +35,6 @@ LOCAL_APPS = [
 ]
 
 OTHER_APPS = [
-    "communication",
     "app",
 ]
 
@@ -57,6 +47,7 @@ INSTALLED_APPS = [
 ]
 
 INSTALLED_APPS += THIRD_PARTY_APPS
+
 INSTALLED_APPS += LOCAL_APPS
 
 MIDDLEWARE = [
@@ -72,9 +63,7 @@ MIDDLEWARE = [
     "middlewares.RequestUUIDMiddleware",
 ]
 
-
 ROOT_URLCONF = "app.urls"
-
 
 TEMPLATES = [
     {
@@ -92,11 +81,10 @@ TEMPLATES = [
     },
 ]
 
-
 REST_FRAMEWORK = {
     "DEFAULT_FILTER_BACKENDS": ("django_filters.rest_framework.DjangoFilterBackend",),
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
-    "PAGE_SIZE": 1000,
+    "PAGE_SIZE": 100,
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
@@ -116,18 +104,16 @@ REST_FRAMEWORK = {
     "DATE_FORMAT": "%d/%m/%Y",
 }
 
-
-# SECURITY WARNING: CORS Settings
 CORS_ALLOW_CREDENTIALS = True  # its value determines whether the server allows cookies in the cross-site HTTP requests.
+
 CORS_ORIGIN_WHITELIST = (  # for development only
     "http://127.0.0.1:3000",
     "http://localhost:3000",
 )
+
 CORS_ORIGIN_REGEX_WHITELIST = (r"^https://.*\.servcy\.com$",)  # for production only
 
-
 WSGI_APPLICATION = "app.wsgi.application"
-
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": datetime.timedelta(minutes=15),
@@ -135,14 +121,11 @@ SIMPLE_JWT = {
     "ROTATE_REFRESH_TOKENS": True,
 }
 
-
 # Admin Developer Settings
 ADMINS = [
     ("Megham", "megham@servcy.com"),
 ]
 
-
-# Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 DATABASES = {
     "default": {
@@ -155,19 +138,19 @@ DATABASES = {
     }
 }
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 LANGUAGE_CODE = "en-us"
-TIME_ZONE = "UTC"
-USE_I18N = True
-USE_TZ = True
 
+TIME_ZONE = "UTC"
+
+USE_I18N = True
+
+USE_TZ = True
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
 
 # S3 Settings
 AWS_STORAGE_BUCKET_NAME = config.get("aws", "bucket")
@@ -178,13 +161,11 @@ AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com"
 DEFAULT_FILE_STORAGE = "storage.MediaS3BotoStorage"
 MEDIAFILES_LOCATION = "media"
 
-
 # Sendgrid
 SENDGRID_API_KEY = config.get("sendgrid", "key")
 SEND_EMAIL_ENDPOINT = config.get("sendgrid", "endpoint")
 SENDGRID_VERIFICATION_TEMPLATE_ID = config.get("sendgrid", "verification_template_id")
 SENDGRID_FROM_EMAIL = config.get("sendgrid", "from_email")
-
 
 # Twilio
 TWILIO_ACCOUNT_SID = config.get("twilio", "account_sid")
@@ -192,14 +173,10 @@ TWILIO_AUTH_TOKEN = config.get("twilio", "auth_token")
 TWILLIO_VERIFY_SERVICE_ID = config.get("twilio", "verify_service_id")
 TWILIO_NUMBER = config.get("twilio", "from_number")
 
-
-# Frontend
 FRONTEND_URL = config.get("main", "frontend_url")
-
 
 # User Model
 AUTH_USER_MODEL = "iam.User"
-
 
 # Log Settings
 LOG_PATH = os.path.join(BASE_DIR, "logs")
