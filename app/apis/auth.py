@@ -117,7 +117,6 @@ class Authentication(APIView):
             email = payload.get("email", None)
             phone_number = payload.get("phone_number", None)
             code_email = payload.get("code_email", None)
-            is_whatsapp = payload.get("is_whatsapp", False)
             code_phone = payload.get("code_phone", None)
             if not phone_number and not email:
                 return Response(
@@ -135,16 +134,15 @@ class Authentication(APIView):
                     code=code_email,
                 )
             except TwilioRestException:
-                send_authentication_code_email(client, email)
                 logger.error(
                     f"An error occurred while accessing verification email code\n{traceback.format_exc()}"
                 )
                 return Response(
                     {
-                        "message": "Email verification code has been used already!\nNew verification code has been sent to your email!",
+                        "message": "Email verification code has been used already!",
                         "cause": "email",
                     },
-                    status.HTTP_404_NOT_FOUND,
+                    status.HTTP_401_UNAUTHORIZED,
                 )
             try:
                 verification_phone = client.verify.services(
@@ -154,16 +152,15 @@ class Authentication(APIView):
                     code=code_phone,
                 )
             except TwilioRestException:
-                send_authentication_code_phone(client, phone_number, is_whatsapp)
                 logger.error(
                     f"An error occurred while accessing verification phone code\n{traceback.format_exc()}"
                 )
                 return Response(
                     {
-                        "message": "Phone number verification code has been used already!\nNew verification code has been sent to your phone number!",
+                        "message": "Phone number verification code has been used already!",
                         "cause": "phone_number",
                     },
-                    status.HTTP_404_NOT_FOUND,
+                    status.HTTP_401_UNAUTHORIZED,
                 )
             if (
                 verification_email.status == "approved"
