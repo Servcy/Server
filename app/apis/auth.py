@@ -53,7 +53,7 @@ class Authentication(APIView):
             email = payload.get("email", None)
             phone_number = payload.get("phone_number", None)
             is_whatsapp = payload.get("is_whatsapp", "no")
-            if not phone_number and not email:
+            if not phone_number or not email:
                 return Response(
                     {"message": "Email and phone number are required!"},
                     status.HTTP_400_BAD_REQUEST,
