@@ -32,6 +32,7 @@ THIRD_PARTY_APPS = [
 
 LOCAL_APPS = [
     "iam",
+    "integration",
 ]
 
 OTHER_APPS = [
