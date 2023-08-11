@@ -42,7 +42,10 @@ class AuthenticationView(APIView):
                 send_authentication_code_email(client, input)
             else:
                 send_authentication_code_phone(client, f"+{input}", True)
-            return Response(status.HTTP_201_CREATED)
+            return Response(
+                {"message": "Verification code has been sent!"},
+                status.HTTP_201_CREATED,
+            )
         except Exception:
             logger.error(
                 f"An error occurred while sending verification code\n{traceback.format_exc()}"
