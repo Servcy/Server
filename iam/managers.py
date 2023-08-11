@@ -31,6 +31,7 @@ class UserAccountManager(BaseUserManager):
             email=email,
             phone_number=phone_number,
             password=password,
+            is_active=True,
             **other_fields
         )
         user.set_unusable_password()

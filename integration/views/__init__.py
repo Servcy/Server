@@ -7,6 +7,4 @@ from integration.serializers import IntegrationSerializer
 class IntegrationViewSet(ReadOnlyModelViewSet):
     serializer_class = IntegrationSerializer
     permission_classes = [IsAuthenticated]
-
-    def list(self, request, *args, **kwargs):
-        return self.retrieve(request, *args, **kwargs)
+    queryset = IntegrationSerializer.Meta.model.objects.all()

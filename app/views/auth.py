@@ -43,7 +43,7 @@ class AuthenticationView(APIView):
             else:
                 send_authentication_code_phone(client, f"+{input}", True)
             return Response(
-                {"message": "Verification code has been sent!"},
+                {"detail": "Verification code has been sent!"},
                 status.HTTP_201_CREATED,
             )
         except Exception:
@@ -51,7 +51,7 @@ class AuthenticationView(APIView):
                 f"An error occurred while sending verification code\n{traceback.format_exc()}"
             )
             return Response(
-                {"message": "An error occurred while sending verification code!"},
+                {"detail": "An error occurred while sending verification code!"},
                 status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -66,7 +66,7 @@ class AuthenticationView(APIView):
             input_type = payload.get("input_type", None)
             if not otp or not input_type or not input:
                 return Response(
-                    {"message": "otp, input and input_type are required!"},
+                    {"detail": "otp, input and input_type are required!"},
                     status.HTTP_406_NOT_ACCEPTABLE,
                 )
             account_sid = settings.TWILIO_ACCOUNT_SID
@@ -86,8 +86,7 @@ class AuthenticationView(APIView):
                     )
                     return Response(
                         {
-                            "message": "Email verification code has been used already!",
-                            "cause": "email",
+                            "detail": "Email verification code has been used already!",
                         },
                         status.HTTP_401_UNAUTHORIZED,
                     )
@@ -105,8 +104,7 @@ class AuthenticationView(APIView):
                     )
                     return Response(
                         {
-                            "message": "Phone number verification code has been used already!",
-                            "cause": "phone_number",
+                            "detail": "Phone number verification code has been used already!",
                         },
                         status.HTTP_401_UNAUTHORIZED,
                     )
@@ -121,7 +119,7 @@ class AuthenticationView(APIView):
                 return Response(tokens, status.HTTP_200_OK)
             else:
                 return Response(
-                    {"message": "Verification code is invalid!"},
+                    {"detail": "Verification code is invalid!"},
                     status.HTTP_401_UNAUTHORIZED,
                 )
         except Exception:
@@ -129,6 +127,6 @@ class AuthenticationView(APIView):
                 f"An error occurred while verifying verification code\n{traceback.format_exc()}"
             )
             return Response(
-                {"message": "An error occurred while verifying verification code!"},
+                {"detail": "An error occurred while verifying verification code!"},
                 status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
