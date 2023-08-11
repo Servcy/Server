@@ -1473,6 +1473,21 @@ botocore = ">=1.12.36,<2.0a.0"
 crt = ["botocore[crt] (>=1.20.29,<2.0a.0)"]
 
 [[package]]
+name = "serpy"
+version = "0.3.1"
+description = "ridiculously fast object serialization"
+category = "main"
+optional = false
+python-versions = "*"
+files = [
+    {file = "serpy-0.3.1-py2.py3-none-any.whl", hash = "sha256:750ded3df0671918b81d6efcab2b85cac12f9fcc2bce496c24a0ffa65d84b5da"},
+    {file = "serpy-0.3.1.tar.gz", hash = "sha256:3772b2a9923fbf674000ff51abebf6ea8f0fca0a2cfcbfa0d63ff118193d1ec5"},
+]
+
+[package.dependencies]
+six = "*"
+
+[[package]]
 name = "setuptools"
 version = "67.7.1"
 description = "Easily download, build, install, upgrade, and uninstall Python packages"
@@ -1818,4 +1833,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "3.11.1"
-content-hash = "017b1c9f2a795ae5814f61bc87a30b5930e74abeb6b3479a92db5da1101dfefa"
+content-hash = "f9f20d16891498785941431379f67c1a508b41e3b526158e86d4949a32e613a1"
