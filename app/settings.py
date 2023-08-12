@@ -117,7 +117,7 @@ CORS_ORIGIN_REGEX_WHITELIST = (r"^https://.*\.servcy\.com$",)  # for production 
 WSGI_APPLICATION = "app.wsgi.application"
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": datetime.timedelta(minutes=15),
+    "ACCESS_TOKEN_LIFETIME": datetime.timedelta(minutes=30),
     "REFRESH_TOKEN_LIFETIME": datetime.timedelta(days=1),
     "ROTATE_REFRESH_TOKENS": True,
 }
