@@ -32,3 +32,9 @@ class User(AbstractBaseUser, PermissionsMixin, TimeStampedModel):
 
     def __str__(self):
         return self.email
+
+    class Meta:
+        db_table = "user"
+        verbose_name = "User"
+        verbose_name_plural = "Users"
+        ordering = ["id"]

@@ -1,6 +1,7 @@
 from django.db import models
 
 from app.models import TimeStampedModel
+from iam.models import User
 
 
 class Integration(models.Model):
@@ -23,8 +24,14 @@ class IntegrationUser(TimeStampedModel):
     id = models.AutoField(primary_key=True)
 
     account_id = models.CharField(max_length=250, null=False, blank=False)
-    user_id = models.IntegerField(null=False, blank=False)
-    integration_id = models.IntegerField(null=False, blank=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=False, blank=False)
+    integration = models.ForeignKey(
+        Integration,
+        on_delete=models.CASCADE,
+        null=False,
+        blank=False,
+        related_name="integration_user",
+    )
 
     meta_data = models.TextField(default=None, null=True, blank=False)
 
@@ -33,4 +40,4 @@ class IntegrationUser(TimeStampedModel):
         verbose_name = "Integration User"
         verbose_name_plural = "Integration Users"
         ordering = ["id"]
-        unique_together = ("user_id", "integration_id", "account_id")
+        unique_together = ("user", "integration", "account_id")

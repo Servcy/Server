@@ -1,8 +1,28 @@
+from serpy import MethodField
+
 from app.serializers import ServcyReadSerializer
-from integration.models import Integration
+from integration.models import Integration, IntegrationUser
 
 
 class IntegrationSerializer(ServcyReadSerializer):
+    account_ids = MethodField()
+
     class Meta:
         model = Integration
-        fields = "__all__"
+        fields = (
+            "id",
+            "name",
+            "description",
+            "logo",
+            "account_id",
+        )
+
+    def get_account_ids(self, obj):
+        integration_user = obj.integration_user.all()
+        return [integration.account_id for integration in integration_user]
+
+
+class IntegrationUserSerializer(ServcyReadSerializer):
+    class Meta:
+        model = IntegrationUser
+        fields = ["account_id", "user", "integration"]

@@ -8,7 +8,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from integration.repository import IntegrationRepository
-from integration.utils.google import get_google_credentials
+from integration.services.google import GoogleService
 
 logger = logging.getLogger(__name__)
 
@@ -19,8 +19,8 @@ class GoogleViewSet(viewsets.ViewSet):
         try:
             code = urllib.parse.unquote(request.data["code"])
             scopes = urllib.parse.unquote(request.data["scope"]).split(" ")
-            google_credentials = get_google_credentials()
-            if not set(scopes).issubset(set(google_credentials.scopes)):
+            secrets = GoogleService.get_secrets()
+            if not set(scopes).issubset(set(secrets.scopes)):
                 logger.error(
                     f"Please grant all permissions, and try again!\n{str(scopes)}"
                 )
@@ -28,17 +28,7 @@ class GoogleViewSet(viewsets.ViewSet):
                     {"detail": "Please grant all permissions, and try again!"},
                     status=status.HTTP_406_NOT_ACCEPTABLE,
                 )
-            response = requests.post(
-                google_credentials.token_uri,
-                data={
-                    "code": code,
-                    "client_id": google_credentials.client_id,
-                    "client_secret": google_credentials.client_secret,
-                    "redirect_uri": google_credentials.redirect_uri,
-                    "grant_type": "authorization_code",
-                },
-            )
-            token_response = response.json()
+            token_response = GoogleService.fetch_tokens(code, secrets)
             if "error" in token_response:
                 logger.error(
                     f"An error occurred while obtaining access token from Google\n{str(token_response)}"
@@ -47,9 +37,9 @@ class GoogleViewSet(viewsets.ViewSet):
                     {"detail": token_response["error_description"]},
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 )
-            headers = {"Authorization": f'Bearer {token_response["access_token"]}'}
-            response = requests.get(google_credentials.user_info_uri, headers=headers)
-            user_info = response.json()
+            user_info = GoogleService.fetch_user_info(
+                token_response["access_token"], secrets
+            )
             if "error" in user_info:
                 logger.error(
                     f"An error occurred while obtaining user info from Google\n{str(user_info)}"
@@ -58,14 +48,12 @@ class GoogleViewSet(viewsets.ViewSet):
                     {"detail": user_info["error_description"]},
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 )
-            meta_data = {**token_response, **user_info}
-            account_id = user_info["sub"]
             integration = IntegrationRepository().get_integration_from_name("Gmail")
             IntegrationRepository().create_integration_user(
                 integration_id=integration.id,
                 user_id=request.user.id,
-                account_id=account_id,
-                meta_data=meta_data,
+                account_id=user_info["sub"],
+                meta_data={**token_response, **user_info},
             )
             return Response(
                 {"detail": "Successfully integrated with Gmail!"},
