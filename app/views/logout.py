@@ -22,6 +22,6 @@ class LogoutView(APIView):
                 f"An error occurred while logging out\n{traceback.format_exc()}"
             )
             return Response(
-                {"message": "An error occurred while logging out!"},
+                {"detail": "An error occurred while logging out!"},
                 status.HTTP_500_INTERNAL_SERVER_ERROR,
             )

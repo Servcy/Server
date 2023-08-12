@@ -1,5 +1,6 @@
 [main]
 secret_key = 
+fernet_key = 
 host_type = development
 frontend_url = http://localhost:3000
 
@@ -27,3 +28,11 @@ account_sid =
 auth_token = 
 verify_service_id = 
 from_number = 
+
+[google]
+client_id=
+client_secret=
+project_id=servcy
+token_uri=https://oauth2.googleapis.com/token
+redirect_uri=
+user_info_uri=

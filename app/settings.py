@@ -13,6 +13,8 @@ config.read(CONFIG_FILE)
 
 SECRET_KEY = config.get("main", "secret_key")
 
+FERNET_KEY = config.get("main", "fernet_key").encode()
+
 HOST_TYPE = config.get("main", "host_type")
 
 DEBUG = HOST_TYPE == "development"
@@ -32,6 +34,7 @@ THIRD_PARTY_APPS = [
 
 LOCAL_APPS = [
     "iam",
+    "integration",
 ]
 
 OTHER_APPS = [
@@ -116,7 +119,7 @@ CORS_ORIGIN_REGEX_WHITELIST = (r"^https://.*\.servcy\.com$",)  # for production 
 WSGI_APPLICATION = "app.wsgi.application"
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": datetime.timedelta(minutes=15),
+    "ACCESS_TOKEN_LIFETIME": datetime.timedelta(minutes=30),
     "REFRESH_TOKEN_LIFETIME": datetime.timedelta(days=1),
     "ROTATE_REFRESH_TOKENS": True,
 }
@@ -147,36 +150,6 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 
 USE_TZ = True
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
-# S3 Settings
-AWS_STORAGE_BUCKET_NAME = config.get("aws", "bucket")
-AWS_S3_REGION_NAME = config.get("aws", "region")
-AWS_ACCESS_KEY_ID = config.get("aws", "access")
-AWS_SECRET_ACCESS_KEY = config.get("aws", "secret")
-AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com"
-DEFAULT_FILE_STORAGE = "storage.MediaS3BotoStorage"
-MEDIAFILES_LOCATION = "media"
-
-# Sendgrid
-SENDGRID_API_KEY = config.get("sendgrid", "key")
-SEND_EMAIL_ENDPOINT = config.get("sendgrid", "endpoint")
-SENDGRID_VERIFICATION_TEMPLATE_ID = config.get("sendgrid", "verification_template_id")
-SENDGRID_FROM_EMAIL = config.get("sendgrid", "from_email")
-
-# Twilio
-TWILIO_ACCOUNT_SID = config.get("twilio", "account_sid")
-TWILIO_AUTH_TOKEN = config.get("twilio", "auth_token")
-TWILLIO_VERIFY_SERVICE_ID = config.get("twilio", "verify_service_id")
-TWILIO_NUMBER = config.get("twilio", "from_number")
-
-FRONTEND_URL = config.get("main", "frontend_url")
-
-# User Model
-AUTH_USER_MODEL = "iam.User"
 
 # Log Settings
 LOG_PATH = os.path.join(BASE_DIR, "logs")
@@ -232,3 +205,49 @@ LOGGING = {
         },
     },
 }
+
+# Default primary key field type
+# https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# S3 Settings
+AWS_STORAGE_BUCKET_NAME = config.get("aws", "bucket")
+AWS_S3_REGION_NAME = config.get("aws", "region")
+AWS_ACCESS_KEY_ID = config.get("aws", "access")
+AWS_SECRET_ACCESS_KEY = config.get("aws", "secret")
+AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com"
+DEFAULT_FILE_STORAGE = "storage.MediaS3BotoStorage"
+MEDIAFILES_LOCATION = "media"
+
+# Sendgrid
+SENDGRID_API_KEY = config.get("sendgrid", "key")
+SEND_EMAIL_ENDPOINT = config.get("sendgrid", "endpoint")
+SENDGRID_VERIFICATION_TEMPLATE_ID = config.get("sendgrid", "verification_template_id")
+SENDGRID_FROM_EMAIL = config.get("sendgrid", "from_email")
+
+# Twilio
+TWILIO_ACCOUNT_SID = config.get("twilio", "account_sid")
+TWILIO_AUTH_TOKEN = config.get("twilio", "auth_token")
+TWILLIO_VERIFY_SERVICE_ID = config.get("twilio", "verify_service_id")
+TWILIO_NUMBER = config.get("twilio", "from_number")
+
+# URLs
+FRONTEND_URL = config.get("main", "frontend_url")
+
+# User Model
+AUTH_USER_MODEL = "iam.User"
+
+# Integration
+GOOGLE_OAUTH2_CLIENT_ID = config.get("google", "client_id")
+GOOGLE_OAUTH2_CLIENT_SECRET = config.get("google", "client_secret")
+GOOGLE_OAUTH2_TOKEN_URI = config.get("google", "token_uri")
+GOOGLE_OAUTH2_REDIRECT_URI = config.get("google", "redirect_uri")
+GOOGLE_OAUTH2_SCOPES = [
+    "https://www.googleapis.com/auth/gmail.readonly",
+    "https://www.googleapis.com/auth/gmail.send",
+    "https://www.googleapis.com/auth/calendar",
+    "https://www.googleapis.com/auth/userinfo.email",
+    "email",
+    "openid",
+]
+GOOGLE_OAUTH2_USER_INFO_URI = config.get("google", "user_info_uri")

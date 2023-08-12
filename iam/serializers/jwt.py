@@ -5,7 +5,6 @@ class JWTTokenSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
-        token["use_2fa"] = user.use_2fa
         token["id"] = user.id
         token["email"] = user.email
         token["username"] = user.username
