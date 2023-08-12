@@ -2,10 +2,11 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.core.validators import RegexValidator
 from django.db import models
 
+from app.models import TimeStampedModel
 from iam.managers import UserAccountManager
 
 
-class User(AbstractBaseUser, PermissionsMixin):
+class User(AbstractBaseUser, PermissionsMixin, TimeStampedModel):
     email = models.EmailField(unique=True, null=True, default=None)
     username = models.CharField(max_length=150, unique=True)
     phone_regex = RegexValidator(
