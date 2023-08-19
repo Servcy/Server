@@ -19,3 +19,4 @@ env/
 .coverage/
 .autogen/
 static/
+servcy-gcp-service-account-key.json

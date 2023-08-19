@@ -36,3 +36,5 @@ project_id=servcy
 token_uri=https://oauth2.googleapis.com/token
 redirect_uri=
 user_info_uri=
+pub_sub_topic=
+pub_sub_subscription=

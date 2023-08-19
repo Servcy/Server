@@ -10,7 +10,7 @@ class Integration(models.Model):
     logo = models.URLField(default=None, null=True)
     description = models.CharField(max_length=5000)
     meta_data = models.JSONField()
-
+    tag = models.CharField(max_length=100, null=False, blank=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -22,7 +22,6 @@ class Integration(models.Model):
 
 class IntegrationUser(TimeStampedModel):
     id = models.AutoField(primary_key=True)
-
     account_id = models.CharField(max_length=250, null=False, blank=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=False, blank=False)
     integration = models.ForeignKey(
@@ -30,9 +29,8 @@ class IntegrationUser(TimeStampedModel):
         on_delete=models.CASCADE,
         null=False,
         blank=False,
-        related_name="integration_user",
+        related_name="integration_users",
     )
-
     meta_data = models.TextField(default=None, null=True, blank=False)
 
     class Meta:

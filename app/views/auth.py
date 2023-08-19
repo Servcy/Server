@@ -48,7 +48,7 @@ class AuthenticationView(APIView):
             )
         except Exception:
             logger.error(
-                f"An error occurred while sending verification code\n{traceback.format_exc()}"
+                f"An error occurred while sending verification code.\n{traceback.format_exc()}"
             )
             return Response(
                 {"detail": "An error occurred while sending verification code!"},
@@ -82,7 +82,7 @@ class AuthenticationView(APIView):
                     )
                 except TwilioRestException:
                     logger.error(
-                        f"An error occurred while accessing verification email code\n{traceback.format_exc()}"
+                        f"An error occurred while accessing verification email code.\n{traceback.format_exc()}"
                     )
                     return Response(
                         {
@@ -100,7 +100,7 @@ class AuthenticationView(APIView):
                     )
                 except TwilioRestException:
                     logger.error(
-                        f"An error occurred while accessing verification phone code\n{traceback.format_exc()}"
+                        f"An error occurred while accessing verification phone code.\n{traceback.format_exc()}"
                     )
                     return Response(
                         {
@@ -124,7 +124,7 @@ class AuthenticationView(APIView):
                 )
         except Exception:
             logger.error(
-                f"An error occurred while verifying verification code\n{traceback.format_exc()}"
+                f"An error occurred while verifying verification code.\n{traceback.format_exc()}"
             )
             return Response(
                 {"detail": "An error occurred while verifying verification code!"},

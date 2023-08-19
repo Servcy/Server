@@ -31,7 +31,7 @@ class GoogleViewSet(viewsets.ViewSet):
             token_response = GoogleService.fetch_tokens(code, secrets)
             if "error" in token_response:
                 logger.error(
-                    f"An error occurred while obtaining access token from Google\n{str(token_response)}"
+                    f"An error occurred while obtaining access token from Google.\n{str(token_response)}"
                 )
                 return Response(
                     {"detail": token_response["error_description"]},
@@ -42,18 +42,30 @@ class GoogleViewSet(viewsets.ViewSet):
             )
             if "error" in user_info:
                 logger.error(
-                    f"An error occurred while obtaining user info from Google\n{str(user_info)}"
+                    f"An error occurred while obtaining user info from Google.\n{str(user_info)}"
                 )
                 return Response(
                     {"detail": user_info["error_description"]},
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 )
-            integration = IntegrationRepository().get_integration_from_name("Gmail")
-            IntegrationRepository().create_integration_user(
+            GoogleService.add_publisher_for_user(
+                email=user_info["email"],
+            )
+            watcher_response = GoogleService.add_watcher_to_inbox_pub_sub(
+                access_token=token_response["access_token"],
+                client_id=secrets.client_id,
+                client_secret=secrets.client_secret,
+                refresh_token=token_response["refresh_token"],
+                email=user_info["email"],
+            )
+            integration = IntegrationRepository.get_integration(
+                filters={"name": "Gmail"}
+            )
+            IntegrationRepository.create_integration_user(
                 integration_id=integration.id,
                 user_id=request.user.id,
-                account_id=user_info["sub"],
-                meta_data={**token_response, **user_info},
+                account_id=user_info["email"],
+                meta_data={**token_response, **user_info, **watcher_response},
             )
             return Response(
                 {"detail": "Successfully integrated with Gmail!"},
@@ -67,7 +79,7 @@ class GoogleViewSet(viewsets.ViewSet):
             )
         except Exception:
             logger.error(
-                f"An error occurred while verifying verification code\n{traceback.format_exc()}"
+                f"An error occurred while processing oauth data.\n{traceback.format_exc()}"
             )
             return Response(
                 {"detail": "An error occurred. Please try again later!"},

@@ -19,7 +19,7 @@ class LogoutView(APIView):
             return Response(status=status.HTTP_205_RESET_CONTENT)
         except Exception as err:
             logger.error(
-                f"An error occurred while logging out\n{traceback.format_exc()}"
+                f"An error occurred while logging out.\n{traceback.format_exc()}"
             )
             return Response(
                 {"detail": "An error occurred while logging out!"},

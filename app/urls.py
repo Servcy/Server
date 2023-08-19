@@ -9,4 +9,5 @@ urlpatterns = [
     path("refresh-token", TokenRefreshView.as_view(), name="Refresh Token"),
     path("logout", LogoutView.as_view(), name="Logout View"),
     path("integration/", include("integration.urls")),
+    path("inbox/", include("inbox.urls")),
 ]
