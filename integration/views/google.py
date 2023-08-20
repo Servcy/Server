@@ -19,8 +19,7 @@ class GoogleViewSet(viewsets.ViewSet):
         try:
             code = urllib.parse.unquote(request.data["code"])
             scopes = urllib.parse.unquote(request.data["scope"]).split(" ")
-            secrets = GoogleService.get_secrets()
-            if not set(scopes).issubset(set(secrets.scopes)):
+            if not set(scopes).issubset(set(GoogleService.scopes)):
                 logger.error(
                     f"Please grant all permissions, and try again!\n{str(scopes)}"
                 )
@@ -28,7 +27,7 @@ class GoogleViewSet(viewsets.ViewSet):
                     {"detail": "Please grant all permissions, and try again!"},
                     status=status.HTTP_406_NOT_ACCEPTABLE,
                 )
-            token_response = GoogleService.fetch_tokens(code, secrets)
+            token_response = GoogleService.fetch_tokens(code)
             if "error" in token_response:
                 logger.error(
                     f"An error occurred while obtaining access token from Google.\n{str(token_response)}"
@@ -37,9 +36,11 @@ class GoogleViewSet(viewsets.ViewSet):
                     {"detail": token_response["error_description"]},
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 )
-            user_info = GoogleService.fetch_user_info(
-                token_response["access_token"], secrets
+            google_service = GoogleService(
+                token=token_response["access_token"],
+                refresh_token=token_response["refresh_token"],
             )
+            user_info = google_service.fetch_user_info()
             if "error" in user_info:
                 logger.error(
                     f"An error occurred while obtaining user info from Google.\n{str(user_info)}"
@@ -48,13 +49,11 @@ class GoogleViewSet(viewsets.ViewSet):
                     {"detail": user_info["error_description"]},
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 )
-            GoogleService.add_publisher_for_user(
+            google_service.add_publisher_for_user(
                 email=user_info["email"],
             )
-            watcher_response = GoogleService.add_watcher_to_inbox_pub_sub(
+            watcher_response = google_service.add_watcher_to_inbox_pub_sub(
                 access_token=token_response["access_token"],
-                client_id=secrets.client_id,
-                client_secret=secrets.client_secret,
                 refresh_token=token_response["refresh_token"],
                 email=user_info["email"],
             )

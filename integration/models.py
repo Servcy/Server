@@ -17,7 +17,6 @@ class Integration(models.Model):
         db_table = "integration"
         verbose_name = "Integration"
         verbose_name_plural = "Integrations"
-        ordering = ["id"]
 
 
 class IntegrationUser(TimeStampedModel):
@@ -37,5 +36,4 @@ class IntegrationUser(TimeStampedModel):
         db_table = "integration_user"
         verbose_name = "Integration User"
         verbose_name_plural = "Integration Users"
-        ordering = ["id"]
         unique_together = ("user", "integration", "account_id")

@@ -48,7 +48,7 @@ class IntegrationRepository:
         return integration
 
     @classmethod
-    def get_integration_user(self, filters: dict) -> list[IntegrationUser]:
+    def get_integration_users(self, filters: dict) -> list[IntegrationUser]:
         integrations = IntegrationUser.objects.filter(**filters).values(
             "id", "meta_data", "account_id", "integration_id", "user_id"
         )

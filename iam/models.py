@@ -37,4 +37,3 @@ class User(AbstractBaseUser, PermissionsMixin, TimeStampedModel):
         db_table = "user"
         verbose_name = "User"
         verbose_name_plural = "Users"
-        ordering = ["id"]

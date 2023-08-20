@@ -7,10 +7,15 @@ from integration.models import IntegrationUser
 class GoogleMail(TimeStampedModel):
     id = models.BigAutoField(primary_key=True)
 
-    message_id = models.CharField(max_length=255)
+    message_id = models.CharField(max_length=255, unique=True)
     thread_id = models.CharField(max_length=255)
     history_id = models.CharField(max_length=255)
-    data = models.JSONField()
+    snippet = models.TextField()
+    size_estimate = models.IntegerField()
+    payload = models.JSONField()
+    label_ids = models.JSONField()
+    internal_date = models.DateTimeField()
+
     integration_user = models.ForeignKey(
         IntegrationUser, on_delete=models.CASCADE, related_name="google_mails"
     )
