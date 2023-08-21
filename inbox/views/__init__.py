@@ -19,7 +19,7 @@ class InboxViewSet(ViewSet):
             return success_response(
                 results=inbox_service.sync_inbox(),
                 success_message="Inbox synced successfully.",
-                status_code=status.HTTP_200_OK,
+                status=status.HTTP_200_OK,
             )
         except Exception:
             return error_response(

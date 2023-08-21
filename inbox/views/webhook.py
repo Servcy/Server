@@ -57,7 +57,7 @@ class WebHookViewSet(ViewSet):
                 logger=logger,
                 logger_message="IntegrityError occurred processing webhook for google request.",
                 error_message="Known error occurred. Please try again later!",
-                status_code=status.HTTP_501_NOT_IMPLEMENTED,
+                status=status.HTTP_501_NOT_IMPLEMENTED,
             )
         except Exception:
             return error_response(

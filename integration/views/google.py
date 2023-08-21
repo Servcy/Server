@@ -66,7 +66,7 @@ class GoogleViewSet(viewsets.ViewSet):
                 logger=logger,
                 logger_message="KeyError occurred processing oauth request.",
                 error_message="code, and scope are required!",
-                status_code=status.HTTP_400_BAD_REQUEST,
+                status=status.HTTP_400_BAD_REQUEST,
             )
         except Exception:
             error_response(
