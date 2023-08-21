@@ -8,15 +8,15 @@ from inbox.models import GoogleMail
 
 class GoogleMailRepository:
     @staticmethod
-    def get_google_mail(filters={}):
+    def get_mail(filters={}):
         return GoogleMail.objects.get(**filters)
 
     @staticmethod
-    def filter_google_mail(filters={}):
+    def get_mails(filters={}):
         return GoogleMail.objects.filter(**filters)
 
     @staticmethod
-    def create_google_mails(
+    def create_mails(
         google_mails: list, user_integration_id: int, batch_size: int = 100
     ):
         google_mail_objects = []
@@ -41,7 +41,7 @@ class GoogleMailRepository:
         GoogleMail.objects.bulk_create(google_mail_objects, batch_size=batch_size)
 
     @staticmethod
-    def read_google_mails(filters: dict = {}, values: list = ["id"]) -> list[dict]:
+    def read_mails(filters: dict = {}, values: list = ["id"]) -> list[dict]:
         """
         Read google mails from the database and update the is_read flag.
         """

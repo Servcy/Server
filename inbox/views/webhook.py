@@ -30,7 +30,7 @@ class WebHookViewSet(ViewSet):
                 }
             )
             last_known_message = (
-                GoogleMailRepository.filter_google_mail(
+                GoogleMailRepository.get_mails(
                     {"user_integration_id": google_integrations[0]["id"]}
                 )
                 .order_by("-id")
@@ -45,7 +45,7 @@ class WebHookViewSet(ViewSet):
                 if last_known_message
                 else None,
             )
-            GoogleMailRepository.create_google_mails(
+            GoogleMailRepository.create_mails(
                 google_mails=google_service.get_messages(
                     message_ids=[message["id"] for message in new_messages],
                 ),

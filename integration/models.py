@@ -10,7 +10,6 @@ class Integration(models.Model):
     logo = models.URLField(default=None, null=True)
     description = models.CharField(max_length=5000)
     meta_data = models.JSONField()
-    tag = models.CharField(max_length=100, null=False, blank=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
