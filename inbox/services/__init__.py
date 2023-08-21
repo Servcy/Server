@@ -1,3 +1,5 @@
+from django.db import transaction
+
 from inbox.models import InboxItem
 from inbox.repository import GoogleMailRepository, InboxRepository
 
@@ -10,10 +12,11 @@ class InboxService:
         """
         Collate all the services and return the results.
         """
-        mails = self._read_mails()
-        notifications = self._read_notifications()
-        messages = self._read_messages()
-        comments = self._read_comments()
+        with transaction.atomic():
+            mails = self._read_mails()
+            notifications = self._read_notifications()
+            messages = self._read_messages()
+            comments = self._read_comments()
         return {
             "mails": mails,
             "notifications": notifications,
