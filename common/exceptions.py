@@ -5,13 +5,13 @@ from rest_framework.exceptions import APIException
 
 class ServcyBaseException(Exception):
     """
-    Custom Exception Base Class for Servcy.
+    Custom exception base for Servcy.
     """
 
 
 class ServcyAPIException(APIException, ServcyBaseException):
     """
-    Custom Rest Framework APIException for the Servcy server.
+    APIException for Servcy server.
     """
 
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -21,7 +21,7 @@ class ServcyAPIException(APIException, ServcyBaseException):
 
 class MicroserviceException(ServcyAPIException):
     """
-    Custom Exception for Servcy Microservices.
+    For Servcy Microservices.
     """
 
     default_detail = "A Servcy microservice encountered an error!"
@@ -30,7 +30,7 @@ class MicroserviceException(ServcyAPIException):
 
 class BusinessException(ServcyAPIException):
     """
-    Custom Exception for Servcy Business Logic.
+    For Servcy Business Logic.
     """
 
     default_detail = "A Business Exception has occurred"
@@ -39,19 +39,19 @@ class BusinessException(ServcyAPIException):
 
 class ServcyDBException(DatabaseError, ServcyBaseException):
     """
-    Custom Database Exception BaseClass.
+    For Database Exception BaseClass.
     """
 
 
-class DisplayableError(ServcyBaseException):
+class DisplayableException(ServcyBaseException):
     """
-    Custom class for exceptions that have error messages that can be directly exposed to the user.
+    For exceptions that have error messages that can be directly exposed to the user.
     """
 
 
-class DataError(Exception):
+class DataException(Exception):
     """
-    To be used for custom classification of errors.
+    For custom classification of errors.
     """
 
     @property
@@ -61,7 +61,7 @@ class DataError(Exception):
 
 class SerializerException(ServcyBaseException):
     """
-    Custom class for exception raised from serializers.
+    For exception raised from serializers.
     """
 
     default_detail = "A Serializer Exception has occured"
@@ -70,7 +70,7 @@ class SerializerException(ServcyBaseException):
 
 class WriteSerializerException(SerializerException):
     """
-    Custom class for exception raises from Write Serializers.
+    For exception raises from Write Serializers.
     """
 
     default_detail = "Exception occured while writing serializer"
@@ -79,7 +79,7 @@ class WriteSerializerException(SerializerException):
 
 class ReadSerializerException(SerializerException):
     """
-    Custom class for exceptions raised from Read Serializers.
+    For exceptions raised from Read Serializers.
     """
 
     default_detail = "Exception occured while reading serializer"
@@ -87,10 +87,18 @@ class ReadSerializerException(SerializerException):
 
 
 class InadequateDataException(BusinessException):
+    """
+    For exceptions raised when data is inadequate.
+    """
+
     status_code = status.HTTP_412_PRECONDITION_FAILED
     default_detail = "Inadequate data available"
 
 
 class JsonDataException(BusinessException):
+    """
+    For exceptions raised when JSON data is invalid.
+    """
+
     status_code = status.HTTP_412_PRECONDITION_FAILED
-    default_detail = "JSON data is invalid. Possible Key Error."
+    default_detail = "JSON data is invalid. Possible Key Exception."
