@@ -11,18 +11,18 @@ logger = logging.getLogger(__name__)
 
 
 class InboxViewSet(ViewSet):
-    @action(detail=False, methods=["get"], url_path="sync")
-    def sync_inbox(self, request):
+    @action(detail=False, methods=["get"], url_path="refresh")
+    def refresh_inbox(self, request):
         try:
             user_id = request.user.id
             inbox_service = InboxService(user_id=user_id)
             return success_response(
-                results=inbox_service.sync_inbox(),
-                success_message="Inbox synced successfully.",
+                results=inbox_service.refresh_inbox(),
+                success_message="Inbox refreshed successfully.",
                 status=status.HTTP_200_OK,
             )
         except Exception:
             return error_response(
                 logger=logger,
-                logger_message="An error occurred while syncing inbox.",
+                logger_message="An error occurred while refreshing inbox.",
             )

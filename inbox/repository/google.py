@@ -1,9 +1,9 @@
 import datetime
 
-from django.db import transaction
 from django.utils import timezone
 
 from inbox.models import GoogleMail
+from inbox.services.google import GoogleMailService
 
 
 class GoogleMailRepository:
@@ -17,38 +17,41 @@ class GoogleMailRepository:
 
     @staticmethod
     def create_mails(
-        google_mails: list, user_integration_id: int, batch_size: int = 100
-    ):
-        google_mail_objects = []
-        for google_mail in google_mails:
-            google_mail_objects.append(
+        mails: list, user_integration_id: int, batch_size: int = 100
+    ) -> list[dict]:
+        mail_objects = []
+        inbox_items = []
+        for mail in mails:
+            mail_objects.append(
                 GoogleMail(
-                    thread_id=google_mail["threadId"],
-                    history_id=google_mail["historyId"],
-                    message_id=google_mail["id"],
-                    snippet=google_mail["snippet"],
-                    size_estimate=google_mail["sizeEstimate"],
-                    label_ids=google_mail["labelIds"],
-                    payload=google_mail["payload"],
+                    thread_id=mail["threadId"],
+                    history_id=mail["historyId"],
+                    message_id=mail["id"],
+                    snippet=mail["snippet"],
+                    size_estimate=mail["sizeEstimate"],
+                    label_ids=mail["labelIds"],
+                    payload=mail["payload"],
                     internal_date=timezone.make_aware(
                         datetime.datetime.fromtimestamp(
-                            int(google_mail["internalDate"]) / 1000
+                            int(mail["internalDate"]) / 1000
                         )
                     ),
                     user_integration_id=user_integration_id,
                 )
             )
-        GoogleMail.objects.bulk_create(google_mail_objects, batch_size=batch_size)
-
-    @staticmethod
-    def read_mails(filters: dict = {}, values: list = ["id"]) -> list[dict]:
-        """
-        Read google mails from the database and update the is_read flag.
-        """
-        mails = []
-        with transaction.atomic():
-            mails = GoogleMail.objects.filter(**filters).values(*values)
-            GoogleMail.objects.filter(id__in=[mail["id"] for mail in mails]).update(
-                is_read=True
+            inbox_items.append(
+                {
+                    "title": GoogleMailService._get_mail_header(
+                        "Subject", mail["payload"]["headers"]
+                    ),
+                    "cause": GoogleMailService._get_mail_header(
+                        "From", mail["payload"]["headers"]
+                    ),
+                    "body": GoogleMailService._get_mail_body(mail["payload"]),
+                    "is_body_html": GoogleMailService._is_body_html(mail["payload"]),
+                    "user_integration_id": user_integration_id,
+                    "uid": f"{mail['id']}-{user_integration_id}",
+                }
             )
-        return mails
+        GoogleMail.objects.bulk_create(mail_objects, batch_size=batch_size)
+        return inbox_items

@@ -1,5 +1,4 @@
 from inbox.models import InboxItem
-from inbox.repository.google import GoogleMailRepository
 
 
 class InboxRepository:
@@ -8,6 +7,12 @@ class InboxRepository:
     """
 
     @staticmethod
+    def add_item(item: dict) -> InboxItem:
+        """
+        Add an item to the inbox.
+        """
+        return InboxItem.objects.create(**item)
+
     def add_items(items: list[dict]) -> list[InboxItem]:
         """
         Add items to the inbox.
