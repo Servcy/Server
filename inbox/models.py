@@ -1,13 +1,27 @@
 from django.db import models
 
 from app.models import TimeStampedModel
-from integration.models import IntegrationUser
+from integration.models import UserIntegration
+
+
+class UserInbox(TimeStampedModel):
+    id = models.BigAutoField(primary_key=True)
+    title = models.CharField(max_length=255)
+    body = models.TextField(null=True, blank=False, default=None)
+    is_archived = models.BooleanField(default=False)
+    is_deleted = models.BooleanField(default=False)
+    user_integration = models.ForeignKey(
+        UserIntegration, on_delete=models.CASCADE, related_name="user_inboxes"
+    )
+
+    class Meta:
+        db_table = "user_inbox"
+        verbose_name = "User Inbox"
 
 
 class GoogleMail(TimeStampedModel):
     id = models.BigAutoField(primary_key=True)
-
-    message_id = models.CharField(max_length=255, unique=True)
+    message_id = models.CharField(max_length=255, unique=True, db_index=True)
     thread_id = models.CharField(max_length=255)
     history_id = models.CharField(max_length=255)
     snippet = models.TextField()
@@ -15,9 +29,9 @@ class GoogleMail(TimeStampedModel):
     payload = models.JSONField()
     label_ids = models.JSONField()
     internal_date = models.DateTimeField()
-
-    integration_user = models.ForeignKey(
-        IntegrationUser, on_delete=models.CASCADE, related_name="google_mails"
+    is_read = models.BooleanField(default=False)
+    user_integration = models.ForeignKey(
+        UserIntegration, on_delete=models.CASCADE, related_name="google_mails"
     )
 
     class Meta:

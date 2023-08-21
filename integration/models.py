@@ -5,7 +5,7 @@ from iam.models import User
 
 
 class Integration(models.Model):
-    id = models.AutoField(primary_key=True)
+    id = models.BigAutoField(primary_key=True)
     name = models.CharField(max_length=100)
     logo = models.URLField(default=None, null=True)
     description = models.CharField(max_length=5000)
@@ -19,8 +19,8 @@ class Integration(models.Model):
         verbose_name_plural = "Integrations"
 
 
-class IntegrationUser(TimeStampedModel):
-    id = models.AutoField(primary_key=True)
+class UserIntegration(TimeStampedModel):
+    id = models.BigAutoField(primary_key=True)
     account_id = models.CharField(max_length=250, null=False, blank=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=False, blank=False)
     integration = models.ForeignKey(
@@ -28,12 +28,12 @@ class IntegrationUser(TimeStampedModel):
         on_delete=models.CASCADE,
         null=False,
         blank=False,
-        related_name="integration_users",
+        related_name="user_integrations",
     )
     meta_data = models.TextField(default=None, null=True, blank=False)
 
     class Meta:
-        db_table = "integration_user"
-        verbose_name = "Integration User"
-        verbose_name_plural = "Integration Users"
+        db_table = "user_integration"
+        verbose_name = "User Integration"
+        verbose_name_plural = "User Integration"
         unique_together = ("user", "integration", "account_id")

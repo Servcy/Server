@@ -51,7 +51,7 @@ class GoogleViewSet(viewsets.ViewSet):
             integration = IntegrationRepository.get_integration(
                 filters={"name": "Gmail"}
             )
-            IntegrationRepository.create_integration_user(
+            IntegrationRepository.create_user_integration(
                 integration_id=integration.id,
                 user_id=request.user.id,
                 account_id=user_info["email"],

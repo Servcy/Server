@@ -1,4 +1,4 @@
-from inbox.services.google import GoogleMailService
+from inbox.repository import GoogleMailRepository
 
 
 class InboxService:
@@ -6,6 +6,18 @@ class InboxService:
         self.user_id = user_id
 
     def sync_inbox(self) -> None:
-        fetch_new_unread_mails = GoogleMailService.fetch_new_unread_mails(
-            user_id=self.user_id
+        """
+        Collate all the services and return the results.
+        results can be of type:
+            - mails (google/yahoo/outlook)
+            - messages
+            - notifications
+        """
+        google_mails = GoogleMailRepository.read_google_mails(
+            filters={
+                "user_integration__user_id": self.user_id,
+                "is_read": False,
+            },
+            values=["id", "payload", "created_at", "user_integration__account_id"],
         )
+        return list(google_mails)

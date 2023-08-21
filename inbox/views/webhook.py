@@ -23,7 +23,7 @@ class WebHookViewSet(ViewSet):
             encoded_data = payload["message"]["data"]
             decoded_data = json.loads(decodebytes(encoded_data.encode()).decode())
             email = decoded_data["emailAddress"]
-            google_integrations = IntegrationRepository.get_integration_users(
+            google_integrations = IntegrationRepository.get_user_integrations(
                 filters={
                     "account_id": email,
                     "integration__name": "Gmail",
@@ -31,7 +31,7 @@ class WebHookViewSet(ViewSet):
             )
             last_known_message = (
                 GoogleMailRepository.filter_google_mail(
-                    {"integration_user_id": google_integrations[0]["id"]}
+                    {"user_integration_id": google_integrations[0]["id"]}
                 )
                 .order_by("-id")
                 .first()
@@ -45,12 +45,11 @@ class WebHookViewSet(ViewSet):
                 if last_known_message
                 else None,
             )
-            new_messages_with_data = google_service.get_messages_with_data(
-                message_ids=[message["id"] for message in new_messages],
-            )
             GoogleMailRepository.create_google_mails(
-                google_mails=new_messages_with_data,
-                integration_user_id=google_integrations[0]["id"],
+                google_mails=google_service.get_messages(
+                    message_ids=[message["id"] for message in new_messages],
+                ),
+                user_integration_id=google_integrations[0]["id"],
             )
             return success_response()
         except IntegrityError:

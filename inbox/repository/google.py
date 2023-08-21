@@ -1,5 +1,6 @@
 import datetime
 
+from django.db import transaction
 from django.utils import timezone
 
 from inbox.models import GoogleMail
@@ -16,7 +17,7 @@ class GoogleMailRepository:
 
     @staticmethod
     def create_google_mails(
-        google_mails: list, integration_user_id: int, batch_size: int = 100
+        google_mails: list, user_integration_id: int, batch_size: int = 100
     ):
         google_mail_objects = []
         for google_mail in google_mails:
@@ -34,7 +35,20 @@ class GoogleMailRepository:
                             int(google_mail["internalDate"]) / 1000
                         )
                     ),
-                    integration_user_id=integration_user_id,
+                    user_integration_id=user_integration_id,
                 )
             )
         GoogleMail.objects.bulk_create(google_mail_objects, batch_size=batch_size)
+
+    @staticmethod
+    def read_google_mails(filters: dict = {}, values: list = ["id"]) -> list[dict]:
+        """
+        Read google mails from the database and update the is_read flag.
+        """
+        mails = []
+        with transaction.atomic():
+            mails = GoogleMail.objects.filter(**filters).values(*values)
+            GoogleMail.objects.filter(id__in=[mail["id"] for mail in mails]).update(
+                is_read=True
+            )
+        return mails

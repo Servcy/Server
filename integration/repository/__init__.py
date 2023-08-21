@@ -5,14 +5,14 @@ from cryptography.fernet import Fernet
 from django.conf import settings
 from django.db import IntegrityError
 
-from integration.models import Integration, IntegrationUser
+from integration.models import Integration, UserIntegration
 
 
 class IntegrationRepository:
     @classmethod
-    def create_integration_user(
+    def create_user_integration(
         self, integration_id: int, user_id: int, meta_data: dict, account_id: str
-    ) -> IntegrationUser:
+    ) -> UserIntegration:
         base_64_encoded_meta_data = {
             key: b64encode(str(value).encode()).decode()
             for key, value in meta_data.items()
@@ -23,22 +23,22 @@ class IntegrationRepository:
             .decode()
         )
         try:
-            integration_user = IntegrationUser.objects.create(
+            user_integration = UserIntegration.objects.create(
                 integration_id=integration_id,
                 user_id=user_id,
                 meta_data=encrypted_meta_data,
                 account_id=account_id,
             )
-            return integration_user
+            return user_integration
         except IntegrityError:
-            integration_user = IntegrationUser.objects.get(
+            user_integration = UserIntegration.objects.get(
                 integration_id=integration_id,
                 user_id=user_id,
                 account_id=account_id,
             )
-            integration_user.meta_data = encrypted_meta_data
-            integration_user.save()
-            return integration_user
+            user_integration.meta_data = encrypted_meta_data
+            user_integration.save()
+            return user_integration
         except Exception as err:
             raise err
 
@@ -48,8 +48,8 @@ class IntegrationRepository:
         return integration
 
     @classmethod
-    def get_integration_users(self, filters: dict) -> list[IntegrationUser]:
-        integrations = IntegrationUser.objects.filter(**filters).values(
+    def get_user_integrations(self, filters: dict) -> list[UserIntegration]:
+        integrations = UserIntegration.objects.filter(**filters).values(
             "id", "meta_data", "account_id", "integration_id", "user_id"
         )
         for integration in integrations:

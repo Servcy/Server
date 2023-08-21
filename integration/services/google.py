@@ -150,10 +150,10 @@ class GoogleService:
         )
         return response
 
-    def get_messages_with_data(self, message_ids: list[str]) -> list[dict]:
+    def get_messages(self, message_ids: list[str]) -> list[dict]:
         """
         Batch request for messages
-        :return: list of messages with data
+        :return: list of messages
         """
         messages = []
         if not message_ids:
