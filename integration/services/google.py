@@ -31,15 +31,17 @@ class GoogleService:
 
     def __init__(self, token: str = None, refresh_token: str = None):
         self._google_service = None
-        if token and refresh_token:
+        self.token = token
+        self.refresh_token = refresh_token
+        if self.token and self.refresh_token:
             self._google_service = build(
                 "gmail",
                 "v1",
                 credentials=Credentials(
-                    token=token,
+                    token=self.token,
                     client_id=self.client_id,
                     client_secret=self.client_secret,
-                    refresh_token=refresh_token,
+                    refresh_token=self.refresh_token,
                     token_uri=self.token_uri,
                 ),
                 cache_discovery=False,
@@ -65,7 +67,7 @@ class GoogleService:
     def fetch_user_info(self) -> dict:
         response = requests.get(
             self.user_info_uri,
-            headers={"Authorization": f"Bearer {self.user_credentials.token}"},
+            headers={"Authorization": f"Bearer {self.token}"},
         )
         return response.json()
 

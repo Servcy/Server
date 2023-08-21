@@ -1,13 +1,13 @@
 import json
 import logging
-import traceback
 from base64 import decodebytes
 
+from django.db import IntegrityError
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
 
+from common.responses import error_response, success_response
 from inbox.repository import GoogleMailRepository
 from integration.repository import IntegrationRepository
 from integration.services.google import GoogleService
@@ -52,12 +52,16 @@ class WebHookViewSet(ViewSet):
                 google_mails=new_messages_with_data,
                 integration_user_id=google_integrations[0]["id"],
             )
-            return Response({"detail": "success"}, status=status.HTTP_200_OK)
-        except Exception:
-            logger.error(
-                f"An error occurred processing webhook for google request.\n{traceback.format_exc()}"
+            return success_response()
+        except IntegrityError:
+            return error_response(
+                logger=logger,
+                logger_message="IntegrityError occurred processing webhook for google request.",
+                error_message="Known error occurred. Please try again later!",
+                status_code=status.HTTP_501_NOT_IMPLEMENTED,
             )
-            return Response(
-                {"detail": "An error occurred. Please try again later!"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        except Exception:
+            return error_response(
+                logger=logger,
+                logger_message="An error occurred processing webhook for google request.",
             )

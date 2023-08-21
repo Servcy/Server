@@ -1,0 +1,2 @@
+class GoogleMailService:
+    pass

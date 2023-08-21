@@ -1,27 +1,28 @@
 import logging
-import traceback
 
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
+
+from common.responses import error_response, success_response
+from inbox.services import InboxService
 
 logger = logging.getLogger(__name__)
 
 
 class InboxViewSet(ViewSet):
-    permission_classes = [IsAuthenticated]
-
     @action(detail=False, methods=["get"], url_path="sync")
     def sync_inbox(self, request):
         try:
-            pass
-        except Exception:
-            logger.error(
-                f"An error occurred while inbox sync.\n{traceback.format_exc()}"
+            user_id = request.user.id
+            inbox_service = InboxService(user_id=user_id)
+            return success_response(
+                results=inbox_service.sync_inbox(),
+                success_message="Inbox synced successfully.",
+                status_code=status.HTTP_200_OK,
             )
-            return Response(
-                {"detail": "An error occurred. Please try again later!"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        except Exception:
+            return error_response(
+                logger=logger,
+                logger_message="An error occurred while syncing inbox.",
             )

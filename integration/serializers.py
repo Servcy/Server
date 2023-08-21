@@ -18,7 +18,7 @@ class IntegrationSerializer(ServcyReadSerializer):
         )
 
     def get_account_ids(self, obj):
-        integration_user = obj.integration_user.all()
+        integration_user = obj.integration_users.all()
         return [integration.account_id for integration in integration_user]
 
 

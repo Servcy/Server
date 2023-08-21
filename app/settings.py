@@ -186,8 +186,8 @@ LOGGING = {
     },
     "filters": {
         "require_debug_false": {"()": "django.utils.log.RequireDebugFalse"},
-        "user_id": {"()": "app.utils.log.UserIdentifier"},
-        "req_id": {"()": "app.utils.log.RequestIdentifier"},
+        "user_id": {"()": "common.logging_filters.UserIdentifier"},
+        "req_id": {"()": "common.logging_filters.RequestIdentifier"},
     },
     "handlers": {
         **LOG_HANDLERS,
