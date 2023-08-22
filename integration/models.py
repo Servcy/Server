@@ -5,7 +5,6 @@ from iam.models import User
 
 
 class Integration(models.Model):
-    id = models.BigAutoField(primary_key=True)
     name = models.CharField(max_length=100)
     logo = models.URLField(default=None, null=True)
     description = models.CharField(max_length=5000)
@@ -19,7 +18,6 @@ class Integration(models.Model):
 
 
 class UserIntegration(TimeStampedModel):
-    id = models.BigAutoField(primary_key=True)
     account_id = models.CharField(max_length=250, null=False, blank=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=False, blank=False)
     integration = models.ForeignKey(

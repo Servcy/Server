@@ -48,7 +48,9 @@ class IntegrationRepository:
         return integration
 
     @classmethod
-    def get_user_integrations(self, filters: dict) -> list[UserIntegration]:
+    def get_user_integrations(
+        self, filters: dict, first=False
+    ) -> list[UserIntegration] | UserIntegration:
         integrations = UserIntegration.objects.filter(**filters).values(
             "id", "meta_data", "account_id", "integration_id", "user_id"
         )
@@ -56,7 +58,7 @@ class IntegrationRepository:
             integration["meta_data"] = self.decrypt_meta_data(
                 meta_data=integration["meta_data"]
             )
-        return integrations
+        return integrations if not first else integrations[0]
 
     @staticmethod
     def decrypt_meta_data(meta_data):

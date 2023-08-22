@@ -9,6 +9,12 @@ class ServcyBaseException(Exception):
     """
 
 
+class ServcyOauthCodeException(ServcyBaseException):
+    """
+    Exception raised when oauth code is not provided.
+    """
+
+
 class ServcyAPIException(APIException, ServcyBaseException):
     """
     APIException for Servcy server.

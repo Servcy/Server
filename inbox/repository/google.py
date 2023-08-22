@@ -8,10 +8,6 @@ from inbox.services.google import GoogleMailService
 
 class GoogleMailRepository:
     @staticmethod
-    def get_mail(filters={}):
-        return GoogleMail.objects.get(**filters)
-
-    @staticmethod
     def get_mails(filters={}):
         return GoogleMail.objects.filter(**filters)
 

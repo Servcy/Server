@@ -18,7 +18,7 @@ class GoogleViewSet(viewsets.ViewSet):
             code = urllib.parse.unquote(request.data["code"])
             scopes = urllib.parse.unquote(request.data["scope"]).split(" ")
             if not set(scopes).issubset(set(GoogleService.scopes)):
-                error_response(
+                return error_response(
                     logger=logger,
                     logger_message="An error occurred processing oauth request.",
                     status=status.HTTP_406_NOT_ACCEPTABLE,
@@ -26,7 +26,7 @@ class GoogleViewSet(viewsets.ViewSet):
                 )
             token_response = GoogleService.fetch_tokens(code)
             if "error" in token_response:
-                error_response(
+                return error_response(
                     logger=logger,
                     logger_message=f"An error occurred while obtaining access token from Google.\n{str(token_response)}",
                     error_message=token_response["error_description"],
@@ -37,7 +37,7 @@ class GoogleViewSet(viewsets.ViewSet):
             )
             user_info = google_service.fetch_user_info()
             if "error" in user_info:
-                error_response(
+                return error_response(
                     logger=logger,
                     logger_message=f"An error occurred while obtaining user info from Google.\n{str(user_info)}",
                     error_message=user_info["error_description"],
@@ -62,14 +62,14 @@ class GoogleViewSet(viewsets.ViewSet):
                 status=status.HTTP_200_OK,
             )
         except KeyError:
-            error_response(
+            return error_response(
                 logger=logger,
                 logger_message="KeyError occurred processing oauth request.",
                 error_message="code, and scope are required!",
                 status=status.HTTP_400_BAD_REQUEST,
             )
         except Exception:
-            error_response(
+            return error_response(
                 logger=logger,
                 logger_message="An error occurred processing oauth request.",
             )

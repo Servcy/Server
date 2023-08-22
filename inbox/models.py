@@ -5,7 +5,6 @@ from integration.models import UserIntegration
 
 
 class InboxItem(TimeStampedModel):
-    id = models.BigAutoField(primary_key=True)
     uid = models.CharField(max_length=255, unique=True, db_index=True)
     title = models.CharField(max_length=255)
     body = models.TextField(null=True, blank=False, default=None)
@@ -24,7 +23,6 @@ class InboxItem(TimeStampedModel):
 
 
 class GoogleMail(TimeStampedModel):
-    id = models.BigAutoField(primary_key=True)
     message_id = models.CharField(max_length=255, unique=True, db_index=True)
     thread_id = models.CharField(max_length=255)
     history_id = models.CharField(max_length=255)
@@ -41,3 +39,17 @@ class GoogleMail(TimeStampedModel):
         db_table = "google_mail"
         verbose_name = "Google Mail"
         verbose_name_plural = "Google Mails"
+
+
+class OutlookMail(TimeStampedModel):
+    message_id = models.CharField(max_length=255, unique=True, db_index=True)
+    categories = models.JSONField()
+    payload = models.JSONField()
+    user_integration = models.ForeignKey(
+        UserIntegration, on_delete=models.CASCADE, related_name="outlook_mails"
+    )
+
+    class Meta:
+        db_table = "outlook_mail"
+        verbose_name = "Outlook Mail"
+        verbose_name_plural = "Outlook Mails"

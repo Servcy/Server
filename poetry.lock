@@ -1361,6 +1361,26 @@ files = [
 ]
 
 [[package]]
+name = "msal"
+version = "1.23.0"
+description = "The Microsoft Authentication Library (MSAL) for Python library enables your app to access the Microsoft Cloud by supporting authentication of users with Microsoft Azure Active Directory accounts (AAD) and Microsoft Accounts (MSA) using industry standard OAuth2 and OpenID Connect."
+category = "main"
+optional = false
+python-versions = "*"
+files = [
+    {file = "msal-1.23.0-py2.py3-none-any.whl", hash = "sha256:3342e0837a047007f9d479e814b559c3219767453d57920dc40a31986862048b"},
+    {file = "msal-1.23.0.tar.gz", hash = "sha256:25c9a33acf84301f93d1fdbe9f1a9c60cd38af0d5fffdbfa378138fc7bc1e86b"},
+]
+
+[package.dependencies]
+cryptography = ">=0.6,<44"
+PyJWT = {version = ">=1.0.0,<3", extras = ["crypto"]}
+requests = ">=2.0.0,<3"
+
+[package.extras]
+broker = ["pymsalruntime (>=0.13.2,<0.14)"]
+
+[[package]]
 name = "multidict"
 version = "6.0.4"
 description = "multidict implementation"
@@ -1776,6 +1796,9 @@ files = [
     {file = "PyJWT-2.6.0-py3-none-any.whl", hash = "sha256:d83c3d892a77bbb74d3e1a2cfa90afaadb60945205d1095d9221f04466f64c14"},
     {file = "PyJWT-2.6.0.tar.gz", hash = "sha256:69285c7e31fc44f68a1feb309e948e0df53259d579295e6cfe2b1792329f05fd"},
 ]
+
+[package.dependencies]
+cryptography = {version = ">=3.4.0", optional = true, markers = "extra == \"crypto\""}
 
 [package.extras]
 crypto = ["cryptography (>=3.4.0)"]
@@ -2387,4 +2410,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "3.11.1"
-content-hash = "862849cf0ea1d38e6fb2d5b82f725e1a73f3b074e2ee76b1710881ca2fdbaaa3"
+content-hash = "c220022b0095b8b913ed5e6ddbfc3f33db4d3da31bc7f667fb56a2df811b1220"
