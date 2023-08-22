@@ -8,6 +8,7 @@ class IntegrationViewSet(ReadOnlyModelViewSet):
     serializer_class = IntegrationSerializer
     permission_classes = [IsAuthenticated]
     queryset = IntegrationSerializer.Meta.model.objects.all()
+    ordering_fields = ["name"]
 
     def get_queryset(self):
-        return super().get_queryset().prefetch_related("integration_user")
+        return super().get_queryset().prefetch_related("user_integrations")

@@ -36,3 +36,14 @@ project_id=servcy
 token_uri=https://oauth2.googleapis.com/token
 redirect_uri=
 user_info_uri=
+pub_sub_topic=
+pub_sub_subscription=
+
+[microsoft]
+display_name=
+client_id=
+client_secret_id=
+client_secret=
+object_id=
+tenant_id=
+redirect_uri=

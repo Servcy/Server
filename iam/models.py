@@ -18,7 +18,6 @@ class User(AbstractBaseUser, PermissionsMixin, TimeStampedModel):
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
     profile_image = models.FileField(upload_to="ProfileImages", null=True)
-
     invited_by = models.ForeignKey(
         "self",
         default=None,
@@ -27,7 +26,6 @@ class User(AbstractBaseUser, PermissionsMixin, TimeStampedModel):
     )
 
     USERNAME_FIELD = "username"
-
     objects = UserAccountManager()
 
     def __str__(self):
@@ -37,4 +35,3 @@ class User(AbstractBaseUser, PermissionsMixin, TimeStampedModel):
         db_table = "user"
         verbose_name = "User"
         verbose_name_plural = "Users"
-        ordering = ["id"]

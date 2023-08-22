@@ -35,6 +35,7 @@ THIRD_PARTY_APPS = [
 LOCAL_APPS = [
     "iam",
     "integration",
+    "inbox",
 ]
 
 OTHER_APPS = [
@@ -185,8 +186,8 @@ LOGGING = {
     },
     "filters": {
         "require_debug_false": {"()": "django.utils.log.RequireDebugFalse"},
-        "user_id": {"()": "app.utils.log.UserIdentifier"},
-        "req_id": {"()": "app.utils.log.RequestIdentifier"},
+        "user_id": {"()": "common.logging_filters.UserIdentifier"},
+        "req_id": {"()": "common.logging_filters.RequestIdentifier"},
     },
     "handlers": {
         **LOG_HANDLERS,
@@ -233,15 +234,18 @@ TWILIO_NUMBER = config.get("twilio", "from_number")
 
 # URLs
 FRONTEND_URL = config.get("main", "frontend_url")
+BACKEND_URL = config.get("main", "backend_url")
 
 # User Model
 AUTH_USER_MODEL = "iam.User"
 
-# Integration
+"""Integration"""
+# google
 GOOGLE_OAUTH2_CLIENT_ID = config.get("google", "client_id")
 GOOGLE_OAUTH2_CLIENT_SECRET = config.get("google", "client_secret")
 GOOGLE_OAUTH2_TOKEN_URI = config.get("google", "token_uri")
 GOOGLE_OAUTH2_REDIRECT_URI = config.get("google", "redirect_uri")
+GOOGLE_PROJECT_ID = config.get("google", "project_id")
 GOOGLE_OAUTH2_SCOPES = [
     "https://www.googleapis.com/auth/gmail.readonly",
     "https://www.googleapis.com/auth/gmail.send",
@@ -251,3 +255,24 @@ GOOGLE_OAUTH2_SCOPES = [
     "openid",
 ]
 GOOGLE_OAUTH2_USER_INFO_URI = config.get("google", "user_info_uri")
+GOOGLE_PUB_SUB_TOPIC = config.get("google", "pub_sub_topic")
+GOOGLE_PUB_SUB_SUBSCRIPTION = config.get("google", "pub_sub_subscription")
+GOOGLE_APPLICATION_CREDENTIALS = BASE_DIR / "config/servcy-gcp-service-account-key.json"
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = str(GOOGLE_APPLICATION_CREDENTIALS)
+# microsoft
+MICROSOFT_OAUTH2_SCOPES = ["User.Read", "Mail.Read"]
+MICROSOFT_APP_NAME = config.get("microsoft", "display_name")
+MICROSOFT_APP_CLIENT_ID = config.get("microsoft", "client_id")
+MICROSOFT_APP_CLIENT_SECRET_ID = config.get("microsoft", "client_secret_id")
+MICROSOFT_APP_CLIENT_SECRET = config.get("microsoft", "client_secret")
+MICROSOFT_APP_OBJECT_ID = config.get("microsoft", "object_id")
+MICROSOFT_APP_TENANT_ID = config.get("microsoft", "tenant_id")
+MICROSOFT_APP_REDIRECT_URI = config.get("microsoft", "redirect_uri")
+
+
+CRONJOBS = [
+    (
+        "0 0 * * *",
+        "integration.scripts.microsoft.renew_microsoft_subscriptions",
+    ),
+]
