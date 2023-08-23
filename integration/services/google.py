@@ -86,6 +86,13 @@ class GoogleService:
         )
         return response
 
+    def remove_watcher_from_inbox_pub_sub(
+        self,
+        email: str,
+    ) -> dict:
+        response = self._google_service.users().stop(userId=email).execute()
+        return response
+
     @classmethod
     def add_publisher_for_user(cls, email: str):
         pubsub_v1_client = pubsub_v1.PublisherClient()
