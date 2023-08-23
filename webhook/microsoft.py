@@ -18,8 +18,12 @@ logger = logging.getLogger(__name__)
 @csrf_exempt
 @require_POST
 def microsoft(request):
-    validation_token = request.GET.get("validationToken", "")
     try:
+        validation_token = request.GET.get("validationToken", "")
+        if validation_token:
+            return HttpResponse(
+                content=validation_token, content_type="text/plain", status=200
+            )
         notificaiton = json.loads(request.body.decode("utf-8"))
         account_id = int(notificaiton["value"][0]["clientState"])
         message_id = notificaiton["value"][0]["resourceData"]["id"]
@@ -36,13 +40,7 @@ def microsoft(request):
                 user_integration_id=user_integration["id"],
             )
             InboxRepository.add_items(inbox_items)
-        return HttpResponse(
-            content=validation_token, content_type="text/plain", status=200
-        )
-    except KeyError:
-        return HttpResponse(
-            content=validation_token, content_type="text/plain", status=200
-        )
+        return HttpResponse(status=200)
     except Exception:
         logger.error(
             f"An error occurred while processing notification.\n{traceback.format_exc()}"
