@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 @csrf_exempt
 @require_POST
-def google(self, request):
+def google(request):
     try:
         payload = request.data
         encoded_data = payload["message"]["data"]

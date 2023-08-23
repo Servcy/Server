@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 @csrf_exempt
 @require_POST
-def microsoft(self, request):
+def microsoft(request):
     validation_token = request.GET.get("validationToken", "")
     try:
         notificaiton = request.data
