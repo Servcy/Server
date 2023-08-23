@@ -108,14 +108,17 @@ REST_FRAMEWORK = {
     "DATE_FORMAT": "%d/%m/%Y",
 }
 
-CORS_ALLOW_CREDENTIALS = True  # its value determines whether the server allows cookies in the cross-site HTTP requests.
+CORS_ALLOW_CREDENTIALS = True
 
-CORS_ORIGIN_WHITELIST = (  # for development only
-    "http://127.0.0.1:3000",
+CORS_ALLOW_ALL_ORIGINS = False
+
+CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
-)
+]
 
-CORS_ORIGIN_REGEX_WHITELIST = (r"^https://.*\.servcy\.com$",)  # for production only
+CORS_ORIGIN_WHITELIST = ("http://localhost:3000",)
+
+CORS_ORIGIN_REGEX_WHITELIST = (r"^https://.*\.servcy\.com$",)
 
 WSGI_APPLICATION = "app.wsgi.application"
 
