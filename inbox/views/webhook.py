@@ -73,12 +73,7 @@ class WebHookViewSet(ViewSet):
                 InboxRepository.add_items(inbox_items)
             return success_response()
         except IntegrityError:
-            return error_response(
-                logger=logger,
-                logger_message="IntegrityError occurred processing webhook for google request.",
-                error_message="Known error occurred. Please try again later!",
-                status=status.HTTP_501_NOT_IMPLEMENTED,
-            )
+            return success_response()
         except Exception:
             return error_response(
                 logger=logger,
