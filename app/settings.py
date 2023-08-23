@@ -38,9 +38,7 @@ LOCAL_APPS = [
     "inbox",
 ]
 
-OTHER_APPS = [
-    "app",
-]
+OTHER_APPS = ["app", "webhook"]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
