@@ -8,6 +8,10 @@ class ServcyBaseException(Exception):
     Custom exception base for Servcy.
     """
 
+    @property
+    def message(self):
+        return str(self)
+
 
 class ServcyOauthCodeException(ServcyBaseException):
     """

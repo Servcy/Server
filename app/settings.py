@@ -117,8 +117,6 @@ CORS_ALLOWED_ORIGINS = [
     "https://web.servcy.com",
 ]
 
-CORS_URLS_REGEX = r"^(?!.*\/webhook).*$"
-
 WSGI_APPLICATION = "app.wsgi.application"
 
 SIMPLE_JWT = {
