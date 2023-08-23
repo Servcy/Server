@@ -111,7 +111,6 @@ class MicrosoftService:
                     3, True
                 ),
                 "clientState": self._token["id_token_claims"]["email"],
-                "includeResourceData": True,
             },
         ).json()
         if (
