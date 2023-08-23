@@ -38,6 +38,15 @@ class WebHookViewSet(ViewSet):
                 },
                 first=True,
             )
+            if integrations is None:
+                logger.error(
+                    f"No integration found for email: {email}. Payload: {payload}"
+                )
+                return error_response(
+                    logger=logger,
+                    logger_message="No integration found for email.",
+                    status=status.HTTP_404_NOT_FOUND,
+                )
             last_known_message = (
                 GoogleMailRepository.get_mails(
                     {"user_integration_id": integrations["id"]}

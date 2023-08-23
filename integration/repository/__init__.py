@@ -58,7 +58,9 @@ class IntegrationRepository:
             integration["meta_data"] = self.decrypt_meta_data(
                 meta_data=integration["meta_data"]
             )
-        return integrations if not first else integrations[0]
+        if not first:
+            return integrations
+        return integrations[0] if integrations else None
 
     @staticmethod
     def decrypt_meta_data(meta_data):
