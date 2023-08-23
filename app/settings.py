@@ -112,17 +112,12 @@ CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOW_ALL_ORIGINS = False
 
-CSRF_TRUSTED_ORIGINS = [
+CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "https://web.servcy.com",
 ]
 
-CORS_ORIGIN_WHITELIST = [
-    "http://localhost:3000",
-    "https://web.servcy.com",
-]
-
-CORS_URLS_REGEX = r"^/inbox/webhook/(google|microsoft)/?$"
+CORS_URLS_REGEX = r"^(?!.*\/webhook).*$"
 
 WSGI_APPLICATION = "app.wsgi.application"
 
