@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 @require_POST
 def google(request):
     try:
-        payload = request.data
+        payload = json.loads(request.body.decode("utf-8"))
         encoded_data = payload["message"]["data"]
         decoded_data = json.loads(decodebytes(encoded_data.encode()).decode())
         email = decoded_data["emailAddress"]

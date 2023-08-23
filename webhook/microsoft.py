@@ -1,3 +1,4 @@
+import json
 import logging
 import traceback
 
@@ -19,7 +20,7 @@ logger = logging.getLogger(__name__)
 def microsoft(request):
     validation_token = request.GET.get("validationToken", "")
     try:
-        notificaiton = request.data
+        notificaiton = json.loads(request.body.decode("utf-8"))
         account_id = int(notificaiton["value"][0]["clientState"])
         message_id = notificaiton["value"][0]["resourceData"]["id"]
         user_integration = IntegrationRepository.get_user_integrations(
