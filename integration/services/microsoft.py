@@ -182,3 +182,55 @@ class MicrosoftService:
                 f"An error occurred while fetching message {message_id}.\n{str(response)}"
             )
         return response
+
+    def list_subscriptions(self) -> dict:
+        """
+        List all subscriptions for user.
+        """
+        response = requests.get(
+            self.subscription_uri,
+            headers={
+                "Authorization": f"Bearer {self._token['access_token']}",
+                "Content-Type": "application/json",
+            },
+        ).json()
+        if (
+            "error" in response
+            and response["error"]["code"] == "InvalidAuthenticationToken"
+        ):
+            self._token = self._fetch_new_token(
+                refresh_token=self._token["refresh_token"],
+                scopes=["User.Read", "Mail.Read"],
+            )
+            self.list_subscriptions()
+        elif "error" in response:
+            logger.error(
+                f"An error occurred while listing subscriptions.\n{str(response)}"
+            )
+        return response
+
+    def remove_subscription(self, subscription_id: str) -> None:
+        """
+        Remove subscription for user.
+        """
+        response = requests.delete(
+            f"{self.subscription_uri}/{subscription_id}",
+            headers={
+                "Authorization": f"Bearer {self._token['access_token']}",
+                "Content-Type": "application/json",
+            },
+        ).json()
+        if (
+            "error" in response
+            and response["error"]["code"] == "InvalidAuthenticationToken"
+        ):
+            self._token = self._fetch_new_token(
+                refresh_token=self._token["refresh_token"],
+                scopes=["User.Read", "Mail.Read"],
+            )
+            self.remove_subscription(subscription_id)
+        elif "error" in response:
+            logger.error(
+                f"An error occurred while removing subscription {subscription_id}.\n{str(response)}"
+            )
+        return response
