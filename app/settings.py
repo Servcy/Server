@@ -114,11 +114,10 @@ CORS_ALLOW_ALL_ORIGINS = False
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
+    "https://web.servcy.com",
 ]
 
 CORS_ORIGIN_WHITELIST = ("http://localhost:3000",)
-
-CORS_ORIGIN_REGEX_WHITELIST = (r"^https://.*\.servcy\.com$",)
 
 CORS_URLS_REGEX = r"^/inbox/webhook/(google|microsoft)/?$"
 
