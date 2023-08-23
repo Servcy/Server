@@ -247,7 +247,7 @@ AUTH_USER_MODEL = "iam.User"
 GOOGLE_OAUTH2_CLIENT_ID = config.get("google", "client_id")
 GOOGLE_OAUTH2_CLIENT_SECRET = config.get("google", "client_secret")
 GOOGLE_OAUTH2_TOKEN_URI = config.get("google", "token_uri")
-GOOGLE_OAUTH2_REDIRECT_URI = f"{FRONTEND_URL}/config.get('google', 'redirect_uri')"
+GOOGLE_OAUTH2_REDIRECT_URI = f"{FRONTEND_URL}/{config.get('google', 'redirect_uri')}"
 GOOGLE_PROJECT_ID = config.get("google", "project_id")
 GOOGLE_OAUTH2_SCOPES = [
     "https://www.googleapis.com/auth/gmail.readonly",
@@ -270,7 +270,7 @@ MICROSOFT_APP_CLIENT_SECRET_ID = config.get("microsoft", "client_secret_id")
 MICROSOFT_APP_CLIENT_SECRET = config.get("microsoft", "client_secret")
 MICROSOFT_APP_OBJECT_ID = config.get("microsoft", "object_id")
 MICROSOFT_APP_TENANT_ID = config.get("microsoft", "tenant_id")
-MICROSOFT_APP_REDIRECT_URI = f"{FRONTEND_URL}/config.get('microsoft', 'redirect_uri')"
+MICROSOFT_APP_REDIRECT_URI = f"{FRONTEND_URL}/{config.get('microsoft', 'redirect_uri')}"
 
 
 CRONJOBS = [
