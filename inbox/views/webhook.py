@@ -4,6 +4,8 @@ import traceback
 from base64 import decodebytes
 
 from django.db import IntegrityError, transaction
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -20,6 +22,7 @@ from integration.services.microsoft import MicrosoftService
 logger = logging.getLogger(__name__)
 
 
+@method_decorator(csrf_exempt, name="dispatch")
 class WebHookViewSet(ViewSet):
     @action(detail=False, methods=["post"], url_path="google", permission_classes=[])
     def google(self, request):

@@ -57,12 +57,12 @@ INSTALLED_APPS += LOCAL_APPS
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
     "crum.CurrentRequestUserMiddleware",
     "middlewares.RequestUUIDMiddleware",
 ]
@@ -119,6 +119,8 @@ CSRF_TRUSTED_ORIGINS = [
 CORS_ORIGIN_WHITELIST = ("http://localhost:3000",)
 
 CORS_ORIGIN_REGEX_WHITELIST = (r"^https://.*\.servcy\.com$",)
+
+CORS_URLS_REGEX = r"^/inbox/webhook/(google|microsoft)/?$"
 
 WSGI_APPLICATION = "app.wsgi.application"
 
