@@ -31,8 +31,6 @@ class WebHookViewSet(ViewSet):
             encoded_data = payload["message"]["data"]
             decoded_data = json.loads(decodebytes(encoded_data.encode()).decode())
             email = decoded_data["emailAddress"]
-            # TODO: remove log statement
-            logger.info(f"Processing webhook for google request. {email}")
             integrations = IntegrationRepository.get_user_integrations(
                 filters={
                     "account_id": email,
