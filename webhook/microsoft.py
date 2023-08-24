@@ -44,11 +44,11 @@ def microsoft(request):
         service = MicrosoftService(refresh_token=tokens["refresh_token"])
         mail = service.get_message(message_id)
         with transaction.atomic():
-            inbox_items = OutlookMailRepository.create_mail(
+            inbox_item = OutlookMailRepository.create_mail(
                 mail=mail,
                 user_integration_id=integration["id"],
             )
-            InboxRepository.add_items(inbox_items)
+            InboxRepository.add_items([inbox_item])
         return HttpResponse(status=200)
     except Exception:
         logger.error(
