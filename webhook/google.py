@@ -2,7 +2,7 @@ import json
 import logging
 from base64 import decodebytes
 
-from django.db import IntegrityError, transaction
+from django.db import transaction
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from rest_framework import status
@@ -60,8 +60,6 @@ def google(request):
                 user_integration_id=integrations["id"],
             )
             InboxRepository.add_items(inbox_items)
-        return success_response()
-    except IntegrityError:
         return success_response()
     except Exception:
         return error_response(

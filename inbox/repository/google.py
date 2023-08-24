@@ -1,5 +1,6 @@
 import datetime
 
+from django.db import IntegrityError
 from django.utils import timezone
 
 from inbox.models import GoogleMail
@@ -12,29 +13,26 @@ class GoogleMailRepository:
         return GoogleMail.objects.filter(**filters)
 
     @staticmethod
-    def create_mails(
-        mails: list, user_integration_id: int, batch_size: int = 100
-    ) -> list[dict]:
-        mail_objects = []
+    def create_mails(mails: list, user_integration_id: int) -> list[dict]:
         inbox_items = []
         for mail in mails:
-            mail_objects.append(
-                GoogleMail(
-                    thread_id=mail["threadId"],
-                    history_id=mail["historyId"],
-                    message_id=mail["id"],
-                    snippet=mail["snippet"],
-                    size_estimate=mail["sizeEstimate"],
-                    label_ids=mail["labelIds"],
-                    payload=mail["payload"],
-                    internal_date=timezone.make_aware(
-                        datetime.datetime.fromtimestamp(
-                            int(mail["internalDate"]) / 1000
-                        )
-                    ),
-                    user_integration_id=user_integration_id,
-                )
+            mail_object = GoogleMail(
+                thread_id=mail["threadId"],
+                history_id=mail["historyId"],
+                message_id=mail["id"],
+                snippet=mail["snippet"],
+                size_estimate=mail["sizeEstimate"],
+                label_ids=mail["labelIds"],
+                payload=mail["payload"],
+                internal_date=timezone.make_aware(
+                    datetime.datetime.fromtimestamp(int(mail["internalDate"]) / 1000)
+                ),
+                user_integration_id=user_integration_id,
             )
+            try:
+                mail_object.save()
+            except IntegrityError:
+                continue
             inbox_items.append(
                 {
                     "title": GoogleMailService._get_mail_header(
@@ -49,5 +47,4 @@ class GoogleMailRepository:
                     "uid": f"{mail['id']}-{user_integration_id}",
                 }
             )
-        GoogleMail.objects.bulk_create(mail_objects, batch_size=batch_size)
         return inbox_items
