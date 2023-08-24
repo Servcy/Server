@@ -125,25 +125,27 @@ class GoogleService:
 
     def get_latest_unread_primary_inbox(
         self,
-        last_known_message_id: str,
-    ):
+        last_history_id: int,
+    ) -> list[str]:
+        """Fetch the latest unread emails from the primary inbox based on a given history ID."""
         response = (
             self._google_service.users()
-            .messages()
+            .history()
             .list(
                 userId="me",
-                labelIds=["INBOX"],
-                q="is:unread category:primary",
+                startHistoryId=last_history_id,
+                historyTypes=["messageAdded"],
+                labelId="UNREAD",
             )
             .execute()
         )
-        messages = list(response.get("messages", []))
-        new_messages = []
-        for message in messages:
-            if message["id"] == last_known_message_id:
-                break
-            new_messages.append(message)
-        return new_messages
+        message_ids = []
+        for history in response.get("history", []):
+            messages_added = history.get("messagesAdded", [])
+            for message_added in messages_added:
+                message = message_added["message"]
+                message_ids.append(message["id"])
+        return message_ids
 
     def get_message(self, message_id: str):
         response = (

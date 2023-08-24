@@ -1,8 +1,10 @@
 import datetime
 
+from django.db import IntegrityError
 from django.utils import timezone
 
 from inbox.models import GoogleMail
+from inbox.services.google import GoogleMailService
 
 
 class GoogleMailRepository:
@@ -11,8 +13,11 @@ class GoogleMailRepository:
         return GoogleMail.objects.filter(**filters)
 
     @staticmethod
-    def create_mails(mails: list, user_integration_id: int) -> list[dict]:
+    def create_mails(
+        mails: list, user_integration_id: int, batch_size: int = 100
+    ) -> list[dict]:
         mail_objects = []
+        inbox_items = []
         for mail in mails:
             mail_objects.append(
                 GoogleMail(
@@ -31,4 +36,22 @@ class GoogleMailRepository:
                     user_integration_id=user_integration_id,
                 )
             )
-        return mail_objects
+            inbox_items.append(
+                {
+                    "title": GoogleMailService._get_mail_header(
+                        "Subject", mail["payload"]["headers"]
+                    ),
+                    "cause": GoogleMailService._get_mail_header(
+                        "From", mail["payload"]["headers"]
+                    ),
+                    "body": GoogleMailService._get_mail_body(mail["payload"]),
+                    "is_body_html": GoogleMailService._is_body_html(mail["payload"]),
+                    "user_integration_id": user_integration_id,
+                    "uid": f"{mail['id']}-{user_integration_id}",
+                }
+            )
+        try:
+            GoogleMail.objects.bulk_create(mail_objects, batch_size=batch_size)
+        except IntegrityError:
+            return []
+        return inbox_items

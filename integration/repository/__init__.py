@@ -72,3 +72,24 @@ class IntegrationRepository:
             for key, value in dict(decrypted_meta_data).items()
         }
         return meta_data
+
+    @staticmethod
+    def encrypt_meta_data(meta_data: dict) -> str:
+        base_64_encoded_meta_data = {
+            key: b64encode(str(value).encode()).decode()
+            for key, value in meta_data.items()
+        }
+        encrypted_meta_data = (
+            Fernet(settings.FERNET_KEY)
+            .encrypt(str(base_64_encoded_meta_data).encode())
+            .decode()
+        )
+        return encrypted_meta_data
+
+    @staticmethod
+    def update_integraion_meta_data(user_integration_id: int, meta_data: dict):
+        user_integration = UserIntegration.objects.get(id=user_integration_id)
+        user_integration.meta_data = IntegrationRepository.encrypt_meta_data(
+            meta_data=meta_data
+        )
+        user_integration.save()
