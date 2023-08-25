@@ -2,7 +2,7 @@ import json
 import logging
 import traceback
 
-from django.db import transaction, IntegrityError
+from django.db import IntegrityError, transaction
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
@@ -51,6 +51,11 @@ def microsoft(request):
             InboxRepository.add_items([inbox_item])
         return HttpResponse(status=200)
     except IntegrityError:
+        return HttpResponse(status=200)
+    except KeyError:
+        logger.error(
+            f"A key error occurred while processing microsoft notification {notificaiton}.\n{traceback.format_exc()}"
+        )
         return HttpResponse(status=200)
     except Exception:
         logger.error(
