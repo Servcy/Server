@@ -1,4 +1,5 @@
 from django.db import DatabaseError
+from newrelic.agent import notice_error
 from rest_framework import status
 from rest_framework.exceptions import APIException
 from rest_framework.views import exception_handler
@@ -125,6 +126,7 @@ class ServcyExceptionHandler:
         """
         Main exception handler for Servcy.
         """
+        notice_error(exception)
         response = exception_handler(exception, context)
         if response is not None:
             response.data["status_code"] = response.status_code
