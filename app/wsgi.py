@@ -24,5 +24,5 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "app.settings")
 application = get_wsgi_application()
 
 if not DEBUG:
-    newrelic.agent.initialize(os.path.join(os.path.dirname(__file__), "newrelic.ini"))
+    newrelic.agent.initialize(NEW_RELIC_CONFIG_FILE)
     application = newrelic.agent.WSGIApplicationWrapper(application)
