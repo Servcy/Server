@@ -1,6 +1,7 @@
 from django.db import DatabaseError
 from rest_framework import status
 from rest_framework.exceptions import APIException
+from rest_framework.views import exception_handler
 
 
 class ServcyBaseException(Exception):
@@ -112,3 +113,19 @@ class JsonDataException(BusinessException):
 
     status_code = status.HTTP_412_PRECONDITION_FAILED
     default_detail = "JSON data is invalid. Possible Key Exception."
+
+
+class ServcyExceptionHandler:
+    """
+    Exception handler for Servcy.
+    """
+
+    @staticmethod
+    def main(exception, context):
+        """
+        Main exception handler for Servcy.
+        """
+        response = exception_handler(exception, context)
+        if response is not None:
+            response.data["status_code"] = response.status_code
+        return response

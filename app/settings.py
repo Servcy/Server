@@ -3,6 +3,8 @@ import os
 from configparser import RawConfigParser
 from pathlib import Path
 
+from newrelic.agent import NewRelicContextFormatter
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -104,6 +106,7 @@ REST_FRAMEWORK = {
     "DATE_INPUT_FORMATS": ["%d/%m/%Y"],
     "DATETIME_FORMAT": "%d/%m/%Y %H:%M",
     "DATE_FORMAT": "%d/%m/%Y",
+    "EXCEPTION_HANDLER": "app.common.exceptions.ServcyExceptionHandler.main",
 }
 
 CORS_ALLOW_CREDENTIALS = True
@@ -157,7 +160,7 @@ LOG_HANDLER_DEFAULTS = {
     "class": "logging.handlers.RotatingFileHandler",
     "maxBytes": 1024 * 1024 * 10,
     "backupCount": 5,
-    "formatter": "verbose_raw",
+    "formatter": "verbose_raw" if DEBUG else "verbose_json",
     "filters": ["user_id", "req_id"],
 }
 LOG_HANDLERS = {}
@@ -178,6 +181,11 @@ LOGGING = {
     "formatters": {
         "verbose_raw": {
             "format": "[%(asctime)s] %(levelname)s %(user_identity)s %(request_identity)s [%(name)s:%(lineno)s] %(message)s",
+            "datefmt": "%d/%b/%Y %H:%M:%S",
+        },
+        "verbose_json": {
+            "()": NewRelicContextFormatter,
+            "format": "[%(asctime)s] %(levelname)s %(user_identity)s %(request_id)s [%(name)s:%(lineno)s] %(message)s",
             "datefmt": "%d/%b/%Y %H:%M:%S",
         },
         "simple": {"format": "%(levelname)s %(message)s"},
