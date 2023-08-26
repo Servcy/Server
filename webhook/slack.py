@@ -1,3 +1,4 @@
+import json
 import logging
 import traceback
 
@@ -12,7 +13,7 @@ logger = logging.getLogger(__name__)
 @require_POST
 def slack(request):
     try:
-        body = request.POST
+        body = json.loads(request.body)
         if body["type"] == "url_verification":
             return HttpResponse(body["challenge"])
         logger.info(f"Received slack webhook: {body}")
