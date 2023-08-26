@@ -12,12 +12,10 @@ logger = logging.getLogger(__name__)
 @require_POST
 def slack(request):
     try:
-        challenge = request.GET.get("challenge", "")
-        if challenge:
-            return HttpResponse(
-                content=challenge, content_type="text/plain", status=200
-            )
-        logger.info(f"{request.body.deocode('utf-8')}")
+        body = request.POST
+        if body["type"] == "url_verification":
+            return HttpResponse(body["challenge"])
+        logger.info(f"Received slack webhook: {body}")
         return HttpResponse(status=200)
     except Exception:
         logger.error(

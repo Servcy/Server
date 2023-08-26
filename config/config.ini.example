@@ -47,3 +47,10 @@ client_secret=
 object_id=
 tenant_id=
 redirect_uri=
+
+[slack]
+app_id=
+client_id=
+client_secret=
+signing_secret=
+verification_token=
