@@ -274,6 +274,10 @@ MICROSOFT_APP_CLIENT_SECRET = config.get("microsoft", "client_secret")
 MICROSOFT_APP_OBJECT_ID = config.get("microsoft", "object_id")
 MICROSOFT_APP_TENANT_ID = config.get("microsoft", "tenant_id")
 MICROSOFT_APP_REDIRECT_URI = f"{FRONTEND_URL}/{config.get('microsoft', 'redirect_uri')}"
+# Notion
+NOTION_APP_CLIENT_ID = config.get("notion", "client_id")
+NOTION_APP_CLIENT_SECRET = config.get("notion", "client_secret")
+NOTION_APP_REDIRECT_URI = f"{FRONTEND_URL}/{config.get('notion', 'redirect_uri')}"
 
 
 CRONJOBS = [
