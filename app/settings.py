@@ -282,7 +282,16 @@ NOTION_APP_REDIRECT_URI = f"{FRONTEND_URL}/{config.get('notion', 'redirect_uri')
 SLACK_APP_CLIENT_ID = config.get("slack", "client_id")
 SLACK_APP_CLIENT_SECRET = config.get("slack", "client_secret")
 SLACK_APP_REDIRECT_URI = f"{FRONTEND_URL}/{config.get('slack', 'redirect_uri')}"
+# Github
+GITHUB_APP_CLIENT_ID = config.get("github", "client_id")
+GITHUB_APP_CLIENT_SECRET = config.get("github", "client_secret")
+GITHUB_APP_REDIRECT_URI = f"{FRONTEND_URL}/{config.get('github', 'redirect_uri')}"
+# Figma
+FIGMA_APP_CLIENT_ID = config.get("figma", "client_id")
+FIGMA_APP_CLIENT_SECRET = config.get("figma", "client_secret")
+FIGMA_APP_REDIRECT_URI = f"{FRONTEND_URL}/{config.get('figma', 'redirect_uri')}"
 
+# Cron Jobs
 CRONJOBS = [
     (
         "0 0 * * *",

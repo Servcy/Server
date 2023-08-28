@@ -60,3 +60,13 @@ redirect_uri=
 client_secret=
 client_id=
 redirect_uri=
+
+[figma]
+client_secret=
+client_id=
+redirect_uri=
+
+[github]
+client_secret=
+client_id=
+redirect_uri=

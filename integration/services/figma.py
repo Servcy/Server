@@ -5,26 +5,28 @@ from common.exceptions import ServcyOauthCodeException
 from integration.repository import IntegrationRepository
 
 
-class SlackService:
+class FigmaService:
     """
     Service class for Slack integration.
     """
 
     def __init__(self, code: str = None) -> None:
-        """Initializes SlackService."""
+        """Initializes FigmaService."""
         self._token = None
         if code:
             self._fetch_token(code)
+        self._user_info = self._fetch_user_info()
 
     def _fetch_token(self, code: str) -> dict:
-        """Fetches access token from Slack."""
+        """Fetches access token from Notion."""
         self._token = requests.post(
-            url="https://slack.com/api/oauth.v2.access",
+            url="https://www.figma.com/api/oauth/token",
             data={
                 "code": code,
-                "client_id": settings.SLACK_APP_CLIENT_ID,
-                "client_secret": settings.SLACK_APP_CLIENT_SECRET,
-                "redirect_uri": settings.SLACK_APP_REDIRECT_URI,
+                "client_id": settings.FIGMA_APP_CLIENT_ID,
+                "client_secret": settings.FIGMA_APP_CLIENT_SECRET,
+                "redirect_uri": settings.FIGMA_APP_REDIRECT_URI,
+                "grant_type": "authorization_code",
             },
         ).json()
         if "error" in self._token:
@@ -36,9 +38,18 @@ class SlackService:
         """Creates integration for user."""
         IntegrationRepository.create_user_integration(
             integration_id=IntegrationRepository.get_integration(
-                filters={"name": "Slack"}
+                filters={"name": "Figma"}
             ).id,
             user_id=user_id,
-            account_id=self._token["authed_user"]["id"],
-            meta_data={"token": self._token},
+            account_id=f"{self._user_info['handle']}: ({self._user_info['id']})",
+            meta_data={"token": self._token, "user_info": self._user_info},
         )
+
+    def _fetch_user_info(self):
+        """Fetches user info from Figma."""
+        return requests.get(
+            url="https://api.figma.com/v1/me",
+            headers={
+                "X-Figma-Token": self._token["access_token"],
+            },
+        ).json()
