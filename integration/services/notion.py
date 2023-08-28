@@ -15,18 +15,18 @@ class NotionService:
     def _fetch_token(self, code: str) -> dict:
         """Fetches access token from Notion."""
         self._token = requests.post(
-            url="https://api.notion.com/v1/databases",
+            url="https://api.notion.com/v1/oauth/token",
             headers={
                 "Content-Type": "application/json",
                 "Authorization": f"Bearer {settings.NOTION_APP_CLIENT_ID}:{settings.NOTION_APP_CLIENT_SECRET}",
             },
-            data={
+            json={
                 "grant_type": "authorization_code",
                 "code": code,
                 "redirect_uri": settings.NOTION_APP_REDIRECT_URI,
             },
         ).json()
-        if "error" in self._token:
+        if "error" == self._token["object"] or "error" in self._token:
             raise ServcyOauthCodeException(
                 f"An error occurred while obtaining access token from Notion.\n{str(self._token)}"
             )
