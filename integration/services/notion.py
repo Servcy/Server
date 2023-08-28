@@ -1,3 +1,6 @@
+import base64
+import json
+
 import requests
 from django.conf import settings
 
@@ -14,18 +17,22 @@ class NotionService:
 
     def _fetch_token(self, code: str) -> dict:
         """Fetches access token from Notion."""
+        authorization = (
+            f"{settings.NOTION_APP_CLIENT_ID}:{settings.NOTION_APP_CLIENT_SECRET}"
+        )
         self._token = requests.post(
             url="https://api.notion.com/v1/oauth/token",
-            data={
-                "grant_type": "authorization_code",
-                "code": code,
-                "redirect_uri": settings.NOTION_APP_REDIRECT_URI,
+            data=json.dumps(
+                {
+                    "grant_type": "authorization_code",
+                    "code": code,
+                    "redirect_uri": settings.NOTION_APP_REDIRECT_URI,
+                }
+            ),
+            headers={
+                "Accept": "application/json",
+                "Authorization": f"Basic {base64.b64encode(authorization).encode().decode()}",
             },
-            auth={
-                "client_id": settings.NOTION_APP_CLIENT_ID,
-                "client_secret": settings.NOTION_APP_CLIENT_SECRET,
-            },
-            headers={"Accept": "application/json"},
         ).json()
         if "error" == self._token["object"] or "error" in self._token:
             raise ServcyOauthCodeException(
