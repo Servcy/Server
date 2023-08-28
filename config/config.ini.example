@@ -54,3 +54,9 @@ client_id=
 client_secret=
 signing_secret=
 verification_token=
+redirect_uri=
+
+[notion]
+client_secret=
+client_id=
+redirect_uri=

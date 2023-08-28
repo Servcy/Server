@@ -10,6 +10,7 @@ from integration.repository import IntegrationRepository
 from integration.services.google import GoogleService
 from integration.services.microsoft import MicrosoftService
 from integration.services.notion import NotionService
+from integration.services.slack import SlackService
 
 logger = logging.getLogger(__name__)
 
@@ -126,6 +127,35 @@ class OauthViewset(viewsets.ViewSet):
                 logger=logger,
                 logger_message=error.message,
                 error_message="An error occurred while integrating with Notion. Please try again later.",
+            )
+        except KeyError:
+            return error_response(
+                logger=logger,
+                logger_message="KeyError occurred processing oauth request.",
+                error_message="code is required!",
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except Exception:
+            return error_response(
+                logger=logger,
+                logger_message="An error occurred processing oauth request.",
+            )
+
+    @action(detail=False, methods=["put"], url_path="slack")
+    def slack(self, request):
+        try:
+            code = urllib.parse.unquote(request.data["code"])
+            service = SlackService(code)
+            service.create_integration(user_id=request.user.id)
+            return success_response(
+                success_message="Successfully integrated with Slack!",
+                status=status.HTTP_200_OK,
+            )
+        except ServcyOauthCodeException as error:
+            return error_response(
+                logger=logger,
+                logger_message=error.message,
+                error_message="An error occurred while integrating with Slack. Please try again later.",
             )
         except KeyError:
             return error_response(
