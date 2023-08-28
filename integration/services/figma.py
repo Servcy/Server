@@ -15,7 +15,6 @@ class FigmaService:
         self._token = None
         if code:
             self._fetch_token(code)
-        self._user_info = self._fetch_user_info()
 
     def _fetch_token(self, code: str) -> dict:
         """Fetches access token from Notion."""
@@ -41,15 +40,6 @@ class FigmaService:
                 filters={"name": "Figma"}
             ).id,
             user_id=user_id,
-            account_id=f"{self._user_info['handle']}: ({self._user_info['id']})",
+            account_id=str(self._token["user_id"]),
             meta_data={"token": self._token, "user_info": self._user_info},
         )
-
-    def _fetch_user_info(self):
-        """Fetches user info from Figma."""
-        return requests.get(
-            url="https://api.figma.com/v1/me",
-            headers={
-                "X-Figma-Token": self._token["access_token"],
-            },
-        ).json()
