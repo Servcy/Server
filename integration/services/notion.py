@@ -19,19 +19,17 @@ class NotionService:
         """Fetches access token from Notion."""
         authorization = (
             f"{settings.NOTION_APP_CLIENT_ID}:{settings.NOTION_APP_CLIENT_SECRET}"
-        )
+        ).encode()
         self._token = requests.post(
             url="https://api.notion.com/v1/oauth/token",
-            data=json.dumps(
-                {
-                    "grant_type": "authorization_code",
-                    "code": code,
-                    "redirect_uri": settings.NOTION_APP_REDIRECT_URI,
-                }
-            ),
+            data={
+                "grant_type": "authorization_code",
+                "code": code,
+                "redirect_uri": settings.NOTION_APP_REDIRECT_URI,
+            },
             headers={
                 "Accept": "application/json",
-                "Authorization": f"Basic {base64.b64encode(authorization).encode().decode()}",
+                "Authorization": f"Basic {base64.b64encode(authorization).decode()}",
             },
         ).json()
         if "error" == self._token["object"] or "error" in self._token:
