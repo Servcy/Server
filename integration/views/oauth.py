@@ -7,12 +7,12 @@ from rest_framework.decorators import action
 from common.exceptions import ServcyOauthCodeException
 from common.responses import error_response, success_response
 from integration.repository import IntegrationRepository
+from integration.services.figma import FigmaService
+from integration.services.github import GithubService
 from integration.services.google import GoogleService
 from integration.services.microsoft import MicrosoftService
 from integration.services.notion import NotionService
 from integration.services.slack import SlackService
-from integration.services.figma import FigmaService
-from integration.services.github import GithubService
 
 logger = logging.getLogger(__name__)
 
