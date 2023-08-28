@@ -32,7 +32,7 @@ class NotionService:
                 "Authorization": f"Basic {base64.b64encode(authorization).decode()}",
             },
         ).json()
-        if "error" == self._token["object"] or "error" in self._token:
+        if "error" == self._token.get("object", None) or "error" in self._token:
             raise ServcyOauthCodeException(
                 f"An error occurred while obtaining access token from Notion.\n{str(self._token)}"
             )
