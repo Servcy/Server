@@ -19,6 +19,7 @@ class FigmaService:
             raise ServcyOauthCodeException(
                 "Code/Refresh is required for fetching access token from Figma."
             )
+        self._user_info = self._fetch_user_info()
 
     def _fetch_token(self, code: str) -> dict:
         """Fetches access token from Notion."""
@@ -45,6 +46,16 @@ class FigmaService:
             ).id,
             user_id=user_id,
             account_id=str(self._token["user_id"]),
-            meta_data={"token": self._token},
-            account_display_name=self._token["user_id"],
+            meta_data={"token": self._token, "user_info": self._user_info},
+            account_display_name=self._user_info["email"],
         )
+
+    def _fetch_user_info(self) -> dict:
+        """Fetches user info from Figma."""
+        response = requests.get(
+            url="https://api.figma.com/v1/me",
+            headers={
+                "Authorization": f"Bearer {self._token['access_token']}",
+            },
+        ).json()
+        return response

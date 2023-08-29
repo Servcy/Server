@@ -69,7 +69,7 @@ class IntegrationRepository:
         return integrations[0] if integrations else None
 
     @staticmethod
-    def decrypt_meta_data(meta_data):
+    def decrypt_meta_data(meta_data: str) -> dict:
         fernet = Fernet(settings.FERNET_KEY)
         decrypted_meta_data = fernet.decrypt(token=meta_data).decode()
         decrypted_meta_data = json.loads(decrypted_meta_data.replace("'", '"'))

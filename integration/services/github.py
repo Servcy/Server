@@ -46,10 +46,11 @@ class GithubService:
 
     def _fetch_user_info(self) -> dict:
         """Fetches user info from Github."""
-        return requests.get(
+        response = requests.get(
             url="https://api.github.com/user",
             headers={
                 "Authorization": f"Bearer {self._token['access_token']}",
                 "Accept": "application/vnd.github+json",
             },
         ).json()
+        return response
