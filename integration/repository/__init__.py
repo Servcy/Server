@@ -11,7 +11,12 @@ from integration.models import Integration, UserIntegration
 class IntegrationRepository:
     @classmethod
     def create_user_integration(
-        self, integration_id: int, user_id: int, meta_data: dict, account_id: str
+        self,
+        integration_id: int,
+        user_id: int,
+        meta_data: dict,
+        account_id: str,
+        account_display_name: str = "",
     ) -> UserIntegration:
         base_64_encoded_meta_data = {
             key: b64encode(str(value).encode()).decode()
@@ -28,6 +33,7 @@ class IntegrationRepository:
                 user_id=user_id,
                 meta_data=encrypted_meta_data,
                 account_id=account_id,
+                account_display_name=account_display_name,
             )
             return user_integration
         except IntegrityError:

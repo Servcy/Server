@@ -19,6 +19,9 @@ class Integration(models.Model):
 
 class UserIntegration(TimeStampedModel):
     account_id = models.CharField(max_length=250, null=False, blank=False)
+    account_display_name = models.CharField(
+        max_length=250, null=False, blank=True, default=""
+    )
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=False, blank=False)
     integration = models.ForeignKey(
         Integration,
