@@ -180,7 +180,9 @@ class OauthViewset(viewsets.ViewSet):
             service = FigmaService(code)
             user_integration = service.create_integration(user_id=request.user.id)
             return success_response(
-                results=f"integrations/setup/figma?user_integration_id={user_integration.id}",
+                results={
+                    "redirect": f"integrations/setup/figma?user_integration_id={user_integration.id}"
+                },
                 success_message="Successfully integrated with Figma!",
                 status=status.HTTP_200_OK,
             )
