@@ -45,6 +45,7 @@ class GithubService:
             user_id=user_id,
             account_id=self._user_info["id"],
             meta_data={"token": self._token, "user_info": self._user_info},
+            account_display_name=self._user_info["login"],
         )
 
     def _fetch_user_info(self) -> dict:
