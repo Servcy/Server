@@ -25,23 +25,22 @@ class FigmaService:
         self._user_info = self._fetch_user_info()
 
     def _refresh_token(self, refresh_token: str) -> dict:
-        """Refreshes access token from Figma."""
+        """
+        Refreshes access token from Figma.
+        """
         response = requests.post(
             url="https://www.figma.com/api/oauth/refresh",
             data={
-                "refresh_token": refresh_token,
                 "client_id": settings.FIGMA_APP_CLIENT_ID,
                 "client_secret": settings.FIGMA_APP_CLIENT_SECRET,
+                "refresh_token": refresh_token,
             },
         ).json()
         if "error" in response:
             raise ServcyOauthCodeException(
                 f"An error occurred while obtaining access token from Figma.\n{str(response)}"
             )
-        return {
-            **response,
-            "refresh_token": refresh_token,
-        }
+        return response
 
     def _fetch_token(self, code: str) -> dict:
         """Fetches access token from Notion."""
