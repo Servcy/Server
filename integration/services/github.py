@@ -27,7 +27,10 @@ class GithubService:
                 "client_secret": settings.GITHUB_APP_CLIENT_SECRET,
                 "redirect_uri": settings.GITHUB_APP_REDIRECT_URI,
             },
-        ).json()
+        )
+        self._token = dict(
+            [tuple(token.split("=")) for token in self._token.text.split("&") if token]
+        )
         if "error" in self._token:
             raise ServcyOauthCodeException(
                 f"An error occurred while obtaining access token from Slack.\n{str(self._token)}"
