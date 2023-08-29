@@ -1,12 +1,18 @@
 from django.db import DatabaseError
+from newrelic.agent import notice_error
 from rest_framework import status
 from rest_framework.exceptions import APIException
+from rest_framework.views import exception_handler
 
 
 class ServcyBaseException(Exception):
     """
     Custom exception base for Servcy.
     """
+
+    @property
+    def message(self):
+        return str(self)
 
 
 class ServcyOauthCodeException(ServcyBaseException):
@@ -41,6 +47,15 @@ class BusinessException(ServcyAPIException):
 
     default_detail = "A Business Exception has occurred"
     default_code = "BusinessException"
+
+
+class ExternalIntegrationException(ServcyAPIException):
+    """
+    For Servcy External Integrations.
+    """
+
+    default_detail = "An External Integration Exception has occurred"
+    default_code = "ExternalIntegrationException"
 
 
 class ServcyDBException(DatabaseError, ServcyBaseException):
@@ -108,3 +123,14 @@ class JsonDataException(BusinessException):
 
     status_code = status.HTTP_412_PRECONDITION_FAILED
     default_detail = "JSON data is invalid. Possible Key Exception."
+
+
+def servcy_exception_handler(exception, context):
+    """
+    Main exception handler for Servcy.
+    """
+    notice_error(exception)
+    response = exception_handler(exception, context)
+    if response is not None:
+        response.data["status_code"] = response.status_code
+    return response

@@ -3,6 +3,8 @@ import os
 from configparser import RawConfigParser
 from pathlib import Path
 
+from newrelic.agent import NewRelicContextFormatter
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -38,9 +40,7 @@ LOCAL_APPS = [
     "inbox",
 ]
 
-OTHER_APPS = [
-    "app",
-]
+OTHER_APPS = ["app", "webhook"]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -57,12 +57,12 @@ INSTALLED_APPS += LOCAL_APPS
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
     "crum.CurrentRequestUserMiddleware",
     "middlewares.RequestUUIDMiddleware",
 ]
@@ -106,16 +106,17 @@ REST_FRAMEWORK = {
     "DATE_INPUT_FORMATS": ["%d/%m/%Y"],
     "DATETIME_FORMAT": "%d/%m/%Y %H:%M",
     "DATE_FORMAT": "%d/%m/%Y",
+    "EXCEPTION_HANDLER": "common.exceptions.servcy_exception_handler",
 }
 
-CORS_ALLOW_CREDENTIALS = True  # its value determines whether the server allows cookies in the cross-site HTTP requests.
+CORS_ALLOW_CREDENTIALS = True
 
-CORS_ORIGIN_WHITELIST = (  # for development only
-    "http://127.0.0.1:3000",
+CORS_ALLOW_ALL_ORIGINS = False
+
+CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
-)
-
-CORS_ORIGIN_REGEX_WHITELIST = (r"^https://.*\.servcy\.com$",)  # for production only
+    "https://web.servcy.com",
+]
 
 WSGI_APPLICATION = "app.wsgi.application"
 
@@ -159,7 +160,7 @@ LOG_HANDLER_DEFAULTS = {
     "class": "logging.handlers.RotatingFileHandler",
     "maxBytes": 1024 * 1024 * 10,
     "backupCount": 5,
-    "formatter": "verbose_raw",
+    "formatter": "verbose_raw" if DEBUG else "verbose_json",
     "filters": ["user_id", "req_id"],
 }
 LOG_HANDLERS = {}
@@ -180,6 +181,11 @@ LOGGING = {
     "formatters": {
         "verbose_raw": {
             "format": "[%(asctime)s] %(levelname)s %(user_identity)s %(request_identity)s [%(name)s:%(lineno)s] %(message)s",
+            "datefmt": "%d/%b/%Y %H:%M:%S",
+        },
+        "verbose_json": {
+            "()": NewRelicContextFormatter,
+            "format": "[%(asctime)s] %(levelname)s %(user_identity)s %(request_id)s [%(name)s:%(lineno)s] %(message)s",
             "datefmt": "%d/%b/%Y %H:%M:%S",
         },
         "simple": {"format": "%(levelname)s %(message)s"},
@@ -244,7 +250,7 @@ AUTH_USER_MODEL = "iam.User"
 GOOGLE_OAUTH2_CLIENT_ID = config.get("google", "client_id")
 GOOGLE_OAUTH2_CLIENT_SECRET = config.get("google", "client_secret")
 GOOGLE_OAUTH2_TOKEN_URI = config.get("google", "token_uri")
-GOOGLE_OAUTH2_REDIRECT_URI = config.get("google", "redirect_uri")
+GOOGLE_OAUTH2_REDIRECT_URI = f"{FRONTEND_URL}/{config.get('google', 'redirect_uri')}"
 GOOGLE_PROJECT_ID = config.get("google", "project_id")
 GOOGLE_OAUTH2_SCOPES = [
     "https://www.googleapis.com/auth/gmail.readonly",
@@ -267,9 +273,25 @@ MICROSOFT_APP_CLIENT_SECRET_ID = config.get("microsoft", "client_secret_id")
 MICROSOFT_APP_CLIENT_SECRET = config.get("microsoft", "client_secret")
 MICROSOFT_APP_OBJECT_ID = config.get("microsoft", "object_id")
 MICROSOFT_APP_TENANT_ID = config.get("microsoft", "tenant_id")
-MICROSOFT_APP_REDIRECT_URI = config.get("microsoft", "redirect_uri")
+MICROSOFT_APP_REDIRECT_URI = f"{FRONTEND_URL}/{config.get('microsoft', 'redirect_uri')}"
+# Notion
+NOTION_APP_CLIENT_ID = config.get("notion", "client_id")
+NOTION_APP_CLIENT_SECRET = config.get("notion", "client_secret")
+NOTION_APP_REDIRECT_URI = f"{FRONTEND_URL}/{config.get('notion', 'redirect_uri')}"
+# Slack
+SLACK_APP_CLIENT_ID = config.get("slack", "client_id")
+SLACK_APP_CLIENT_SECRET = config.get("slack", "client_secret")
+SLACK_APP_REDIRECT_URI = f"{FRONTEND_URL}/{config.get('slack', 'redirect_uri')}"
+# Github
+GITHUB_APP_CLIENT_ID = config.get("github", "client_id")
+GITHUB_APP_CLIENT_SECRET = config.get("github", "client_secret")
+GITHUB_APP_REDIRECT_URI = f"{FRONTEND_URL}/{config.get('github', 'redirect_uri')}"
+# Figma
+FIGMA_APP_CLIENT_ID = config.get("figma", "client_id")
+FIGMA_APP_CLIENT_SECRET = config.get("figma", "client_secret")
+FIGMA_APP_REDIRECT_URI = f"{FRONTEND_URL}/{config.get('figma', 'redirect_uri')}"
 
-
+# Cron Jobs
 CRONJOBS = [
     (
         "0 0 * * *",

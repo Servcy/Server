@@ -11,7 +11,12 @@ from integration.models import Integration, UserIntegration
 class IntegrationRepository:
     @classmethod
     def create_user_integration(
-        self, integration_id: int, user_id: int, meta_data: dict, account_id: str
+        self,
+        integration_id: int,
+        user_id: int,
+        meta_data: dict,
+        account_id: str,
+        account_display_name: str = "",
     ) -> UserIntegration:
         base_64_encoded_meta_data = {
             key: b64encode(str(value).encode()).decode()
@@ -28,6 +33,7 @@ class IntegrationRepository:
                 user_id=user_id,
                 meta_data=encrypted_meta_data,
                 account_id=account_id,
+                account_display_name=account_display_name,
             )
             return user_integration
         except IntegrityError:
@@ -58,10 +64,12 @@ class IntegrationRepository:
             integration["meta_data"] = self.decrypt_meta_data(
                 meta_data=integration["meta_data"]
             )
-        return integrations if not first else integrations[0]
+        if not first:
+            return integrations
+        return integrations[0] if integrations else None
 
     @staticmethod
-    def decrypt_meta_data(meta_data):
+    def decrypt_meta_data(meta_data: str) -> dict:
         fernet = Fernet(settings.FERNET_KEY)
         decrypted_meta_data = fernet.decrypt(token=meta_data).decode()
         decrypted_meta_data = json.loads(decrypted_meta_data.replace("'", '"'))
@@ -70,3 +78,24 @@ class IntegrationRepository:
             for key, value in dict(decrypted_meta_data).items()
         }
         return meta_data
+
+    @staticmethod
+    def encrypt_meta_data(meta_data: dict) -> str:
+        base_64_encoded_meta_data = {
+            key: b64encode(str(value).encode()).decode()
+            for key, value in meta_data.items()
+        }
+        encrypted_meta_data = (
+            Fernet(settings.FERNET_KEY)
+            .encrypt(str(base_64_encoded_meta_data).encode())
+            .decode()
+        )
+        return encrypted_meta_data
+
+    @staticmethod
+    def update_integraion_meta_data(user_integration_id: int, meta_data: dict):
+        user_integration = UserIntegration.objects.get(id=user_integration_id)
+        user_integration.meta_data = IntegrationRepository.encrypt_meta_data(
+            meta_data=meta_data
+        )
+        user_integration.save()
