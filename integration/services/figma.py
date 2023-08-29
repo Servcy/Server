@@ -1,7 +1,7 @@
 import requests
 from django.conf import settings
 
-from common.exceptions import ServcyOauthCodeException
+from common.exceptions import ExternalIntegrationException, ServcyOauthCodeException
 from integration.models import UserIntegration
 from integration.repository import IntegrationRepository
 
@@ -24,11 +24,11 @@ class FigmaService:
             )
         self._user_info = self._fetch_user_info()
 
-    def _refresh_token(self, refresh_token: str) -> dict:
+    def _refresh_token(self, refresh_token: str) -> None:
         """
         Refreshes access token from Figma.
         """
-        response = requests.post(
+        self._token = requests.post(
             url="https://www.figma.com/api/oauth/refresh",
             data={
                 "client_id": settings.FIGMA_APP_CLIENT_ID,
@@ -36,11 +36,10 @@ class FigmaService:
                 "refresh_token": refresh_token,
             },
         ).json()
-        if "error" in response:
+        if "error" in self._token:
             raise ServcyOauthCodeException(
-                f"An error occurred while obtaining access token from Figma.\n{str(response)}"
+                f"An error occurred while obtaining access token from Figma.\n{str(self._token)}"
             )
-        return response
 
     def _fetch_token(self, code: str) -> dict:
         """Fetches access token from Notion."""
@@ -86,7 +85,6 @@ class FigmaService:
         """
         Creates webhooks for Figma.
         """
-        responses = []
         for team_id in team_ids:
             response = requests.post(
                 url="https://api.figma.com/v2/webhooks",
@@ -94,20 +92,22 @@ class FigmaService:
                     "Authorization": f"Bearer {self._token['access_token']}",
                 },
                 json={
-                    "method": "POST",
-                    "path": f"/v1/webhooks",
-                    "body": {
-                        "event_type": [
-                            "FILE_UPDATE",
-                            "FILE_DELETE",
-                            "FILE_VERSION_UPDATE",
-                            "FILE_COMMENT",
-                            "LIBRARY_PUBLISH",
-                        ],
-                        "team_id": team_id,
-                        "endpoint": f"{settings.BACKEND_URL}/webhook/figma",
-                    },
+                    "event_type": [
+                        "FILE_UPDATE",
+                        "FILE_DELETE",
+                        "FILE_VERSION_UPDATE",
+                        "FILE_COMMENT",
+                        "LIBRARY_PUBLISH",
+                    ],
+                    "team_id": team_id,
+                    "endpoint": f"{settings.BACKEND_URL}/webhook/figma",
                 },
             )
-            responses.append(response)
-        return responses
+            json_response = response.json()
+            if (
+                json_response.get("error", False)
+                and json_response.get("status", 0) == 400
+            ):
+                raise ExternalIntegrationException(response["message"])
+            elif json_response.get("error", False):
+                response.raise_for_status()

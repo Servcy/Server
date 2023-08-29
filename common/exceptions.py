@@ -49,6 +49,15 @@ class BusinessException(ServcyAPIException):
     default_code = "BusinessException"
 
 
+class ExternalIntegrationException(ServcyAPIException):
+    """
+    For Servcy External Integrations.
+    """
+
+    default_detail = "An External Integration Exception has occurred"
+    default_code = "ExternalIntegrationException"
+
+
 class ServcyDBException(DatabaseError, ServcyBaseException):
     """
     For Database Exception BaseClass.

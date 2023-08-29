@@ -4,6 +4,7 @@ import logging
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 
+from common.exceptions import ExternalIntegrationException
 from common.responses import error_response, success_response
 from integration.repository import IntegrationRepository
 from integration.services.figma import FigmaService
@@ -44,8 +45,15 @@ class FigmaViewset(viewsets.ViewSet):
             service = FigmaService(refresh_token=refresh_token)
             service.create_webhooks(team_ids=team_ids)
             return success_response(status=status.HTTP_200_OK)
+        except ExternalIntegrationException as e:
+            return error_response(
+                logger=logger,
+                error_message=e.message,
+                logger_message=f"An error occurred while configuring Figma integration. {e.message}",
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         except Exception:
             return error_response(
                 logger=logger,
-                logger_message="An error occurred processing oauth request.",
+                logger_message="An error occurred while configuring Figma integration.",
             )
