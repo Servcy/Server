@@ -15,6 +15,10 @@ class FigmaService:
         self._token = None
         if code:
             self._fetch_token(code)
+        else:
+            raise ServcyOauthCodeException(
+                "Code/Refresh is required for fetching access token from Figma."
+            )
 
     def _fetch_token(self, code: str) -> dict:
         """Fetches access token from Notion."""
@@ -41,5 +45,6 @@ class FigmaService:
             ).id,
             user_id=user_id,
             account_id=str(self._token["user_id"]),
-            meta_data={"token": self._token, "user_info": self._user_info},
+            meta_data={"token": self._token},
+            account_display_name=self._token["user_id"],
         )
