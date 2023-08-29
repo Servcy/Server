@@ -45,5 +45,6 @@ class NotionService:
             ).id,
             user_id=user_id,
             account_id=self._token["workspace_id"],
+            account_display_name=self._token["workspace_name"],
             meta_data={"token": self._token},
         )

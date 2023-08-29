@@ -90,6 +90,7 @@ class MicrosoftService:
             user_id=user_id,
             account_id=email,
             meta_data={"token": self._token, "subscription": subscription},
+            account_display_name=email,
         )
 
     def create_subscription(self, user_id: int) -> str:

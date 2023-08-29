@@ -41,4 +41,5 @@ class SlackService:
             user_id=user_id,
             account_id=self._token["authed_user"]["id"],
             meta_data={"token": self._token},
+            account_display_name=self._token["team"]["name"],
         )

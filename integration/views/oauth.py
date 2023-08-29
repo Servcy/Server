@@ -62,6 +62,7 @@ class OauthViewset(viewsets.ViewSet):
                 user_id=request.user.id,
                 account_id=user_info["email"],
                 meta_data={**token_response, **user_info, **watcher_response},
+                account_display_name=user_info["email"],
             )
             return success_response(
                 success_message="Successfully integrated with Gmail!",
