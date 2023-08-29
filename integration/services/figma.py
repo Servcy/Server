@@ -2,6 +2,7 @@ import requests
 from django.conf import settings
 
 from common.exceptions import ServcyOauthCodeException
+from integration.models import UserIntegration
 from integration.repository import IntegrationRepository
 
 
@@ -38,9 +39,9 @@ class FigmaService:
                 f"An error occurred while obtaining access token from Slack.\n{str(self._token)}"
             )
 
-    def create_integration(self, user_id: int) -> None:
+    def create_integration(self, user_id: int) -> UserIntegration:
         """Creates integration for user."""
-        IntegrationRepository.create_user_integration(
+        user_integration = IntegrationRepository.create_user_integration(
             integration_id=IntegrationRepository.get_integration(
                 filters={"name": "Figma"}
             ).id,
@@ -49,6 +50,7 @@ class FigmaService:
             meta_data={"token": self._token, "user_info": self._user_info},
             account_display_name=self._user_info["email"],
         )
+        return user_integration
 
     def _fetch_user_info(self) -> dict:
         """Fetches user info from Figma."""
