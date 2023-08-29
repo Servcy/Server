@@ -9,6 +9,9 @@ class Integration(models.Model):
     logo = models.URLField(default=None, null=True)
     description = models.CharField(max_length=5000)
     meta_data = models.JSONField()
+    configure_at = models.CharField(
+        max_length=250, default=None, null=True, blank=False
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -31,6 +34,7 @@ class UserIntegration(TimeStampedModel):
         related_name="user_integrations",
     )
     meta_data = models.TextField(default=None, null=True, blank=False)
+    configuration = models.JSONField(default=None, null=True, blank=False)
 
     class Meta:
         db_table = "user_integration"
