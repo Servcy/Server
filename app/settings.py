@@ -106,7 +106,7 @@ REST_FRAMEWORK = {
     "DATE_INPUT_FORMATS": ["%d/%m/%Y"],
     "DATETIME_FORMAT": "%d/%m/%Y %H:%M",
     "DATE_FORMAT": "%d/%m/%Y",
-    "EXCEPTION_HANDLER": "app.common.exceptions.ServcyExceptionHandler.main",
+    "EXCEPTION_HANDLER": "common.exceptions.servcy_exception_handler",
 }
 
 CORS_ALLOW_CREDENTIALS = True

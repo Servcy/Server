@@ -1,11 +1,13 @@
 from django.urls import path
 
+from webhook.figma import figma
 from webhook.google import google
 from webhook.microsoft import microsoft
 from webhook.slack import slack
 
 urlpatterns = [
-    path("microsoft", microsoft, name="Microsoft Webhook"),
-    path("google", google, name="Google Webhook"),
-    path("slack", slack, name="Slack Webhook"),
+    path("microsoft", microsoft, name="Microsoft"),
+    path("google", google, name="Google"),
+    path("slack", slack, name="Slack"),
+    path("figma", figma, name="Figma"),
 ]

@@ -8,7 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from rest_framework import status
 
-from common.responses import error_response, success_response
+from common.responses import error_response
 from inbox.repository import InboxRepository
 from inbox.repository.google import GoogleMailRepository
 from integration.repository import IntegrationRepository

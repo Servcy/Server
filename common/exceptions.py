@@ -116,18 +116,12 @@ class JsonDataException(BusinessException):
     default_detail = "JSON data is invalid. Possible Key Exception."
 
 
-class ServcyExceptionHandler:
+def servcy_exception_handler(exception, context):
     """
-    Exception handler for Servcy.
+    Main exception handler for Servcy.
     """
-
-    @staticmethod
-    def main(exception, context):
-        """
-        Main exception handler for Servcy.
-        """
-        notice_error(exception)
-        response = exception_handler(exception, context)
-        if response is not None:
-            response.data["status_code"] = response.status_code
-        return response
+    notice_error(exception)
+    response = exception_handler(exception, context)
+    if response is not None:
+        response.data["status_code"] = response.status_code
+    return response
