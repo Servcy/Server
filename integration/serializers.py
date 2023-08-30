@@ -16,6 +16,7 @@ class IntegrationSerializer(ServcyReadSerializer):
             "logo",
             "account_display_name",
             "account_id",
+            "configure_at",
         )
 
     def get_account_display_names(self, obj):
