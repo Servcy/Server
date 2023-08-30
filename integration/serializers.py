@@ -1,7 +1,8 @@
+from rest_framework.serializers import ModelSerializer
 from serpy import MethodField
 
 from app.serializers import ServcyReadSerializer
-from integration.models import Integration
+from integration.models import Integration, UserIntegration
 
 
 class IntegrationSerializer(ServcyReadSerializer):
@@ -25,3 +26,13 @@ class IntegrationSerializer(ServcyReadSerializer):
             user_integration.account_display_name
             for user_integration in user_integrations
         ]
+
+
+class UserIntegrationSerializer(ModelSerializer):
+    class Meta:
+        model = UserIntegration
+        read_only_fields = (
+            "id",
+            "account_display_name",
+        )
+        fields = read_only_fields + ("configuration",)
