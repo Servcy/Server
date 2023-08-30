@@ -2,6 +2,7 @@ import requests
 from django.conf import settings
 
 from common.exceptions import ServcyOauthCodeException
+from integration.models import UserIntegration
 from integration.repository import IntegrationRepository
 
 
@@ -36,9 +37,9 @@ class GithubService:
                 f"An error occurred while obtaining access token from Slack.\n{str(self._token)}"
             )
 
-    def create_integration(self, user_id: int) -> None:
+    def create_integration(self, user_id: int) -> UserIntegration:
         """Creates integration for user."""
-        IntegrationRepository.create_user_integration(
+        return IntegrationRepository.create_user_integration(
             integration_id=IntegrationRepository.get_integration(
                 filters={"name": "Github"}
             ).id,
