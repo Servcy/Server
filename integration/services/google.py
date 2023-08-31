@@ -26,7 +26,7 @@ GOOGLE_PUB_SUB_TOPIC = settings.GOOGLE_PUB_SUB_TOPIC
 class GoogleService(BaseService):
     def __init__(
         self, token: str = None, refresh_token: str = None, code: str = None
-    ) -> "GoogleService":
+    ) -> None:
         self._google_service = None
         self._token = token
         self._refresh_token = refresh_token
