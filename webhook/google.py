@@ -20,6 +20,8 @@ logger = logging.getLogger(__name__)
 @csrf_exempt
 @require_POST
 def google(request):
+    email = None
+    history_id = None
     try:
         payload = json.loads(request.body.decode("utf-8"))
         encoded_data = payload["message"]["data"]
@@ -33,13 +35,6 @@ def google(request):
             },
             first=True,
         )
-        IntegrationRepository.update_integraion_meta_data(
-            user_integration_id=integration["id"],
-            meta_data={
-                **integration["meta_data"],
-                "last_history_id": history_id,
-            },
-        )
         if integration is None:
             logger.error(f"No integration found for email: {email}. Payload: {payload}")
             return error_response(
@@ -48,6 +43,13 @@ def google(request):
                 status=status.HTTP_404_NOT_FOUND,
             )
         last_history_id = int(integration["meta_data"]["last_history_id"])
+        IntegrationRepository.update_integraion_meta_data(
+            user_integration_id=integration["id"],
+            meta_data={
+                **integration["meta_data"],
+                "last_history_id": history_id,
+            },
+        )
         service = GoogleService(
             token=integration["meta_data"]["access_token"],
             refresh_token=integration["meta_data"]["refresh_token"],
@@ -71,5 +73,5 @@ def google(request):
     except Exception:
         return error_response(
             logger=logger,
-            logger_message="An error occurred processing webhook for google request.",
+            logger_message=f"An error occurred processing webhook for google request. {email} {history_id}",
         )
