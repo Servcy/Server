@@ -74,12 +74,12 @@ class IntegrationRepository:
     @staticmethod
     def encrypt_meta_data(meta_data: dict) -> str:
         base_64_encoded_meta_data = {
-            key: b64encode(str(json.loads(value)).encode()).decode()
+            key: b64encode(str(json.dumps(value)).encode()).decode()
             for key, value in meta_data.items()
         }
         encrypted_meta_data = (
             Fernet(settings.FERNET_KEY)
-            .encrypt(str(json.loads(base_64_encoded_meta_data)).encode())
+            .encrypt(str(json.dumps(base_64_encoded_meta_data)).encode())
             .decode()
         )
         return encrypted_meta_data
