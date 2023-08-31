@@ -197,7 +197,7 @@ class GoogleService(BaseService):
             batch.add(
                 self._google_service.users().messages().get(userId="me", id=message_id)
             )
-        self._make_google_request(batch.execute)
+        batch.execute()
         return messages
 
     def create_integration(self, user_id: int):
