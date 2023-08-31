@@ -1,5 +1,4 @@
 import logging
-import traceback
 
 from django.conf import settings
 from rest_framework import status
@@ -12,6 +11,7 @@ from app.utils.auth import (
     send_authentication_code_email,
     send_authentication_code_phone,
 )
+from common.responses import error_response, success_response
 from iam.serializers.jwt import JWTTokenSerializer
 from iam.services.accounts import AccountsService
 
@@ -28,11 +28,6 @@ class AuthenticationView(APIView):
         auth_token = settings.TWILIO_AUTH_TOKEN
         return Client(account_sid, auth_token)
 
-    def _handle_exception(self, message, status=status.HTTP_500_INTERNAL_SERVER_ERROR):
-        """Log the error and return a formatted response."""
-        logger.error(f"{message}\n{traceback.format_exc()}")
-        return Response({"detail": message}, status=status)
-
     def get(self, request):
         """Send OTP code to email or phone number."""
         try:
@@ -40,22 +35,24 @@ class AuthenticationView(APIView):
             input = payload.get("input")
             input_type = payload.get("input_type")
             if not input_type or not input:
-                return Response(
-                    {"message": "input and input_type are required!"},
-                    status.HTTP_400_BAD_REQUEST,
+                return error_response(
+                    error_message="input and input_type are required!",
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
             client = self._initialize_twilio_client()
             if input_type == "email":
                 send_authentication_code_email(client, input)
             else:
                 send_authentication_code_phone(client, f"+{input}", True)
-            return Response(
-                {"detail": "Verification code has been sent!"},
-                status.HTTP_201_CREATED,
+            return success_response(
+                success_message="Verification code has been sent!",
+                status=status.HTTP_201_CREATED,
             )
-        except Exception as e:
-            return self._handle_exception(
-                "An error occurred while sending verification code."
+        except Exception:
+            return error_response(
+                logger=logger,
+                logger_message="An error occurred while sending verification code.",
+                error_message="An error occurred while sending verification code.",
             )
 
     def post(self, request):
@@ -66,9 +63,9 @@ class AuthenticationView(APIView):
             input = payload.get("input", None)
             input_type = payload.get("input_type", None)
             if not otp or not input_type or not input:
-                return Response(
-                    {"detail": "otp, input and input_type are required!"},
-                    status.HTTP_406_NOT_ACCEPTABLE,
+                return error_response(
+                    error_message="otp, input and input_type are required!",
+                    status=status.HTTP_406_NOT_ACCEPTABLE,
                 )
             client = self._initialize_twilio_client()
             verification_check = self._verify_code(client, otp, input, input_type)
@@ -82,18 +79,21 @@ class AuthenticationView(APIView):
                 }
                 return Response(tokens, status.HTTP_200_OK)
             else:
-                return Response(
-                    {"detail": "Verification code is invalid!"},
-                    status.HTTP_401_UNAUTHORIZED,
+                return error_response(
+                    error_message="Verification code is invalid!",
+                    status=status.HTTP_401_UNAUTHORIZED,
                 )
-        except TwilioRestException as e:
-            return self._handle_exception(
-                "An error occurred while verifying verification code.",
-                status.HTTP_401_UNAUTHORIZED,
+        except TwilioRestException:
+            return error_response(
+                error_message="An error occurred while verifying verification code.",
+                logger_message="An error occurred while verifying verification code.",
+                status=status.HTTP_401_UNAUTHORIZED,
             )
-        except Exception as e:
-            return self._handle_exception(
-                "An error occurred while verifying verification code."
+        except Exception:
+            return error_response(
+                logger=logger,
+                logger_message="An error occurred while verifying verification code.",
+                error_message="An error occurred while verifying verification code.",
             )
 
     def _verify_code(self, client, otp, input, input_type):
