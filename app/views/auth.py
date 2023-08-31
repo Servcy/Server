@@ -55,7 +55,7 @@ class AuthenticationView(APIView):
             )
         except Exception as e:
             return self._handle_exception(
-                e, "An error occurred while sending verification code."
+                "An error occurred while sending verification code."
             )
 
     def post(self, request):
