@@ -5,58 +5,75 @@ from common.exceptions import ExternalIntegrationException, ServcyOauthCodeExcep
 from integration.models import UserIntegration
 from integration.repository import IntegrationRepository
 
+FIGMA_API_BASE_URL = "https://api.figma.com"
+FIGMA_OAUTH_URL = "https://www.figma.com/api/oauth"
+
 
 class FigmaService:
-    """
-    Service class for Slack integration.
-    """
+    """Service class for Figma integration."""
 
     def __init__(self, code: str = None, refresh_token: str = None) -> None:
         """Initializes FigmaService."""
         self._token = None
+        self._user_info = None
+        if code or refresh_token:
+            self.authenticate(code, refresh_token)
+
+    def authenticate(
+        self, code: str = None, refresh_token: str = None
+    ) -> "FigmaService":
+        """Authenticate using either code or refresh token."""
         if code:
             self._fetch_token(code)
         elif refresh_token:
             self._refresh_token(refresh_token)
         else:
             raise ServcyOauthCodeException(
-                "Code/Refresh is required for fetching access token from Figma."
+                "Code/Refresh token is required for fetching access token from Figma."
             )
         self._user_info = self._fetch_user_info()
+        return self
+
+    def _make_request(self, method: str, endpoint: str, **kwargs) -> dict:
+        """Helper function to make requests to Figma API."""
+        url = (
+            f"{FIGMA_API_BASE_URL}/{endpoint}"
+            if "figma.com/api" not in endpoint
+            else endpoint
+        )
+        response = requests.request(method, url, **kwargs)
+        json_response = response.json()
+        if "error" in json_response:
+            error_msg = f"An error occurred while communicating with Figma API.\\n{str(json_response)}"
+            if json_response.get("status", 0) == 400:
+                raise ExternalIntegrationException(
+                    json_response.get("message", error_msg)
+                )
+            else:
+                raise ExternalIntegrationException(error_msg)
+        return json_response
 
     def _refresh_token(self, refresh_token: str) -> None:
-        """
-        Refreshes access token from Figma.
-        """
-        self._token = requests.post(
-            url="https://www.figma.com/api/oauth/refresh",
-            data={
-                "client_id": settings.FIGMA_APP_CLIENT_ID,
-                "client_secret": settings.FIGMA_APP_CLIENT_SECRET,
-                "refresh_token": refresh_token,
-            },
-        ).json()
-        if "error" in self._token:
-            raise ServcyOauthCodeException(
-                f"An error occurred while obtaining access token from Figma.\n{str(self._token)}"
-            )
+        """Refreshes access token from Figma."""
+        data = {
+            "client_id": settings.FIGMA_APP_CLIENT_ID,
+            "client_secret": settings.FIGMA_APP_CLIENT_SECRET,
+            "refresh_token": refresh_token,
+        }
+        self._token = self._make_request(
+            "POST", f"{FIGMA_OAUTH_URL}/refresh", data=data
+        )
 
-    def _fetch_token(self, code: str) -> dict:
-        """Fetches access token from Notion."""
-        self._token = requests.post(
-            url="https://www.figma.com/api/oauth/token",
-            data={
-                "code": code,
-                "client_id": settings.FIGMA_APP_CLIENT_ID,
-                "client_secret": settings.FIGMA_APP_CLIENT_SECRET,
-                "redirect_uri": settings.FIGMA_APP_REDIRECT_URI,
-                "grant_type": "authorization_code",
-            },
-        ).json()
-        if "error" in self._token:
-            raise ServcyOauthCodeException(
-                f"An error occurred while obtaining access token from Slack.\n{str(self._token)}"
-            )
+    def _fetch_token(self, code: str) -> None:
+        """Fetches access token from Figma."""
+        data = {
+            "code": code,
+            "client_id": settings.FIGMA_APP_CLIENT_ID,
+            "client_secret": settings.FIGMA_APP_CLIENT_SECRET,
+            "redirect_uri": settings.FIGMA_APP_REDIRECT_URI,
+            "grant_type": "authorization_code",
+        }
+        self._token = self._make_request("POST", f"{FIGMA_OAUTH_URL}/token", data=data)
 
     def create_integration(self, user_id: int) -> UserIntegration:
         """Creates integration for user."""
@@ -73,41 +90,40 @@ class FigmaService:
 
     def _fetch_user_info(self) -> dict:
         """Fetches user info from Figma."""
-        response = requests.get(
-            url="https://api.figma.com/v1/me",
-            headers={
-                "Authorization": f"Bearer {self._token['access_token']}",
-            },
-        ).json()
-        return response
+        headers = {
+            "Authorization": f"Bearer {self._token['access_token']}",
+        }
+        return self._make_request("GET", "v1/me", headers=headers)
 
-    def create_webhooks(self, team_ids: list[str]) -> None:
-        """
-        Creates webhooks for Figma.
-        """
+    def create_webhooks(self, team_ids: list[str]) -> list[str]:
+        """Creates webhooks for Figma."""
+        failed_webhooks = []
+        success_webhooks = []
         for team_id in team_ids:
-            response = requests.post(
-                url="https://api.figma.com/v2/webhooks",
-                headers={
-                    "Authorization": f"Bearer {self._token['access_token']}",
-                },
-                json={
-                    "event_type": [
-                        "FILE_UPDATE",
-                        "FILE_DELETE",
-                        "FILE_VERSION_UPDATE",
-                        "FILE_COMMENT",
-                        "LIBRARY_PUBLISH",
-                    ],
-                    "team_id": team_id,
-                    "endpoint": f"{settings.BACKEND_URL}/webhook/figma",
-                },
+            data = {
+                "event_type": [
+                    "FILE_UPDATE",
+                    "FILE_DELETE",
+                    "FILE_VERSION_UPDATE",
+                    "FILE_COMMENT",
+                    "LIBRARY_PUBLISH",
+                ],
+                "team_id": team_id,
+                "endpoint": f"{settings.BACKEND_URL}/webhook/figma",
+            }
+            headers = {
+                "Authorization": f"Bearer {self._token['access_token']}",
+            }
+            try:
+                self._make_request("POST", "v2/webhooks", headers=headers, json=data)
+                success_webhooks.append(team_id)
+            except ExternalIntegrationException as e:
+                failed_webhooks.append((team_id, str(e)))
+        if failed_webhooks:
+            error_msgs = "\\n".join(
+                [f"Team ID: {team[0]}, Error: {team[1]}" for team in failed_webhooks]
             )
-            json_response = response.json()
-            if (
-                json_response.get("error", False)
-                and json_response.get("status", 0) == 400
-            ):
-                raise ExternalIntegrationException(response["message"])
-            elif json_response.get("error", False):
-                response.raise_for_status()
+            raise ExternalIntegrationException(
+                f"Failed to create webhooks for the following teams:\\n{error_msgs}"
+            )
+        return success_webhooks

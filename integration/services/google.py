@@ -6,8 +6,17 @@ from django.conf import settings
 from google.cloud import pubsub_v1
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
 
 logger = logging.getLogger(__name__)
+
+GOOGLE_CLIENT_ID = settings.GOOGLE_OAUTH2_CLIENT_ID
+GOOGLE_CLIENT_SECRET = settings.GOOGLE_OAUTH2_CLIENT_SECRET
+GOOGLE_TOKEN_URI = settings.GOOGLE_OAUTH2_TOKEN_URI
+GOOGLE_SCOPES = settings.GOOGLE_OAUTH2_SCOPES
+GOOGLE_REDIRECT_URI = settings.GOOGLE_OAUTH2_REDIRECT_URI
+GOOGLE_USER_INFO_URI = settings.GOOGLE_OAUTH2_USER_INFO_URI
+GOOGLE_PUB_SUB_TOPIC = settings.GOOGLE_PUB_SUB_TOPIC
 
 
 @define
@@ -21,50 +30,66 @@ class GoogleCredentials:
 
 
 class GoogleService:
-    client_id = settings.GOOGLE_OAUTH2_CLIENT_ID
-    client_secret = settings.GOOGLE_OAUTH2_CLIENT_SECRET
-    token_uri = settings.GOOGLE_OAUTH2_TOKEN_URI
-    scopes = settings.GOOGLE_OAUTH2_SCOPES
-    redirect_uri = settings.GOOGLE_OAUTH2_REDIRECT_URI
-    user_info_uri = settings.GOOGLE_OAUTH2_USER_INFO_URI
-    pub_sub_topic = settings.GOOGLE_PUB_SUB_TOPIC
-
     def __init__(self, token: str = None, refresh_token: str = None):
         self._google_service = None
         self.token = token
         self.refresh_token = refresh_token
         if self.token and self.refresh_token:
-            self._google_service = build(
-                "gmail",
-                "v1",
-                credentials=Credentials(
-                    token=self.token,
-                    client_id=self.client_id,
-                    client_secret=self.client_secret,
-                    refresh_token=self.refresh_token,
-                    token_uri=self.token_uri,
-                ),
-                cache_discovery=False,
-            )
+            self._initialize_google_service()
 
-    def __del__(self):
-        self._google_service.close()
+    def _initialize_google_service(self):
+        """Initialize google service"""
+        self._google_service = build(
+            "gmail",
+            "v1",
+            credentials=Credentials(
+                token=self.token,
+                client_id=GOOGLE_CLIENT_ID,
+                client_secret=GOOGLE_CLIENT_SECRET,
+                refresh_token=self.refresh_token,
+                token_uri=GOOGLE_TOKEN_URI,
+            ),
+            cache_discovery=False,
+        )
 
-    @classmethod
-    def fetch_tokens(cls, code: str) -> dict:
+    def close(self):
+        """Close google service"""
+        if self._google_service:
+            self._google_service.close()
+
+    @staticmethod
+    def fetch_tokens(code: str) -> dict:
+        """Fetch tokens from google using code"""
         response = requests.post(
-            cls.token_uri,
+            GOOGLE_TOKEN_URI,
             data={
                 "code": code,
-                "client_id": cls.client_id,
-                "client_secret": cls.client_secret,
-                "redirect_uri": cls.redirect_uri,
+                "client_id": GOOGLE_CLIENT_ID,
+                "client_secret": GOOGLE_CLIENT_SECRET,
+                "redirect_uri": GOOGLE_REDIRECT_URI,
                 "grant_type": "authorization_code",
             },
         )
-        return response.json()
+        response_json = response.json()
+        if "error" in response_json:
+            logger.error(
+                f"Error in fetching tokens from Google: {response_json.get('error_description')}"
+            )
+            raise Exception(
+                f"Error fetching tokens from Google: {response_json.get('error_description')}"
+            )
+        return response_json
+
+    def _make_google_request(self, method, **kwargs):
+        """Helper function to make request to google api"""
+        try:
+            return method(**kwargs).execute()
+        except HttpError as e:
+            logger.error(f"Error in making request to Google API: {e}")
+            raise
 
     def fetch_user_info(self) -> dict:
+        """Fetch user info from google"""
         response = requests.get(
             self.user_info_uri,
             headers={"Authorization": f"Bearer {self.token}"},
@@ -75,6 +100,7 @@ class GoogleService:
         self,
         email: str,
     ) -> dict:
+        """Add watcher to inbox pub sub"""
         watch_request = {
             "labelIds": ["INBOX"],
             "topicName": self.pub_sub_topic,
@@ -90,54 +116,51 @@ class GoogleService:
         self,
         email: str,
     ) -> dict:
-        response = self._google_service.users().stop(userId=email).execute()
-        return response
+        """Remove watcher from inbox pub sub"""
+        return self._make_google_request(
+            self._google_service.users().stop, userId=email
+        )
 
-    @classmethod
-    def add_publisher_for_user(cls, email: str):
+    @staticmethod
+    def add_publisher_for_user(email: str):
+        """Add publisher for user"""
         pubsub_v1_client = pubsub_v1.PublisherClient()
         policy = pubsub_v1_client.get_iam_policy(
-            request={"resource": cls.pub_sub_topic}
+            request={"resource": GOOGLE_PUB_SUB_TOPIC}
         )
         policy.bindings.add(
             role="roles/pubsub.publisher",
             members=[f"user:{email}"],
         )
         pubsub_v1_client.set_iam_policy(
-            request={"resource": cls.pub_sub_topic, "policy": policy}
+            request={"resource": GOOGLE_PUB_SUB_TOPIC, "policy": policy}
         )
         return True
 
-    @classmethod
-    def remove_publisher_for_user(cls, email: str):
+    @staticmethod
+    def remove_publisher_for_user(email: str):
+        """Remove publisher for user"""
         pubsub_v1_client = pubsub_v1.PublisherClient()
         policy = pubsub_v1_client.get_iam_policy(
-            request={"resource": cls.pub_sub_topic}
+            request={"resource": GOOGLE_PUB_SUB_TOPIC}
         )
         policy.bindings.add(
             role="roles/pubsub.publisher",
             members=[f"user:{email}"],
         )
         pubsub_v1_client.set_iam_policy(
-            request={"resource": cls.pub_sub_topic, "policy": policy}
+            request={"resource": GOOGLE_PUB_SUB_TOPIC, "policy": policy}
         )
         return True
 
-    def get_latest_unread_primary_inbox(
-        self,
-        last_history_id: int,
-    ) -> list[str]:
-        """Fetch the latest unread emails from the primary inbox based on a given history ID."""
-        response = (
-            self._google_service.users()
-            .history()
-            .list(
-                userId="me",
-                startHistoryId=last_history_id,
-                historyTypes=["messageAdded"],
-                labelId="UNREAD",
-            )
-            .execute()
+    def get_latest_unread_primary_inbox(self, last_history_id: int) -> list[str]:
+        """Get latest unread primary inbox messages"""
+        response = self._make_google_request(
+            self._google_service.users().history().list,
+            userId="me",
+            startHistoryId=last_history_id,
+            historyTypes=["messageAdded"],
+            labelId="UNREAD",
         )
         message_ids = []
         for history in response.get("history", []):
@@ -148,22 +171,13 @@ class GoogleService:
         return message_ids
 
     def get_message(self, message_id: str):
-        response = (
-            self._google_service.users()
-            .messages()
-            .get(
-                userId="me",
-                id=message_id,
-            )
-            .execute()
+        """Get message"""
+        return self._make_google_request(
+            self._google_service.users().messages().get, userId="me", id=message_id
         )
-        return response
 
     def get_messages(self, message_ids: list[str]) -> list[dict]:
-        """
-        Batch request for messages
-        :return: list of messages
-        """
+        """Get messages"""
         messages = []
         if not message_ids:
             return messages
@@ -171,7 +185,7 @@ class GoogleService:
         def callback(request_id, response, exception):
             if exception is not None:
                 logger.error(
-                    f"Error in fetching messages through batch request for google ::: {request_id}\n{exception}"
+                    f"Error in fetching messages through batch request for google ::: {request_id} - {exception}"
                 )
             else:
                 messages.append(response)

@@ -65,7 +65,8 @@ class UserIntegrationViewSet(
                     user_integration["meta_data"]["token"].replace("'", '"')
                 )["refresh_token"]
                 service = FigmaService(refresh_token=refresh_token)
-                service.create_webhooks(team_ids=team_ids)
+                configuration["team_ids"] = service.create_webhooks(team_ids=team_ids)
+                request.data["configuration"] = configuration
             return super().partial_update(request, *args, **kwargs)
         except ExternalIntegrationException as e:
             return error_response(
