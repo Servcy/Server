@@ -63,9 +63,7 @@ class UserIntegrationViewSet(
                     },
                     first=True,
                 )
-                refresh_token = json.loads(
-                    user_integration["meta_data"]["token"].replace("'", '"')
-                )["refresh_token"]
+                refresh_token = user_integration["meta_data"]["token"]["refresh_token"]
                 service = FigmaService(refresh_token=refresh_token)
                 configuration["team_ids"] = service.create_webhooks(team_ids=team_ids)
                 request.data["configuration"] = configuration

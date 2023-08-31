@@ -40,8 +40,9 @@ def microsoft(request):
                 logger_message="No integration found for email.",
                 status=status.HTTP_404_NOT_FOUND,
             )
-        tokens = json.loads(integration["meta_data"]["token"].replace("'", '"'))
-        service = MicrosoftService(refresh_token=tokens["refresh_token"])
+        service = MicrosoftService(
+            refresh_token=integration["meta_data"]["token"]["refresh_token"]
+        )
         mail = service.get_message(message_id)
         with transaction.atomic():
             inbox_item = OutlookMailRepository.create_mail(

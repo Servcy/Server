@@ -20,7 +20,8 @@ class NotionService:
         :param code: Authorization code
         """
         self._token = None
-        self._fetch_token(kwargs.get("code"))
+        if kwargs.get("code"):
+            self._fetch_token(kwargs.get("code"))
 
     def _create_basic_auth_header(self) -> dict:
         """Generate the Basic Authorization header for Notion API requests."""
@@ -69,7 +70,7 @@ class NotionService:
             meta_data={"token": self._token},
         )
 
-    def is_active(self, meta_data):
+    def is_active(self, meta_data, **kwargs):
         """
         Check if the user's integration is active.
 
@@ -79,9 +80,7 @@ class NotionService:
         Returns:
         - bool: True if integration is active, False otherwise.
         """
-        token = meta_data.get("token")
-        token = json.loads(token.replace("'", '"')) if isinstance(token, str) else token
-        self._token = token
+        self._token = meta_data["token"]
         response = requests.get(
             url=f"{NOTION_API_BASE_URL}/v1/users",
             headers={

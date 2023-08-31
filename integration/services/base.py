@@ -9,7 +9,7 @@ class BaseService(ABC):
     """
 
     @abstractmethod
-    def is_active(self, meta_data: dict) -> bool:
+    def is_active(self, meta_data: dict, **kwargs) -> bool:
         """
         Check if the user's integration is active.
 

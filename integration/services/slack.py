@@ -18,7 +18,8 @@ class SlackService:
         :param code: Authorization code
         """
         self._token = None
-        self._fetch_token(kwargs.get("code"))
+        if kwargs.get("code"):
+            self._fetch_token(kwargs.get("code"))
 
     def _construct_token_request_data(self, code: str) -> dict:
         """Construct the request data for token fetching.
@@ -64,7 +65,7 @@ class SlackService:
             account_display_name=self._token["team"]["name"],
         )
 
-    def is_active(self, meta_data):
+    def is_active(self, meta_data, **kwargs):
         """
         Check if the user's integration is active.
 
@@ -74,10 +75,7 @@ class SlackService:
         Returns:
         - bool: True if integration is active, False otherwise.
         """
-        token = meta_data.get("token")
-        token = json.loads(token.replace("'", '"')) if isinstance(token, str) else token
-        self._token = token
-        # validate slack connection
+        self._token = meta_data["token"]
         response = requests.post(
             url="https://slack.com/api/auth.test",
             headers={"Authorization": f"Bearer {self._token['access_token']}"},

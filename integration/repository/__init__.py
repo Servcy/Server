@@ -18,20 +18,11 @@ class IntegrationRepository:
         account_id: str,
         account_display_name: str = "",
     ) -> UserIntegration:
-        base_64_encoded_meta_data = {
-            key: b64encode(str(value).encode()).decode()
-            for key, value in meta_data.items()
-        }
-        encrypted_meta_data = (
-            Fernet(settings.FERNET_KEY)
-            .encrypt(str(base_64_encoded_meta_data).encode())
-            .decode()
-        )
         try:
             user_integration = UserIntegration.objects.create(
                 integration_id=integration_id,
                 user_id=user_id,
-                meta_data=encrypted_meta_data,
+                meta_data=IntegrationRepository.encrypt_meta_data(meta_data),
                 account_id=account_id,
                 account_display_name=account_display_name,
             )
@@ -42,7 +33,9 @@ class IntegrationRepository:
                 user_id=user_id,
                 account_id=account_id,
             )
-            user_integration.meta_data = encrypted_meta_data
+            user_integration.meta_data = IntegrationRepository.encrypt_meta_data(
+                meta_data
+            )
             user_integration.save()
             return user_integration
         except Exception as err:
@@ -72,22 +65,21 @@ class IntegrationRepository:
     def decrypt_meta_data(meta_data: str) -> dict:
         fernet = Fernet(settings.FERNET_KEY)
         decrypted_meta_data = fernet.decrypt(token=meta_data).decode()
-        decrypted_meta_data = json.loads(decrypted_meta_data.replace("'", '"'))
-        meta_data = {
-            str(key): b64decode(str(value).encode()).decode()
-            for key, value in dict(decrypted_meta_data).items()
+        base_64_decoded_meta_data = {
+            key: json.loads(b64decode(value).decode())
+            for key, value in json.loads(decrypted_meta_data).items()
         }
-        return meta_data
+        return base_64_decoded_meta_data
 
     @staticmethod
     def encrypt_meta_data(meta_data: dict) -> str:
         base_64_encoded_meta_data = {
-            key: b64encode(str(value).encode()).decode()
+            key: b64encode(str(json.loads(value)).encode()).decode()
             for key, value in meta_data.items()
         }
         encrypted_meta_data = (
             Fernet(settings.FERNET_KEY)
-            .encrypt(str(base_64_encoded_meta_data).encode())
+            .encrypt(str(json.loads(base_64_encoded_meta_data)).encode())
             .decode()
         )
         return encrypted_meta_data

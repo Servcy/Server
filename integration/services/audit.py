@@ -30,7 +30,9 @@ def check_integration_status(service_class: BaseService, user_integration):
         meta_data = IntegrationRepository.decrypt_meta_data(
             meta_data=user_integration.meta_data
         )
-        return service_class().is_active(meta_data)
+        return service_class().is_active(
+            meta_data, user_integration_id=user_integration.id
+        )
     except Exception:
         return False
 

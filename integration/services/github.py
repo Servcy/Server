@@ -82,7 +82,7 @@ class GithubService:
             },
         )
 
-    def is_active(self, meta_data):
+    def is_active(self, meta_data, **kwargs):
         """
         Check if the user's integration is active.
 
@@ -92,8 +92,6 @@ class GithubService:
         Returns:
         - bool: True if integration is active, False otherwise.
         """
-        token = meta_data.get("token")
-        token = json.loads(token.replace("'", '"')) if isinstance(token, str) else token
-        self._token = token
+        self._token = meta_data["token"]
         self._fetch_user_info()
         return True

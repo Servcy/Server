@@ -184,7 +184,7 @@ class MicrosoftService:
             },
         )
 
-    def is_active(self, meta_data):
+    def is_active(self, meta_data, **kwargs):
         """
         Check if the user's integration is active.
 
@@ -194,10 +194,6 @@ class MicrosoftService:
         Returns:
         - bool: True if integration is active, False otherwise.
         """
-        token = meta_data.get("token")
-        token = json.loads(token.replace("'", '"')) if isinstance(token, str) else token
-        self._token = token
-        refresh_token_response = self._refresh_token(
-            refresh_token=self._token["refresh_token"]
-        )
-        return "error" not in refresh_token_response
+        self._token = meta_data["token"]
+        response = self.list_subscriptions()
+        return "error" not in response

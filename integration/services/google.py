@@ -29,13 +29,11 @@ class GoogleService(BaseService):
     ) -> None:
         self._google_service = None
         self._token = token
-        self._refresh_token = refresh_token
         self._user_info = None
-        self._token_response = None
         self._watcher_response = None
         if code:
             self._fetch_token(code)._fetch_user_info().add_publisher_for_user()
-        if self._token and self._refresh_token:
+        if self._token:
             self._initialize_google_service()
             if code:
                 self.add_watcher_to_inbox_pub_sub()
@@ -46,10 +44,10 @@ class GoogleService(BaseService):
             "gmail",
             "v1",
             credentials=Credentials(
-                token=self._token,
+                token=self._token["access_token"],
                 client_id=GOOGLE_CLIENT_ID,
                 client_secret=GOOGLE_CLIENT_SECRET,
-                refresh_token=self._refresh_token,
+                refresh_token=self._token["refresh_token"],
                 token_uri=GOOGLE_TOKEN_URI,
             ),
             cache_discovery=False,
@@ -74,9 +72,7 @@ class GoogleService(BaseService):
             raise Exception(
                 f"Error fetching tokens from Google: {response.get('error_description')}"
             )
-        self._token = response["access_token"]
-        self._refresh_token = response["refresh_token"]
-        self._token_response = response
+        self._token = response
         return self
 
     def _make_google_request(self, method, **kwargs):
@@ -203,18 +199,17 @@ class GoogleService(BaseService):
             user_id=user_id,
             account_id=self._user_info["email"],
             meta_data={
-                **self._token_response,
-                **self._user_info,
-                **self._watcher_response,
+                "token": self._token,
+                "watcher_response": self._watcher_response,
+                "user_info": self._user_info,
             },
             account_display_name=self._user_info["email"],
         )
 
-    def is_active(self, meta_data):
+    def is_active(self, meta_data, **kwargs):
         """
         Implementation of abstract method from BaseService.
         """
-        self._token = meta_data["access_token"]
-        self._refresh_token = meta_data["refresh_token"]
+        self._token = meta_data["token"]
         self._initialize_google_service()
         return True
