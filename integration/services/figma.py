@@ -1,3 +1,5 @@
+import json
+
 import requests
 from django.conf import settings
 
@@ -5,11 +7,13 @@ from common.exceptions import ExternalIntegrationException, ServcyOauthCodeExcep
 from integration.models import UserIntegration
 from integration.repository import IntegrationRepository
 
+from .base import BaseService
+
 FIGMA_API_BASE_URL = "https://api.figma.com"
 FIGMA_OAUTH_URL = "https://www.figma.com/api/oauth"
 
 
-class FigmaService:
+class FigmaService(BaseService):
     """Service class for Figma integration."""
 
     def __init__(self, code: str = None, refresh_token: str = None) -> None:
@@ -50,7 +54,7 @@ class FigmaService:
                     json_response.get("message", error_msg)
                 )
             else:
-                raise ExternalIntegrationException(error_msg)
+                response.raise_for_status()
         return json_response
 
     def _refresh_token(self, refresh_token: str) -> None:
@@ -127,3 +131,19 @@ class FigmaService:
                 f"Failed to create webhooks for the following teams:\\n{error_msgs}"
             )
         return success_webhooks
+
+    def is_active(self, meta_data):
+        """
+        Check if the user's integration is active.
+
+        Args:
+        - meta_data: The user integration meta data.
+
+        Returns:
+        - bool: True if integration is active, False otherwise.
+        """
+        token = meta_data.get("token")
+        token = json.loads(token.replace("'", '"')) if isinstance(token, str) else token
+        refresh_token = token.get("refresh_token")
+        self._refresh_token(refresh_token)
+        return True

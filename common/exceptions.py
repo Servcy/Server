@@ -1,8 +1,12 @@
+import logging
+
 from django.db import DatabaseError
 from newrelic.agent import notice_error
 from rest_framework import status
 from rest_framework.exceptions import APIException
 from rest_framework.views import exception_handler
+
+logger = logging.getLogger(__name__)
 
 
 class ServcyBaseException(Exception):
@@ -15,12 +19,6 @@ class ServcyBaseException(Exception):
         return str(self)
 
 
-class ServcyOauthCodeException(ServcyBaseException):
-    """
-    Exception raised when oauth code is not provided.
-    """
-
-
 class ServcyAPIException(APIException, ServcyBaseException):
     """
     APIException for Servcy server.
@@ -31,22 +29,14 @@ class ServcyAPIException(APIException, ServcyBaseException):
     default_code = "APIException"
 
 
-class MicroserviceException(ServcyAPIException):
+class ServcyOauthCodeException(ServcyBaseException):
     """
-    For Servcy Microservices.
-    """
-
-    default_detail = "A Servcy microservice encountered an error!"
-    default_code = "MicroServiceException"
-
-
-class BusinessException(ServcyAPIException):
-    """
-    For Servcy Business Logic.
+    Exception raised when oauth code is not provided.
     """
 
-    default_detail = "A Business Exception has occurred"
-    default_code = "BusinessException"
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = "Oauth code is required!"
+    default_code = "OauthCodeException"
 
 
 class ExternalIntegrationException(ServcyAPIException):
@@ -58,78 +48,22 @@ class ExternalIntegrationException(ServcyAPIException):
     default_code = "ExternalIntegrationException"
 
 
-class ServcyDBException(DatabaseError, ServcyBaseException):
-    """
-    For Database Exception BaseClass.
-    """
-
-
-class DisplayableException(ServcyBaseException):
-    """
-    For exceptions that have error messages that can be directly exposed to the user.
-    """
-
-
-class DataException(Exception):
-    """
-    For custom classification of errors.
-    """
-
-    @property
-    def message(self):
-        return str(self)
-
-
-class SerializerException(ServcyBaseException):
-    """
-    For exception raised from serializers.
-    """
-
-    default_detail = "A Serializer Exception has occured"
-    default_code = "SerializerException"
-
-
-class WriteSerializerException(SerializerException):
-    """
-    For exception raises from Write Serializers.
-    """
-
-    default_detail = "Exception occured while writing serializer"
-    default_code = "WriteSerializer exception"
-
-
-class ReadSerializerException(SerializerException):
-    """
-    For exceptions raised from Read Serializers.
-    """
-
-    default_detail = "Exception occured while reading serializer"
-    default_code = "ReadSerializer exception"
-
-
-class InadequateDataException(BusinessException):
-    """
-    For exceptions raised when data is inadequate.
-    """
-
-    status_code = status.HTTP_412_PRECONDITION_FAILED
-    default_detail = "Inadequate data available"
-
-
-class JsonDataException(BusinessException):
-    """
-    For exceptions raised when JSON data is invalid.
-    """
-
-    status_code = status.HTTP_412_PRECONDITION_FAILED
-    default_detail = "JSON data is invalid. Possible Key Exception."
-
-
 def servcy_exception_handler(exception, context):
     """
     Main exception handler for Servcy.
     """
+    # Structured logging
+    log_data = {
+        "exception_type": type(exception).__name__,
+        "exception_detail": str(exception),
+        "context": context,
+    }
+    logger.error("An error occurred in the API.", extra=log_data)
+
+    # Notify New Relic
     notice_error(exception)
+
+    # Use DRF's default exception handler
     response = exception_handler(exception, context)
     if response is not None:
         response.data["status_code"] = response.status_code

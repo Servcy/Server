@@ -8,14 +8,18 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
+from integration.repository import IntegrationRepository
+
+from .base import BaseService
+
 logger = logging.getLogger(__name__)
 
 GOOGLE_CLIENT_ID = settings.GOOGLE_OAUTH2_CLIENT_ID
 GOOGLE_CLIENT_SECRET = settings.GOOGLE_OAUTH2_CLIENT_SECRET
-GOOGLE_TOKEN_URI = settings.GOOGLE_OAUTH2_TOKEN_URI
+GOOGLE_TOKEN_URI = "https://oauth2.googleapis.com/token"
 GOOGLE_SCOPES = settings.GOOGLE_OAUTH2_SCOPES
 GOOGLE_REDIRECT_URI = settings.GOOGLE_OAUTH2_REDIRECT_URI
-GOOGLE_USER_INFO_URI = settings.GOOGLE_OAUTH2_USER_INFO_URI
+GOOGLE_USER_INFO_URI = "https://www.googleapis.com/oauth2/v3/userinfo"
 GOOGLE_PUB_SUB_TOPIC = settings.GOOGLE_PUB_SUB_TOPIC
 
 
@@ -29,13 +33,23 @@ class GoogleCredentials:
     user_info_uri: str
 
 
-class GoogleService:
-    def __init__(self, token: str = None, refresh_token: str = None):
+class GoogleService(BaseService):
+    def __init__(
+        self, token: str = None, refresh_token: str = None, code: str = None
+    ) -> "GoogleService":
         self._google_service = None
-        self.token = token
-        self.refresh_token = refresh_token
-        if self.token and self.refresh_token:
+        self._token = token
+        self._refresh_token = refresh_token
+        self._user_info = None
+        self._token_response = None
+        self._watcher_response = None
+        if code:
+            self._fetch_token(
+                code
+            )._fetch_user_info().add_publisher_for_user().add_watcher_to_inbox_pub_sub()
+        if self._token and self._refresh_token:
             self._initialize_google_service()
+        return self
 
     def _initialize_google_service(self):
         """Initialize google service"""
@@ -43,22 +57,16 @@ class GoogleService:
             "gmail",
             "v1",
             credentials=Credentials(
-                token=self.token,
+                token=self._token,
                 client_id=GOOGLE_CLIENT_ID,
                 client_secret=GOOGLE_CLIENT_SECRET,
-                refresh_token=self.refresh_token,
+                refresh_token=self._refresh_token,
                 token_uri=GOOGLE_TOKEN_URI,
             ),
             cache_discovery=False,
         )
 
-    def close(self):
-        """Close google service"""
-        if self._google_service:
-            self._google_service.close()
-
-    @staticmethod
-    def fetch_tokens(code: str) -> dict:
+    def _fetch_token(self, code: str) -> "GoogleService":
         """Fetch tokens from google using code"""
         response = requests.post(
             GOOGLE_TOKEN_URI,
@@ -69,16 +77,18 @@ class GoogleService:
                 "redirect_uri": GOOGLE_REDIRECT_URI,
                 "grant_type": "authorization_code",
             },
-        )
-        response_json = response.json()
-        if "error" in response_json:
+        ).json()
+        if "error" in response:
             logger.error(
-                f"Error in fetching tokens from Google: {response_json.get('error_description')}"
+                f"Error in fetching tokens from Google: {response.get('error_description')}"
             )
             raise Exception(
-                f"Error fetching tokens from Google: {response_json.get('error_description')}"
+                f"Error fetching tokens from Google: {response.get('error_description')}"
             )
-        return response_json
+        self._token = response["access_token"]
+        self._refresh_token = response["refresh_token"]
+        self._token_response = response
+        return self
 
     def _make_google_request(self, method, **kwargs):
         """Helper function to make request to google api"""
@@ -88,29 +98,27 @@ class GoogleService:
             logger.error(f"Error in making request to Google API: {e}")
             raise
 
-    def fetch_user_info(self) -> dict:
+    def _fetch_user_info(self) -> "GoogleService":
         """Fetch user info from google"""
-        response = requests.get(
+        self._user_info = requests.get(
             self.user_info_uri,
             headers={"Authorization": f"Bearer {self.token}"},
-        )
-        return response.json()
+        ).json()
+        return self
 
     def add_watcher_to_inbox_pub_sub(
         self,
-        email: str,
     ) -> dict:
         """Add watcher to inbox pub sub"""
         watch_request = {
             "labelIds": ["INBOX"],
             "topicName": self.pub_sub_topic,
         }
-        response = (
-            self._google_service.users()
-            .watch(userId=email, body=watch_request)
-            .execute()
+        self._watcher_response = self._make_google_request(
+            self._google_service.users().watch,
+            userId=self._user_info["email"],
+            body=watch_request,
         )
-        return response
 
     def remove_watcher_from_inbox_pub_sub(
         self,
@@ -121,8 +129,7 @@ class GoogleService:
             self._google_service.users().stop, userId=email
         )
 
-    @staticmethod
-    def add_publisher_for_user(email: str):
+    def add_publisher_for_user(self):
         """Add publisher for user"""
         pubsub_v1_client = pubsub_v1.PublisherClient()
         policy = pubsub_v1_client.get_iam_policy(
@@ -130,12 +137,12 @@ class GoogleService:
         )
         policy.bindings.add(
             role="roles/pubsub.publisher",
-            members=[f"user:{email}"],
+            members=[f"user:{self._user_info['email']}"],
         )
         pubsub_v1_client.set_iam_policy(
             request={"resource": GOOGLE_PUB_SUB_TOPIC, "policy": policy}
         )
-        return True
+        return self
 
     @staticmethod
     def remove_publisher_for_user(email: str):
@@ -195,5 +202,30 @@ class GoogleService:
             batch.add(
                 self._google_service.users().messages().get(userId="me", id=message_id)
             )
-        batch.execute()
+        self._make_google_request(batch.execute)
         return messages
+
+    def create_integration(self, user_id: int):
+        if self._user_info is None:
+            raise Exception("User info is required!")
+        integration = IntegrationRepository.get_integration(filters={"name": "Gmail"})
+        return IntegrationRepository.create_user_integration(
+            integration_id=integration.id,
+            user_id=user_id,
+            account_id=self._user_info["email"],
+            meta_data={
+                **self._token_response,
+                **self._user_info,
+                **self._watcher_response,
+            },
+            account_display_name=self._user_info["email"],
+        )
+
+    def is_active(self, meta_data):
+        """
+        Implementation of abstract method from BaseService.
+        """
+        self._token = meta_data["access_token"]
+        self._refresh_token = meta_data["refresh_token"]
+        self._initialize_google_service()
+        return True

@@ -1,3 +1,4 @@
+import json
 import logging
 
 import msal
@@ -39,22 +40,20 @@ class MicrosoftService:
             authority=MICROSOFT_AUTHORITY_URI,
         )
         if code:
-            self._token = self._exchange_code_with_token(code)
+            self._token = self._fetch_token(code)
             self._subscription = self.create_subscription()
         elif refresh_token:
-            self._token = self._fetch_new_token(
+            self._token = self._refresh_token(
                 refresh_token=refresh_token,
                 scopes=scopes,
             )
-        else:
-            raise Exception("Either code or refresh token is required.")
 
     def _make_microsoft_request(self, method, url, **kwargs):
         """Helper function to make requests to Microsoft API."""
         response = method(url, **kwargs).json()
         if "error" in response:
             if response["error"]["code"] == "InvalidAuthenticationToken":
-                self._token = self._fetch_new_token(
+                self._token = self._refresh_token(
                     refresh_token=self._token["refresh_token"],
                     scopes=["User.Read", "Mail.Read"],
                 )
@@ -66,7 +65,7 @@ class MicrosoftService:
                 raise Exception(response["error"]["message"])
         return response
 
-    def _exchange_code_with_token(
+    def _fetch_token(
         self,
         code: str,
     ) -> None:
@@ -84,7 +83,7 @@ class MicrosoftService:
             )
         return response
 
-    def _fetch_new_token(
+    def _refresh_token(
         self, refresh_token: str, scopes: list = ["User.Read", "Mail.Read"]
     ) -> dict:
         """
@@ -184,3 +183,21 @@ class MicrosoftService:
                 "Content-Type": "application/json",
             },
         )
+
+    def is_active(self, meta_data):
+        """
+        Check if the user's integration is active.
+
+        Args:
+        - meta_data: The user integration meta data.
+
+        Returns:
+        - bool: True if integration is active, False otherwise.
+        """
+        token = meta_data.get("token")
+        token = json.loads(token.replace("'", '"')) if isinstance(token, str) else token
+        self._token = token
+        refresh_token_response = self._refresh_token(
+            refresh_token=self._token["refresh_token"]
+        )
+        return "error" not in refresh_token_response

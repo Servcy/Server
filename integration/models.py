@@ -35,6 +35,7 @@ class UserIntegration(TimeStampedModel):
     )
     meta_data = models.TextField(default=None, null=True, blank=False)
     configuration = models.JSONField(default=None, null=True, blank=False)
+    is_revoked = models.BooleanField(default=False)
 
     class Meta:
         db_table = "user_integration"

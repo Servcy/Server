@@ -1,3 +1,5 @@
+import json
+
 import requests
 from django.conf import settings
 
@@ -12,11 +14,12 @@ GITHUB_OAUTH_URL = "https://github.com/login/oauth"
 class GithubService:
     """Service class for Github integration."""
 
-    def __init__(self, code: str) -> None:
+    def __init__(self, **kwargs) -> None:
         """Initializes GithubService."""
         self._token = None
         self._user_info = None
-        self.authenticate(code)
+        if kwargs.get("code"):
+            self.authenticate(kwargs.get("code"))
 
     def authenticate(self, code: str) -> "GithubService":
         """Authenticate using code."""
@@ -78,3 +81,19 @@ class GithubService:
                 "Accept": "application/vnd.github+json",
             },
         )
+
+    def is_active(self, meta_data):
+        """
+        Check if the user's integration is active.
+
+        Args:
+        - meta_data: The user integration meta data.
+
+        Returns:
+        - bool: True if integration is active, False otherwise.
+        """
+        token = meta_data.get("token")
+        token = json.loads(token.replace("'", '"')) if isinstance(token, str) else token
+        self._token = token
+        self._fetch_user_info()
+        return True

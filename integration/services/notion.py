@@ -1,4 +1,5 @@
 import base64
+import json
 
 import requests
 from django.conf import settings
@@ -13,14 +14,13 @@ NOTION_OAUTH_TOKEN_ENDPOINT = f"{NOTION_API_BASE_URL}/v1/oauth/token"
 class NotionService:
     """Service class for Notion integration."""
 
-    def __init__(self, code: str = None) -> None:
+    def __init__(self, **kwargs) -> None:
         """Initialize the NotionService with an optional authorization code.
 
         :param code: Authorization code
         """
         self._token = None
-        if code:
-            self._fetch_token(code)
+        self._fetch_token(kwargs.get("code"))
 
     def _create_basic_auth_header(self) -> dict:
         """Generate the Basic Authorization header for Notion API requests."""
@@ -68,3 +68,25 @@ class NotionService:
             account_display_name=self._token["workspace_name"],
             meta_data={"token": self._token},
         )
+
+    def is_active(self, meta_data):
+        """
+        Check if the user's integration is active.
+
+        Args:
+        - meta_data: The user integration meta data.
+
+        Returns:
+        - bool: True if integration is active, False otherwise.
+        """
+        token = meta_data.get("token")
+        token = json.loads(token.replace("'", '"')) if isinstance(token, str) else token
+        self._token = token
+        response = requests.get(
+            url=f"{NOTION_API_BASE_URL}/v1/users",
+            headers={
+                "Authorization": f"Bearer {self._token['access_token']}",
+                "Notion-Version": "2021-05-13",
+            },
+        )
+        return response.status_code == 200

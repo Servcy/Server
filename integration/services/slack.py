@@ -1,3 +1,5 @@
+import json
+
 import requests
 from django.conf import settings
 
@@ -10,14 +12,13 @@ SLACK_TOKEN_URL = "https://slack.com/api/oauth.v2.access"
 class SlackService:
     """Service class for Slack integration."""
 
-    def __init__(self, code: str = None) -> None:
+    def __init__(self, **kwargs) -> None:
         """Initialize the SlackService with an optional authorization code.
 
         :param code: Authorization code
         """
         self._token = None
-        if code:
-            self._fetch_token(code)
+        self._fetch_token(kwargs.get("code"))
 
     def _construct_token_request_data(self, code: str) -> dict:
         """Construct the request data for token fetching.
@@ -62,3 +63,23 @@ class SlackService:
             meta_data={"token": self._token},
             account_display_name=self._token["team"]["name"],
         )
+
+    def is_active(self, meta_data):
+        """
+        Check if the user's integration is active.
+
+        Args:
+        - meta_data: The user integration meta data.
+
+        Returns:
+        - bool: True if integration is active, False otherwise.
+        """
+        token = meta_data.get("token")
+        token = json.loads(token.replace("'", '"')) if isinstance(token, str) else token
+        self._token = token
+        # validate slack connection
+        response = requests.post(
+            url="https://slack.com/api/auth.test",
+            headers={"Authorization": f"Bearer {self._token['access_token']}"},
+        ).json()
+        return response.get("ok") is True
