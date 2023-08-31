@@ -21,7 +21,7 @@ class IntegrationSerializer(ServcyReadSerializer):
         )
 
     def get_account_display_names(self, obj):
-        user_integrations = obj.user_integrations.all()
+        user_integrations = obj.user_integrations.filter(is_revoked=False).all()
         return [
             user_integration.account_display_name
             for user_integration in user_integrations

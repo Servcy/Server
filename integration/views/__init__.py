@@ -31,7 +31,9 @@ class UserIntegrationViewSet(
     mixins.UpdateModelMixin,
 ):
     serializer_class = UserIntegrationSerializer
-    queryset = UserIntegrationSerializer.Meta.model.objects.all()
+    queryset = UserIntegrationSerializer.Meta.model.objects.filter(
+        is_revoked=False
+    ).all()
 
     def get_queryset(self):
         return (

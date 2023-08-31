@@ -57,9 +57,9 @@ class IntegrationRepository:
     def get_user_integrations(
         self, filters: dict, first=False
     ) -> list[UserIntegration] | UserIntegration:
-        integrations = UserIntegration.objects.filter(**filters).values(
-            "id", "meta_data", "account_id", "integration_id", "user_id"
-        )
+        integrations = UserIntegration.objects.filter(
+            **filters, is_revoked=False
+        ).values("id", "meta_data", "account_id", "integration_id", "user_id")
         for integration in integrations:
             integration["meta_data"] = self.decrypt_meta_data(
                 meta_data=integration["meta_data"]
@@ -94,7 +94,9 @@ class IntegrationRepository:
 
     @staticmethod
     def update_integraion_meta_data(user_integration_id: int, meta_data: dict):
-        user_integration = UserIntegration.objects.get(id=user_integration_id)
+        user_integration = UserIntegration.objects.get(
+            id=user_integration_id, is_revoked=False
+        )
         user_integration.meta_data = IntegrationRepository.encrypt_meta_data(
             meta_data=meta_data
         )
