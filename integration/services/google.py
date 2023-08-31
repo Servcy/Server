@@ -39,7 +39,6 @@ class GoogleService(BaseService):
             self._initialize_google_service()
             if code:
                 self.add_watcher_to_inbox_pub_sub()
-        return self
 
     def _initialize_google_service(self):
         """Initialize google service"""
