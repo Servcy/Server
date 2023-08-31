@@ -37,7 +37,7 @@ class GithubService:
         response = requests.request(method, url, **kwargs)
         json_response = response.json()
         if "error" in json_response:
-            error_msg = f"An error occurred while communicating with Github API.\\n{str(json_response)}"
+            error_msg = f"An error occurred while communicating with Github API.\n{str(json_response)}"
             raise ServcyOauthCodeException(error_msg)
         return json_response
 

@@ -45,7 +45,7 @@ class SlackService:
 
         if "error" in response:
             raise ServcyOauthCodeException(
-                f"An error occurred while obtaining access token from Slack.\\n{str(response)}"
+                f"An error occurred while obtaining access token from Slack.\n{str(response)}"
             )
         self._token = response
 
