@@ -30,9 +30,7 @@ class OauthViewset(viewsets.ViewSet):
             service = service_class(code=code)
             user_integration = service.create_integration(user_id=request.user.id)
             return success_response(
-                results={
-                    "redirect": f"{user_integration.integration.configure_at}?user_integration_id={user_integration.id}"
-                }
+                results={"redirect_uri": f"{user_integration.integration.configure_at}"}
                 if user_integration.integration.configure_at is not None
                 else None,
                 success_message=f"Successfully integrated with {service_name}!",
