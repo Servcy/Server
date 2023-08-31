@@ -23,16 +23,6 @@ GOOGLE_USER_INFO_URI = "https://www.googleapis.com/oauth2/v3/userinfo"
 GOOGLE_PUB_SUB_TOPIC = settings.GOOGLE_PUB_SUB_TOPIC
 
 
-@define
-class GoogleCredentials:
-    client_id: str
-    client_secret: str
-    token_uri: str
-    redirect_uri: str
-    scopes: list[str]
-    user_info_uri: str
-
-
 class GoogleService(BaseService):
     def __init__(
         self, token: str = None, refresh_token: str = None, code: str = None
@@ -101,7 +91,7 @@ class GoogleService(BaseService):
     def _fetch_user_info(self) -> "GoogleService":
         """Fetch user info from google"""
         self._user_info = requests.get(
-            self.user_info_uri,
+            GOOGLE_USER_INFO_URI,
             headers={"Authorization": f"Bearer {self.token}"},
         ).json()
         return self
