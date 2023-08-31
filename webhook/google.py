@@ -71,6 +71,7 @@ def google(request):
         )
     except IntegrationAccessRevokedException:
         IntegrationRepository.revoke_user_integrations(integration.get("id", 0))
+        return success_response()
     except Exception:
         return error_response(
             logger=logger,
