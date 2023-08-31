@@ -48,6 +48,16 @@ class ExternalIntegrationException(ServcyAPIException):
     default_code = "ExternalIntegrationException"
 
 
+class IntegrationAccessRevokedException(ServcyAPIException):
+    """
+    For Servcy External Integrations.
+    """
+
+    default_detail = "Integration access revoked"
+    default_code = "IntegrationAccessRevokedException"
+    status_code = status.HTTP_401_UNAUTHORIZED
+
+
 def servcy_exception_handler(exception, context):
     """
     Main exception handler for Servcy.

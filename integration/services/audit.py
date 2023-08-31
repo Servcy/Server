@@ -66,7 +66,7 @@ def main():
                 logger.exception(
                     f"An error occurred while checking integration status for user {user_integration.user.email}.\n{traceback.format_exc()}"
                 )
-        IntegrationRepository.revoke_integrations(revoked_integrations)
+        IntegrationRepository.revoke_user_integrations(revoked_integrations)
     except Exception:
         logger.exception(
             "An error occurred while revoking integrations.\n{traceback.format_exc()}"

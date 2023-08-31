@@ -1,13 +1,13 @@
 import logging
 
 import requests
-from attrs import define
 from django.conf import settings
 from google.cloud import pubsub_v1
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
+from common.exceptions import IntegrationAccessRevokedException
 from integration.repository import IntegrationRepository
 
 from .base import BaseService
@@ -38,18 +38,25 @@ class GoogleService(BaseService):
 
     def _initialize_google_service(self):
         """Initialize google service"""
-        self._google_service = build(
-            "gmail",
-            "v1",
-            credentials=Credentials(
-                token=self._token["access_token"],
-                client_id=GOOGLE_CLIENT_ID,
-                client_secret=GOOGLE_CLIENT_SECRET,
-                refresh_token=self._token["refresh_token"],
-                token_uri=GOOGLE_TOKEN_URI,
-            ),
-            cache_discovery=False,
-        )
+        try:
+            self._google_service = build(
+                "gmail",
+                "v1",
+                credentials=Credentials(
+                    token=self._token["access_token"],
+                    client_id=GOOGLE_CLIENT_ID,
+                    client_secret=GOOGLE_CLIENT_SECRET,
+                    refresh_token=self._token["refresh_token"],
+                    token_uri=GOOGLE_TOKEN_URI,
+                ),
+                cache_discovery=False,
+            )
+        except HttpError as err:
+            if err.resp.status == 401:
+                raise IntegrationAccessRevokedException()
+            else:
+                logger.error(f"Error in initializing google service: {err}")
+                raise Exception("Error in initializing google service")
 
     def _fetch_token(self, code: str) -> "GoogleService":
         """Fetch tokens from google using code"""

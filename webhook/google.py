@@ -8,7 +8,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from rest_framework import status
 
-from common.responses import error_response
+from common.exceptions import IntegrationAccessRevokedException
+from common.responses import error_response, success_response
 from inbox.repository import InboxRepository
 from inbox.repository.google import GoogleMailRepository
 from integration.repository import IntegrationRepository
@@ -36,13 +37,8 @@ def google(request):
             first=True,
         )
         if integration is None:
-            logger.error(f"No integration found for email: {email}. Payload: {payload}")
-            return error_response(
-                logger=logger,
-                logger_message="No integration found for email.",
-                status=status.HTTP_404_NOT_FOUND,
-            )
-        last_history_id = int(integration["meta_data"]["last_history_id"])
+            GoogleService.remove_publisher_for_user(email=email)
+            return success_response()
         IntegrationRepository.update_integraion_meta_data(
             user_integration_id=integration["id"],
             meta_data={
@@ -50,6 +46,9 @@ def google(request):
                 "last_history_id": history_id,
             },
         )
+        last_history_id = int(integration["meta_data"].get("last_history_id", 0))
+        if last_history_id == 0:
+            return success_response()
         service = GoogleService(
             token=integration["meta_data"]["token"]["access_token"],
             refresh_token=integration["meta_data"]["token"]["refresh_token"],
@@ -70,6 +69,8 @@ def google(request):
         return HttpResponse(
             status=status.HTTP_200_OK, content="success", content_type="text/plain"
         )
+    except IntegrationAccessRevokedException:
+        IntegrationRepository.revoke_user_integrations(integration.get("id", 0))
     except Exception:
         return error_response(
             logger=logger,
