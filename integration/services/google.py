@@ -24,19 +24,17 @@ GOOGLE_PUB_SUB_TOPIC = settings.GOOGLE_PUB_SUB_TOPIC
 
 
 class GoogleService(BaseService):
-    def __init__(
-        self, token: str = None, refresh_token: str = None, code: str = None
-    ) -> None:
+    def __init__(self, token: str = None, code: str = None, **kwargs) -> None:
         self._google_service = None
         self._token = token
         self._user_info = None
         self._watcher_response = None
         if code:
-            self._fetch_token(code)._fetch_user_info().add_publisher_for_user()
+            self._fetch_token(code)
         if self._token:
             self._initialize_google_service()
             if code:
-                self.add_watcher_to_inbox_pub_sub()
+                self._fetch_user_info()._add_publisher_for_user()._add_watcher_to_inbox_pub_sub()
 
     def _initialize_google_service(self):
         """Initialize google service"""
@@ -87,11 +85,11 @@ class GoogleService(BaseService):
         """Fetch user info from google"""
         self._user_info = requests.get(
             GOOGLE_USER_INFO_URI,
-            headers={"Authorization": f"Bearer {self._token}"},
+            headers={"Authorization": f"Bearer {self._token['access_token']}"},
         ).json()
         return self
 
-    def add_watcher_to_inbox_pub_sub(
+    def _add_watcher_to_inbox_pub_sub(
         self,
     ) -> dict:
         """Add watcher to inbox pub sub"""
@@ -114,7 +112,7 @@ class GoogleService(BaseService):
             self._google_service.users().stop, userId=email
         )
 
-    def add_publisher_for_user(self):
+    def _add_publisher_for_user(self) -> "GoogleService":
         """Add publisher for user"""
         pubsub_v1_client = pubsub_v1.PublisherClient()
         policy = pubsub_v1_client.get_iam_policy(
