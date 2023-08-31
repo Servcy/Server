@@ -42,7 +42,7 @@ def main():
         for user_integration in user_integrations:
             try:
                 service_class = None
-                if user_integration.integration.name == "Google":
+                if user_integration.integration.name == "Gmail":
                     service_class = GoogleService
                 elif user_integration.integration.name == "GitHub":
                     service_class = GithubService
@@ -52,7 +52,7 @@ def main():
                     service_class = NotionService
                 elif user_integration.integration.name == "Figma":
                     service_class = FigmaService
-                elif user_integration.integration.name == "Microsoft":
+                elif user_integration.integration.name == "Outlook":
                     service_class = MicrosoftService
                 if service_class:
                     is_active = check_integration_status(
