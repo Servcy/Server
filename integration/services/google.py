@@ -92,7 +92,7 @@ class GoogleService(BaseService):
         """Fetch user info from google"""
         self._user_info = requests.get(
             GOOGLE_USER_INFO_URI,
-            headers={"Authorization": f"Bearer {self.token}"},
+            headers={"Authorization": f"Bearer {self._token}"},
         ).json()
         return self
 
