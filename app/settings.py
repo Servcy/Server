@@ -249,7 +249,6 @@ AUTH_USER_MODEL = "iam.User"
 # google
 GOOGLE_OAUTH2_CLIENT_ID = config.get("google", "client_id")
 GOOGLE_OAUTH2_CLIENT_SECRET = config.get("google", "client_secret")
-GOOGLE_OAUTH2_TOKEN_URI = config.get("google", "token_uri")
 GOOGLE_OAUTH2_REDIRECT_URI = f"{FRONTEND_URL}/{config.get('google', 'redirect_uri')}"
 GOOGLE_PROJECT_ID = config.get("google", "project_id")
 GOOGLE_OAUTH2_SCOPES = [
@@ -260,7 +259,6 @@ GOOGLE_OAUTH2_SCOPES = [
     "email",
     "openid",
 ]
-GOOGLE_OAUTH2_USER_INFO_URI = config.get("google", "user_info_uri")
 GOOGLE_PUB_SUB_TOPIC = config.get("google", "pub_sub_topic")
 GOOGLE_PUB_SUB_SUBSCRIPTION = config.get("google", "pub_sub_subscription")
 GOOGLE_APPLICATION_CREDENTIALS = BASE_DIR / "config/servcy-gcp-service-account-key.json"
@@ -294,7 +292,11 @@ FIGMA_APP_REDIRECT_URI = f"{FRONTEND_URL}/{config.get('figma', 'redirect_uri')}"
 # Cron Jobs
 CRONJOBS = [
     (
-        "0 0 * * *",
+        "0 0 * * *",  # every day at midnight
         "integration.scripts.microsoft.renew_microsoft_subscriptions",
+    ),
+    (
+        "0 0 * * 0",  # every week on sunday at midnight
+        "integration.services.audit.main",
     ),
 ]

@@ -99,3 +99,19 @@ class IntegrationRepository:
             meta_data=meta_data
         )
         user_integration.save()
+
+    @staticmethod
+    def fetch_all_user_integrations() -> list[UserIntegration]:
+        """
+        Fetch all user integrations.
+        """
+        return UserIntegration.objects.filter(is_revoked=False).all()
+
+    @staticmethod
+    def revoke_integrations(user_integrations: list[UserIntegration]):
+        """
+        Revoke user integrations.
+        """
+        UserIntegration.objects.bulk_update(
+            user_integrations, [{"is_revoked": True} for _ in user_integrations]
+        )

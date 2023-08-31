@@ -1,74 +1,89 @@
+import json
 import logging
-from datetime import datetime, timedelta
 
 import msal
 import requests
 from django.conf import settings
 
 from common.exceptions import ServcyOauthCodeException
+from common.utils.datetime import future_date_in_iso_formate
 from integration.repository import IntegrationRepository
 
 logger = logging.getLogger(__name__)
 
+MICROSOFT_CLIENT_ID = settings.MICROSOFT_APP_CLIENT_ID
+MICROSOFT_CLIENT_SECRET = settings.MICROSOFT_APP_CLIENT_SECRET
+MICROSOFT_SCOPES = settings.MICROSOFT_OAUTH2_SCOPES
+MICROSOFT_REDIRECT_URI = settings.MICROSOFT_APP_REDIRECT_URI
+MICROSOFT_READ_MAIL_URI = "https://graph.microsoft.com/v1.0/me/messages/"
+MICROSOFT_SUBSCRIPTION_URI = "https://graph.microsoft.com/v1.0/subscriptions/"
+MICROSOFT_AUTHORITY_URI = "https://login.microsoftonline.com/common"
+
 
 class MicrosoftService:
-    client_id = settings.MICROSOFT_APP_CLIENT_ID
-    client_secret_id = settings.MICROSOFT_APP_CLIENT_SECRET_ID
-    scopes = settings.MICROSOFT_OAUTH2_SCOPES
-    redirect_uri = settings.MICROSOFT_APP_REDIRECT_URI
-    client_secret = settings.MICROSOFT_APP_CLIENT_SECRET
-    read_mail_uri = "https://graph.microsoft.com/v1.0/me/messages/"
-    subscription_uri = "https://graph.microsoft.com/v1.0/subscriptions/"
-    authority_uri = "https://login.microsoftonline.com/common"
-
-    @staticmethod
-    def future_date_in_iso_formate(days: int, with_microseconds: bool = False) -> str:
-        """
-        Function to get date in future in ISO format
-        """
-        future_date = datetime.now() + timedelta(days=days)
-        date_format = "%Y-%m-%dT%H:%M:%SZ"
-        if with_microseconds:
-            date_format = "%Y-%m-%dT%H:%M:%S.%fZ"
-        return datetime.strftime(future_date, date_format)
+    """Service class for Microsoft integration."""
 
     def __init__(
-        self,
-        code: str = None,
-        refresh_token: str = None,
-        scopes: list = ["User.Read", "Mail.Read"],
+        self, code: str = None, refresh_token: str = None, scopes: list = None
     ) -> None:
+        """Initialize the MicrosoftService with either an authorization code or refresh token.
+
+        :param code: Authorization code
+        :param refresh_token: Refresh token
+        :param scopes: List of scopes for token fetching
+        """
+        if scopes is None:
+            scopes = ["User.Read", "Mail.Read"]
         self._app = msal.ConfidentialClientApplication(
-            client_id=self.client_id,
-            client_credential=self.client_secret,
-            authority=self.authority_uri,
+            client_id=MICROSOFT_CLIENT_ID,
+            client_credential=MICROSOFT_CLIENT_SECRET,
+            authority=MICROSOFT_AUTHORITY_URI,
         )
         if code:
-            self._exchange_code_with_token(code)
+            self._token = self._fetch_token(code)
+            self._subscription = self.create_subscription()
         elif refresh_token:
-            self._token = self._fetch_new_token(
+            self._token = self._refresh_token(
                 refresh_token=refresh_token,
                 scopes=scopes,
             )
 
-    def _exchange_code_with_token(
+    def _make_microsoft_request(self, method, url, **kwargs):
+        """Helper function to make requests to Microsoft API."""
+        response = method(url, **kwargs).json()
+        if "error" in response:
+            if response["error"]["code"] == "InvalidAuthenticationToken":
+                self._token = self._refresh_token(
+                    refresh_token=self._token["refresh_token"],
+                    scopes=["User.Read", "Mail.Read"],
+                )
+                return self._make_microsoft_request(method, url, **kwargs)
+            else:
+                logger.error(
+                    f"Error in making request to Microsoft API: {response['error']['message']}"
+                )
+                raise Exception(response["error"]["message"])
+        return response
+
+    def _fetch_token(
         self,
         code: str,
     ) -> None:
         """
         Exchange code for access token and refresh token.
         """
-        self._token = self._app.acquire_token_by_authorization_code(
+        response = self._app.acquire_token_by_authorization_code(
             code=code,
             scopes=["User.Read", "Mail.Read"],
-            redirect_uri=self.redirect_uri,
+            redirect_uri=MICROSOFT_REDIRECT_URI,
         )
-        if "error" in self._token:
+        if "error" in response:
             raise ServcyOauthCodeException(
-                f"An error occurred while obtaining access token from Microsoft.\n{str(self._token)}"
+                f"An error occurred while obtaining access token from Microsoft.\n{str(response)}"
             )
+        return response
 
-    def _fetch_new_token(
+    def _refresh_token(
         self, refresh_token: str, scopes: list = ["User.Read", "Mail.Read"]
     ) -> dict:
         """
@@ -79,27 +94,28 @@ class MicrosoftService:
             scopes=scopes,
         )
 
-    def create_integration(self, user_id: int, subscription: dict) -> None:
+    def create_integration(self, user_id: int):
         """
         Create integration for user.
         """
         integration = IntegrationRepository.get_integration(filters={"name": "Outlook"})
         email = self._token["id_token_claims"]["email"]
-        IntegrationRepository.create_user_integration(
+        return IntegrationRepository.create_user_integration(
             integration_id=integration.id,
             user_id=user_id,
             account_id=email,
-            meta_data={"token": self._token, "subscription": subscription},
+            meta_data={"token": self._token, "subscription": self._subscription},
             account_display_name=email,
         )
 
-    def create_subscription(self, user_id: int) -> str:
+    def create_subscription(self) -> str:
         """
         Create subscription for user to receive notifications for new emails.
         :return: subscription id
         """
-        response = requests.post(
-            self.subscription_uri,
+        response = self._make_microsoft_request(
+            requests.post,
+            MICROSOFT_SUBSCRIPTION_URI,
             headers={
                 "Authorization": f"Bearer {self._token['access_token']}",
                 "Content-Type": "application/json",
@@ -108,130 +124,80 @@ class MicrosoftService:
                 "changeType": "created",
                 "notificationUrl": f"{settings.BACKEND_URL}/webhook/microsoft",
                 "resource": "me/mailFolders('Inbox')/messages?$filter=isRead eq false",
-                "expirationDateTime": MicrosoftService.future_date_in_iso_formate(
-                    3, True
-                ),
+                "expirationDateTime": future_date_in_iso_formate(3, True),
                 "clientState": self._token["id_token_claims"]["email"],
             },
-        ).json()
-        if (
-            "error" in response
-            and response["error"]["code"] == "InvalidAuthenticationToken"
-        ):
-            self._token = self._fetch_new_token(
-                refresh_token=self._token["refresh_token"],
-                scopes=["User.Read", "Mail.Read"],
-            )
-            self.create_subscription(user_id)
-        elif "error" in response:
-            logger.error(
-                f"An error occurred while creating subscription for user {user_id}.\n{str(response)}"
-            )
+        )
         return response
 
     def renew_subscription(self, subscription_id: str) -> None:
         """
         Update subscription expiration date
         """
-        response = requests.patch(
-            f"{self.subscription_uri}/{subscription_id}",
+        self._make_microsoft_request(
+            requests.patch,
+            f"{MICROSOFT_SUBSCRIPTION_URI}/{subscription_id}",
             headers={
                 "Authorization": f"Bearer {self._token['access_token']}",
                 "Content-Type": "application/json",
             },
             json={
-                "expirationDateTime": MicrosoftService.future_date_in_iso_formate(
-                    3, True
-                ),
+                "expirationDateTime": future_date_in_iso_formate(3, True),
             },
-        ).json()
-        if (
-            "error" in response
-            and response["error"]["code"] == "InvalidAuthenticationToken"
-        ):
-            self._token = self._fetch_new_token(
-                refresh_token=self._token["refresh_token"],
-                scopes=["User.Read", "Mail.Read"],
-            )
-            self.renew_subscription(subscription_id)
-        elif "error" in response:
-            logger.error(
-                f"An error occurred while renewing subscription {subscription_id}.\n{str(response)}"
-            )
+        )
 
     def get_message(self, message_id: str) -> dict:
         """
         Function to fetch mail from outlook with ID
         """
-        response = requests.get(
-            f"{self.read_mail_uri}/{message_id}",
+        return self._make_microsoft_request(
+            requests.get,
+            f"{MICROSOFT_READ_MAIL_URI}/{message_id}",
             headers={
                 "Authorization": "Bearer {}".format(self._token["access_token"]),
             },
-        ).json()
-        if (
-            "error" in response
-            and response["error"]["code"] == "InvalidAuthenticationToken"
-        ):
-            self._token = self._fetch_new_token(
-                refresh_token=self._token["refresh_token"],
-                scopes=["User.Read", "Mail.Read"],
-            )
-            self.get_message(message_id)
-        elif "error" in response:
-            logger.error(
-                f"An error occurred while fetching message {message_id}.\n{str(response)}"
-            )
-        return response
+        )
 
     def list_subscriptions(self) -> dict:
         """
         List all subscriptions for user.
         """
-        response = requests.get(
-            self.subscription_uri,
+        return self._make_microsoft_request(
+            requests.get,
+            MICROSOFT_SUBSCRIPTION_URI,
             headers={
                 "Authorization": f"Bearer {self._token['access_token']}",
                 "Content-Type": "application/json",
             },
-        ).json()
-        if (
-            "error" in response
-            and response["error"]["code"] == "InvalidAuthenticationToken"
-        ):
-            self._token = self._fetch_new_token(
-                refresh_token=self._token["refresh_token"],
-                scopes=["User.Read", "Mail.Read"],
-            )
-            self.list_subscriptions()
-        elif "error" in response:
-            logger.error(
-                f"An error occurred while listing subscriptions.\n{str(response)}"
-            )
-        return response
+        )
 
     def remove_subscription(self, subscription_id: str) -> None:
         """
         Remove subscription for user.
         """
-        response = requests.delete(
-            f"{self.subscription_uri}/{subscription_id}",
+        return self._make_microsoft_request(
+            requests.delete,
+            f"{MICROSOFT_SUBSCRIPTION_URI}/{subscription_id}",
             headers={
                 "Authorization": f"Bearer {self._token['access_token']}",
                 "Content-Type": "application/json",
             },
-        ).json()
-        if (
-            "error" in response
-            and response["error"]["code"] == "InvalidAuthenticationToken"
-        ):
-            self._token = self._fetch_new_token(
-                refresh_token=self._token["refresh_token"],
-                scopes=["User.Read", "Mail.Read"],
-            )
-            self.remove_subscription(subscription_id)
-        elif "error" in response:
-            logger.error(
-                f"An error occurred while removing subscription {subscription_id}.\n{str(response)}"
-            )
-        return response
+        )
+
+    def is_active(self, meta_data):
+        """
+        Check if the user's integration is active.
+
+        Args:
+        - meta_data: The user integration meta data.
+
+        Returns:
+        - bool: True if integration is active, False otherwise.
+        """
+        token = meta_data.get("token")
+        token = json.loads(token.replace("'", '"')) if isinstance(token, str) else token
+        self._token = token
+        refresh_token_response = self._refresh_token(
+            refresh_token=self._token["refresh_token"]
+        )
+        return "error" not in refresh_token_response
