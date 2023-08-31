@@ -24,13 +24,18 @@ GOOGLE_PUB_SUB_TOPIC = settings.GOOGLE_PUB_SUB_TOPIC
 
 
 class GoogleService(BaseService):
-    def __init__(self, token: str = None, code: str = None, **kwargs) -> None:
+    def __init__(self, code: str = None, **kwargs) -> None:
         self._google_service = None
-        self._token = token
+        self._token = None
         self._user_info = None
         self._watcher_response = None
         if code:
             self._fetch_token(code)
+        if kwargs.get("access_token") and kwargs.get("refresh_token"):
+            self._token = {
+                "access_token": kwargs["access_token"],
+                "refresh_token": kwargs["refresh_token"],
+            }
         if self._token:
             self._initialize_google_service()
             if code:

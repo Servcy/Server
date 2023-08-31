@@ -50,7 +50,7 @@ def google(request):
         if last_history_id == 0:
             return success_response()
         service = GoogleService(
-            token=integration["meta_data"]["token"]["access_token"],
+            access_token=integration["meta_data"]["token"]["access_token"],
             refresh_token=integration["meta_data"]["token"]["refresh_token"],
         )
         message_ids = service.get_latest_unread_primary_inbox(last_history_id)
