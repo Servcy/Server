@@ -34,11 +34,11 @@ class GoogleService(BaseService):
         self._token_response = None
         self._watcher_response = None
         if code:
-            self._fetch_token(
-                code
-            )._fetch_user_info().add_publisher_for_user().add_watcher_to_inbox_pub_sub()
+            self._fetch_token(code)._fetch_user_info().add_publisher_for_user()
         if self._token and self._refresh_token:
             self._initialize_google_service()
+            if code:
+                self.add_watcher_to_inbox_pub_sub()
         return self
 
     def _initialize_google_service(self):
