@@ -102,7 +102,7 @@ class GoogleService(BaseService):
         """Add watcher to inbox pub sub"""
         watch_request = {
             "labelIds": ["INBOX"],
-            "topicName": self.pub_sub_topic,
+            "topicName": GOOGLE_PUB_SUB_TOPIC,
         }
         self._watcher_response = self._make_google_request(
             self._google_service.users().watch,
