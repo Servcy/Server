@@ -21,7 +21,7 @@ def renew_microsoft_subscriptions():
         try:
             subscription = integration["meta_data"]["subscription"]
             expiration_date_time = datetime.datetime.strptime(
-                subscription["expirationDateTime"], "%Y-%m-%dT%H:%M:%SZ"
+                subscription["expirationDateTime"], "%Y-%m-%dT%H:%M:%S.%fZ"
             )
             if (expiration_date_time - datetime.datetime.now()).total_seconds() < 86400:
                 MicrosoftService(
