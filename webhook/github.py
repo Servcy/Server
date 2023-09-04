@@ -33,6 +33,7 @@ def github(request):
     try:
         payload = json.loads(request.body)
         event = request.headers.get("X-GitHub-Event", "ping")
+        guid = request.headers.get("X-GitHub-Delivery")
         if event == "ping":
             return HttpResponse(status=200)
         if event == "installation":
@@ -56,7 +57,7 @@ def github(request):
                     "body": json.dumps(payload),
                     "is_body_html": False,
                     "user_integration_id": user_integration.id,
-                    "uid": f"{request.headers['X-GitHub-Delivery']}-{user_integration.id}",
+                    "uid": f"{guid}-{user_integration.id}",
                 }
             ]
         )
