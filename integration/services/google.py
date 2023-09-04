@@ -106,7 +106,7 @@ class GoogleService(BaseService):
     ) -> dict:
         """Add watcher to inbox pub sub"""
         watch_request = {
-            "labelIds": ["INBOX"],
+            "labelIds": ["CATEGORY_PERSONAL", "INBOX", "UNREAD"],
             "topicName": GOOGLE_PUB_SUB_TOPIC,
         }
         self._watcher_response = self._make_google_request(

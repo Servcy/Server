@@ -55,11 +55,12 @@ def google(request):
         message_ids = service.get_latest_unread_primary_inbox(last_history_id)
         if not message_ids:
             return HttpResponse(status=200)
+        mails = service.get_messages(
+            message_ids=message_ids,
+        )
         with transaction.atomic():
             inbox_items = GoogleMailRepository.create_mails(
-                mails=service.get_messages(
-                    message_ids=message_ids,
-                ),
+                mails=mails,
                 user_integration_id=integration["id"],
             )
             InboxRepository.add_items(inbox_items)

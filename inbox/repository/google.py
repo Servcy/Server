@@ -19,6 +19,9 @@ class GoogleMailRepository:
         mail_objects = []
         inbox_items = []
         for mail in mails:
+            for label in ["UNREAD", "CATEGORY_PERSONAL", "INBOX"]:
+                if label not in mail["labelIds"]:
+                    continue
             mail_objects.append(
                 GoogleMail(
                     thread_id=mail["threadId"],
