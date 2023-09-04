@@ -95,3 +95,23 @@ class GithubService:
         self._token = meta_data["token"]
         self._fetch_user_info()
         return True
+
+    @staticmethod
+    def manage_github_configuration(payload: dict) -> None:
+        """
+        Used for installation event especially created and deleted action
+        """
+        action = payload["action"]
+        if action not in ["created", "deleted"]:
+            return
+        account_id = payload["sender"]["id"]
+        user_integration = IntegrationRepository.get_user_integration(
+            {"integration__name": "Github", "account_id": account_id}
+        )
+        installation_ids = set((user_integration.configuration or "").split(","))
+        if action == "created":
+            installation_ids.add(payload["installation"]["id"])
+        else:
+            installation_ids.remove(payload["installation"]["id"])
+        user_integration.configuration = ",".join(installation_ids)
+        user_integration.save()

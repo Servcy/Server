@@ -34,7 +34,9 @@ class UserIntegration(TimeStampedModel):
         related_name="user_integrations",
     )
     meta_data = models.TextField(default=None, null=True, blank=False)
-    configuration = models.JSONField(default=None, null=True, blank=False)
+    configuration = models.JSONField(
+        default=None, null=True, blank=False
+    )  # comma separated installation ids
     is_revoked = models.BooleanField(default=False)
 
     class Meta:

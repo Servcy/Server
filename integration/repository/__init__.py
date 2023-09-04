@@ -47,6 +47,11 @@ class IntegrationRepository:
         return integration
 
     @classmethod
+    def get_user_integration(self, filters: dict) -> UserIntegration:
+        user_integration = UserIntegration.objects.get(**filters)
+        return user_integration
+
+    @classmethod
     def get_user_integrations(
         self, filters: dict, first=False
     ) -> list[UserIntegration] | UserIntegration:
