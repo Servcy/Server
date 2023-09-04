@@ -48,7 +48,7 @@ class IntegrationRepository:
 
     @classmethod
     def get_user_integration(self, filters: dict) -> UserIntegration:
-        user_integration = UserIntegration.objects.get(**filters)
+        user_integration = UserIntegration.objects.get(**filters, is_revoked=False)
         return user_integration
 
     @classmethod
