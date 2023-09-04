@@ -5,6 +5,7 @@ import traceback
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -111,6 +112,8 @@ def slack(request):
         body = json.loads(request.body)
         if body["type"] == "url_verification":
             return HttpResponse(body["challenge"])
+        if body["token"] != settings.SLACK_APP_VERIFICATION_TOKEN:
+            return HttpResponse(status=400)
         logger.info(f"Received slack webhook: {body}")
         return HttpResponse(status=200)
     except Exception:

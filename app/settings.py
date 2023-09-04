@@ -280,6 +280,7 @@ NOTION_APP_REDIRECT_URI = f"{FRONTEND_URL}/{config.get('notion', 'redirect_uri')
 SLACK_APP_CLIENT_ID = config.get("slack", "client_id")
 SLACK_APP_TOKEN = config.get("slack", "app_token")
 SLACK_APP_CLIENT_SECRET = config.get("slack", "client_secret")
+SLACK_APP_VERIFICATION_TOKEN = config.get("slack", "verification_token")
 SLACK_APP_REDIRECT_URI = f"{FRONTEND_URL}/{config.get('slack', 'redirect_uri')}"
 # Github
 GITHUB_APP_CLIENT_ID = config.get("github", "client_id")
