@@ -110,8 +110,8 @@ class GithubService:
         )
         installation_ids = set((user_integration.configuration or "").split(","))
         if action == "created":
-            installation_ids.add(payload["installation"]["id"])
-        else:
-            installation_ids.remove(payload["installation"]["id"])
+            installation_ids.add(str(payload["installation"]["id"]))
+        elif str(payload["installation"]["id"]) in installation_ids:
+            installation_ids.remove(str(payload["installation"]["id"]))
         user_integration.configuration = ",".join(installation_ids)
         user_integration.save()
