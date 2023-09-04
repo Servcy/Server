@@ -31,6 +31,7 @@ google-api-python-client = "^2.97.0"
 google-cloud-pubsub = "^2.18.3"
 msal = "^1.23.0"
 newrelic = "^8.11.0"
+slack-sdk = "^3.21.3"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.3.0"

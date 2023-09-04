@@ -51,6 +51,7 @@ app_id=
 client_id=
 client_secret=
 signing_secret=
+app_token=
 verification_token=
 redirect_uri=
 
