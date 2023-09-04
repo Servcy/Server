@@ -53,7 +53,7 @@ def github(request):
                 {
                     "title": f"{' '.join(event.split('_'))} {' '.join(payload.get('action', '').split('_'))}",
                     "cause": payload["sender"]["login"],
-                    "body": json.dump(payload),
+                    "body": json.dumps(payload),
                     "is_body_html": False,
                     "user_integration_id": user_integration.id,
                     "uid": f"{request.headers['X-GitHub-Delivery']}-{user_integration.id}",
