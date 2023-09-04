@@ -60,6 +60,6 @@ def github(request):
         return HttpResponse(status=200)
     except Exception:
         logger.error(
-            f"An error occurred while processing github webhook.\n{traceback.format_exc()}"
+            f"An error occurred while processing github webhook.\n{json.dumps(payload)}\n{traceback.format_exc()}"
         )
         return HttpResponse(status=500)
