@@ -2,10 +2,14 @@ import json
 import logging
 import traceback
 
+from django.conf import settings
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-from django.conf import settings
+from slack_sdk import WebClient
+
+from inbox.repository import InboxRepository
+from integration.repository import IntegrationRepository
 
 logger = logging.getLogger(__name__)
 
@@ -114,7 +118,39 @@ def slack(request):
             return HttpResponse(body["challenge"])
         if body["token"] != settings.SLACK_APP_VERIFICATION_TOKEN:
             return HttpResponse(status=400)
-        logger.info(f"Received slack webhook: {body}")
+        event_authorizations = WebClient(
+            settings.SLACK_APP_TOKEN
+        ).apps_event_authorizations_list(event_context=body["event_context"])
+        if event_authorizations["ok"] != True:
+            return HttpResponse(status=400)
+        uid = body["event_id"]
+        user_integrations = IntegrationRepository.get_user_integrations(
+            {
+                "account_id__in": [
+                    account["user_id"]
+                    for account in event_authorizations["authorizations"]
+                ],
+                "integration__name": "Slack",
+            }
+        )
+        inbox_items = []
+        members = user_integration["configuration"] or []
+        cause = "From Unknown Member"
+        for member in members:
+            if member.get("id", None) == body["event"]["user"]:
+                cause = member["profile"]["display_name"]
+        for user_integration in user_integrations:
+            inbox_items.append(
+                {
+                    "title": EVENT_MAP[body["event"]["type"]],
+                    "cause": cause,
+                    "body": json.dumps(body),
+                    "is_body_html": False,
+                    "user_integration_id": user_integration.id,
+                    "uid": f"{uid}-{user_integration.id}",
+                }
+            )
+        InboxRepository.add_items(inbox_items)
         return HttpResponse(status=200)
     except Exception:
         logger.error(

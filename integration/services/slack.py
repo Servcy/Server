@@ -1,7 +1,6 @@
-import json
-
 import requests
 from django.conf import settings
+from slack_sdk import WebClient
 
 from common.exceptions import ServcyOauthCodeException
 from integration.repository import IntegrationRepository
@@ -55,6 +54,7 @@ class SlackService:
 
         :param user_id: ID of the user for whom the integration is created
         """
+        members = self.fetch_team_members()
         return IntegrationRepository.create_user_integration(
             integration_id=IntegrationRepository.get_integration(
                 filters={"name": "Slack"}
@@ -63,6 +63,7 @@ class SlackService:
             account_id=self._token["authed_user"]["id"],
             meta_data={"token": self._token},
             account_display_name=self._token["team"]["name"],
+            configuration=members,
         )
 
     def is_active(self, meta_data, **kwargs):
@@ -81,3 +82,14 @@ class SlackService:
             headers={"Authorization": f"Bearer {self._token['access_token']}"},
         ).json()
         return response.get("ok") is True
+
+    def fetch_team_members(self) -> list:
+        client = WebClient(self._token["access_token"])
+        users_list = client.users_list()
+        members = users_list["members"]
+        cursor = users_list["response_metadata"]["next_cursor"]
+        while cursor:
+            users_list = client.users_list(cursor=cursor)
+            cursor = users_list["response_metadata"]["next_cursor"]
+            members.append(users_list["members"])
+        return members

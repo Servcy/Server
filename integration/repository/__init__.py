@@ -17,6 +17,7 @@ class IntegrationRepository:
         meta_data: dict,
         account_id: str,
         account_display_name: str = "",
+        configuration: list = None,
     ) -> UserIntegration:
         try:
             user_integration = UserIntegration.objects.create(
@@ -25,6 +26,7 @@ class IntegrationRepository:
                 meta_data=IntegrationRepository.encrypt_meta_data(meta_data),
                 account_id=account_id,
                 account_display_name=account_display_name,
+                configuration=configuration,
             )
             return user_integration
         except IntegrityError:
@@ -57,7 +59,14 @@ class IntegrationRepository:
     ) -> list[UserIntegration] | UserIntegration:
         integrations = UserIntegration.objects.filter(
             **filters, is_revoked=False
-        ).values("id", "meta_data", "account_id", "integration_id", "user_id")
+        ).values(
+            "id",
+            "meta_data",
+            "account_id",
+            "integration_id",
+            "user_id",
+            "configuration",
+        )
         for integration in integrations:
             integration["meta_data"] = self.decrypt_meta_data(
                 meta_data=integration["meta_data"]
