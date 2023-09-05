@@ -100,13 +100,15 @@ class IntegrationRepository:
 
     @staticmethod
     def update_integraion_meta_data(user_integration_id: int, meta_data: dict):
-        user_integration = UserIntegration.objects.get(
-            id=user_integration_id, is_revoked=False
+        UserIntegration.objects.filter(id=user_integration_id, is_revoked=False).update(
+            meta_data=IntegrationRepository.encrypt_meta_data(meta_data=meta_data)
         )
-        user_integration.meta_data = IntegrationRepository.encrypt_meta_data(
-            meta_data=meta_data
+
+    @staticmethod
+    def update_integraion_configuration(user_integration_id: int, configuration: dict):
+        UserIntegration.objects.filter(id=user_integration_id, is_revoked=False).update(
+            configuration=configuration
         )
-        user_integration.save()
 
     @staticmethod
     def fetch_all_user_integrations() -> list[UserIntegration]:

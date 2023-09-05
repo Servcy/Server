@@ -301,4 +301,8 @@ CRONJOBS = [
         "0 0 * * 0",  # every week on sunday at midnight
         "integration.services.audit.main",
     ),
+    (
+        "0 0 * * *",  # every day at midnight
+        "integration.services.slack.update_members",
+    ),
 ]

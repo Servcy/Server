@@ -69,5 +69,5 @@ def main():
         IntegrationRepository.revoke_user_integrations(revoked_integrations)
     except Exception:
         logger.exception(
-            "An error occurred while revoking integrations.\n{traceback.format_exc()}"
+            f"An error occurred while revoking integrations.\n{traceback.format_exc()}"
         )

@@ -1,9 +1,14 @@
+import logging
+import traceback
+
 import requests
 from django.conf import settings
 from slack_sdk import WebClient
 
 from common.exceptions import ServcyOauthCodeException
 from integration.repository import IntegrationRepository
+
+logger = logging.getLogger(__name__)
 
 SLACK_TOKEN_URL = "https://slack.com/api/oauth.v2.access"
 
@@ -19,6 +24,8 @@ class SlackService:
         self._token = None
         if kwargs.get("code"):
             self._fetch_token(kwargs.get("code"))
+        elif kwargs.get("token"):
+            self._token = kwargs.get("token")
 
     def _construct_token_request_data(self, code: str) -> dict:
         """Construct the request data for token fetching.
@@ -93,3 +100,29 @@ class SlackService:
             cursor = users_list["response_metadata"]["next_cursor"]
             members.append(users_list["members"])
         return members
+
+
+def update_members():
+    """
+    Runs as a cron
+    """
+    try:
+        user_integrations = IntegrationRepository.get_user_integrations(
+            {"integration__name": "Slack"}
+        )
+        for user_integration in user_integrations:
+            try:
+                members = SlackService(
+                    token=user_integration["meta_data"]["token"]
+                ).fetch_team_members()
+                IntegrationRepository.update_integraion_configuration(
+                    user_integration["id"], configuration=members
+                )
+            except:
+                logger.exception(
+                    f"An error occurred while updating slack members for user {user_integration['user_id']}.\n{traceback.format_exc()}"
+                )
+    except Exception:
+        logger.exception(
+            f"An error occurred while updating slack members.\n{traceback.format_exc()}"
+        )
