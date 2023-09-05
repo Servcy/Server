@@ -146,8 +146,8 @@ def slack(request):
                     "cause": cause,
                     "body": json.dumps(body),
                     "is_body_html": False,
-                    "user_integration_id": user_integration.id,
-                    "uid": f"{uid}-{user_integration.id}",
+                    "user_integration_id": user_integration["id"],
+                    "uid": f"{uid}-{user_integration['id']}",
                 }
             )
         InboxRepository.add_items(inbox_items)
