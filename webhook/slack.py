@@ -144,7 +144,7 @@ def slack(request):
                 {
                     "title": EVENT_MAP[body["event"]["type"]],
                     "cause": cause,
-                    "body": json.dumps(body),
+                    "body": json.dumps(body["event"]),
                     "is_body_html": False,
                     "user_integration_id": user_integration["id"],
                     "uid": f"{uid}-{user_integration['id']}",
