@@ -134,7 +134,7 @@ def slack(request):
             }
         )
         inbox_items = []
-        members = user_integration["configuration"] or []
+        members = user_integrations[0]["configuration"] or []
         cause = "From Unknown Member"
         for member in members:
             if member.get("id", None) == body["event"]["user"]:
