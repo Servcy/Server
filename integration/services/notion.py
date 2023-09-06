@@ -100,6 +100,9 @@ class NotionService:
         return response.status_code == 200
 
     def get_authorized_pages(self):
+        """
+        Get all the pages that the user has access to.
+        """
         pages = []
         page_results = self.page_search()
         database_results = self.database_search()
@@ -202,6 +205,7 @@ class NotionService:
         return pages
 
     def page_search(self):
+        """Search for pages in the workspace. Pages are the basic building blocks of Notion, similar to documents in a word processor."""
         data = {"filter": {"value": "page", "property": "object"}}
         headers = {
             "Content-Type": "application/json",
@@ -219,6 +223,9 @@ class NotionService:
         return results
 
     def block_parent_page_id(self, block_id: str):
+        """
+        Get the parent page id of a block.
+        """
         headers = {
             "Authorization": f"Bearer {self._token['access_token']}",
             "Notion-Version": "2022-06-28",
@@ -233,21 +240,10 @@ class NotionService:
             return self.block_parent_page_id(parent[parent_type])
         return parent[parent_type]
 
-    def workspace_name(self):
-        headers = {
-            "Authorization": f"Bearer {self._token['access_token']}",
-            "Notion-Version": "2022-06-28",
-        }
-        response = requests.get(url=self._NOTION_BOT_USER, headers=headers)
-        response_json = response.json()
-        if "object" in response_json and response_json["object"] == "user":
-            user_type = response_json["type"]
-            user_info = response_json[user_type]
-            if "workspace_name" in user_info:
-                return user_info["workspace_name"]
-        return "workspace"
-
     def database_search(self):
+        """
+        Search for databases in the workspace. Databases are  collections of pages.
+        """
         data = {"filter": {"value": "database", "property": "object"}}
         headers = {
             "Content-Type": "application/json",
