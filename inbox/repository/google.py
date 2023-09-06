@@ -6,11 +6,29 @@ from django.utils import timezone
 from inbox.models import GoogleMail
 from inbox.services.google import GoogleMailService
 
+REQUIRED_LABELS = {"UNREAD", "CATEGORY_PERSONAL", "INBOX"}
+EXCLUDED_LABELS = {
+    "SPAM",
+    "CATEGORY_SOCIAL",
+    "CATEGORY_PROMOTIONS",
+    "CATEGORY_UPDATES",
+    "CATEGORY_FORUMS",
+    "PROMOTIONS",
+    "TRASH",
+}
+
 
 class GoogleMailRepository:
     @staticmethod
     def get_mails(filters={}):
         return GoogleMail.objects.filter(**filters)
+
+    @staticmethod
+    def _has_valid_labels(mail):
+        labels = set(mail["labelIds"])
+        return REQUIRED_LABELS.issubset(labels) and not labels.intersection(
+            EXCLUDED_LABELS
+        )
 
     @staticmethod
     def create_mails(
@@ -19,9 +37,8 @@ class GoogleMailRepository:
         mail_objects = []
         inbox_items = []
         for mail in mails:
-            for label in ["UNREAD", "CATEGORY_PERSONAL", "INBOX"]:
-                if label not in mail["labelIds"]:
-                    continue
+            if not GoogleMailRepository._has_valid_labels(mail):
+                continue
             mail_objects.append(
                 GoogleMail(
                     thread_id=mail["threadId"],
