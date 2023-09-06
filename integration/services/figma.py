@@ -1,5 +1,3 @@
-import json
-
 import requests
 from django.conf import settings
 
@@ -99,10 +97,13 @@ class FigmaService(BaseService):
         }
         return self._make_request("GET", "v1/me", headers=headers)
 
-    def create_webhooks(self, team_ids: list[str]) -> list[str]:
+    def create_webhooks(
+        self, team_ids: list[str], user_integration_id: int
+    ) -> list[str]:
         """Creates webhooks for Figma."""
         failed_webhooks = []
         success_webhooks = []
+        success_webhook_teams = []
         for team_id in team_ids:
             data = {
                 "event_type": [
@@ -114,23 +115,24 @@ class FigmaService(BaseService):
                 ],
                 "team_id": team_id,
                 "endpoint": f"{settings.BACKEND_URL}/webhook/figma",
+                "passcode": user_integration_id,
             }
             headers = {
                 "Authorization": f"Bearer {self._token['access_token']}",
             }
             try:
-                self._make_request("POST", "v2/webhooks", headers=headers, json=data)
-                success_webhooks.append(team_id)
+                webhook = self._make_request(
+                    "POST", "v2/webhooks", headers=headers, json=data
+                )
+                success_webhooks.append(webhook["id"])
+                success_webhook_teams.append(team_id)
             except ExternalIntegrationException as e:
-                failed_webhooks.append((team_id, str(e)))
+                failed_webhooks.append(team_id)
         if failed_webhooks:
-            error_msgs = "\\n".join(
-                [f"Team ID: {team[0]}, Error: {team[1]}" for team in failed_webhooks]
-            )
             raise ExternalIntegrationException(
-                f"Failed to create webhooks for the following teams:\\n{error_msgs}"
+                f"Failed to create webhooks for the following teams: {', '.join(failed_webhooks)}"
             )
-        return success_webhooks
+        return success_webhooks, success_webhook_teams
 
     def is_active(self, meta_data, **kwargs):
         """

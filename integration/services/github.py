@@ -55,7 +55,7 @@ class GithubService:
         )
         if "error" in token_data:
             raise ServcyOauthCodeException(
-                f"An error occurred while obtaining access token from Github.\\n{str(token_data)}"
+                f"An error occurred while obtaining access token from Github.\n{str(token_data)}"
             )
         self._token = token_data
 
