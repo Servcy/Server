@@ -160,6 +160,7 @@ class NotionService:
                 "page_name": page_name,
                 "page_icon": icon,
                 "parent_id": parent_id,
+                "last_unresolved_comment": None,
                 "type": "page",
             }
             pages.append(page)
