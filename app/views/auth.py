@@ -48,7 +48,7 @@ class AuthenticationView(APIView):
                 success_message="Verification code has been sent!",
                 status=status.HTTP_201_CREATED,
             )
-        except Exception:
+        except Exception as err:
             return error_response(
                 logger=logger,
                 logger_message="An error occurred while sending verification code.",
@@ -89,7 +89,7 @@ class AuthenticationView(APIView):
                 logger_message="An error occurred while verifying verification code.",
                 status=status.HTTP_401_UNAUTHORIZED,
             )
-        except Exception:
+        except Exception as err:
             return error_response(
                 logger=logger,
                 logger_message="An error occurred while verifying verification code.",

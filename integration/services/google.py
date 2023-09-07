@@ -60,7 +60,7 @@ class GoogleService(BaseService):
             if err.resp.status == 401:
                 raise IntegrationAccessRevokedException()
             else:
-                logger.error(f"Error in initializing google service: {err}")
+                logger.exception(f"Error in initializing google service: {err}")
                 raise Exception("Error in initializing google service")
 
     def _fetch_token(self, code: str) -> "GoogleService":
@@ -76,7 +76,7 @@ class GoogleService(BaseService):
             },
         ).json()
         if "error" in response:
-            logger.error(
+            logger.exception(
                 f"Error in fetching tokens from Google: {response.get('error_description')}"
             )
             raise Exception(
@@ -90,7 +90,7 @@ class GoogleService(BaseService):
         try:
             return method(**kwargs).execute()
         except HttpError as e:
-            logger.error(f"Error in making request to Google API: {e}")
+            logger.exception(f"Error in making request to Google API: {e}")
             raise
 
     def _fetch_user_info(self) -> "GoogleService":
@@ -186,7 +186,7 @@ class GoogleService(BaseService):
 
         def callback(request_id, response, exception):
             if exception is not None:
-                logger.error(
+                logger.exception(
                     f"Error in fetching messages through batch request for google ::: {request_id} - {exception}"
                 )
             else:

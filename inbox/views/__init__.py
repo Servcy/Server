@@ -21,7 +21,7 @@ class InboxViewSet(ViewSet):
                 success_message="Inbox refreshed successfully.",
                 status=status.HTTP_200_OK,
             )
-        except Exception:
+        except Exception as err:
             return error_response(
                 logger=logger,
                 logger_message="An error occurred while refreshing inbox.",

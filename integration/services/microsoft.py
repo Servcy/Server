@@ -59,7 +59,7 @@ class MicrosoftService:
                 )
                 return self._make_microsoft_request(method, url, **kwargs)
             else:
-                logger.error(
+                logger.exception(
                     f"Error in making request to Microsoft API: {response['error']['message']}"
                 )
                 raise Exception(response["error"]["message"])

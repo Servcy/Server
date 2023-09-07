@@ -305,4 +305,8 @@ CRONJOBS = [
         "0 0 * * *",  # every day at midnight
         "integration.services.slack.update_members",
     ),
+    (
+        "0 0 * * *",  # every day at midnight
+        "integration.services.notion.poll_new_comments",
+    ),
 ]

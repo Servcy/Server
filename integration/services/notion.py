@@ -1,21 +1,27 @@
 import base64
 import json
+import logging
 
 import requests
 from django.conf import settings
+from django.db import transaction
 
 from common.exceptions import ServcyOauthCodeException
+from inbox.services import InboxRepository
 from integration.repository import IntegrationRepository
 
 NOTION_API_BASE_URL = "https://api.notion.com"
 NOTION_OAUTH_TOKEN_ENDPOINT = f"{NOTION_API_BASE_URL}/v1/oauth/token"
+
+logger = logging.getLogger(__name__)
 
 
 class NotionService:
     """Service class for Notion integration."""
 
     _NOTION_PAGE_SEARCH = "https://api.notion.com/v1/search"
-    _NOTION_BOT_USER = "https://api.notion.com/v1/users/me"
+    _NOTION_BOT_USER = "https://api.notion.com/v1/users"
+    _NOTION_COMMENTS = "https://api.notion.com/v1/comments"
     _NOTION_BLOCK_SEARCH = "https://api.notion.com/v1/blocks"
 
     def __init__(self, **kwargs) -> None:
@@ -26,6 +32,8 @@ class NotionService:
         self._token = None
         if kwargs.get("code"):
             self._fetch_token(kwargs.get("code"))
+        if self.kwargs.get("token", False):
+            self._token = kwargs.get("token")
 
     def _create_basic_auth_header(self) -> dict:
         """Generate the Basic Authorization header for Notion API requests."""
@@ -160,7 +168,7 @@ class NotionService:
                 "page_name": page_name,
                 "page_icon": icon,
                 "parent_id": parent_id,
-                "last_unresolved_comment": None,
+                "last_cursor": "",
                 "type": "page",
             }
             pages.append(page)
@@ -200,7 +208,7 @@ class NotionService:
                 "page_icon": icon,
                 "parent_id": parent_id,
                 "type": "database",
-                "last_unresolved_comment": None,
+                "last_cursor": "",
             }
             pages.append(page)
         return pages
@@ -260,3 +268,133 @@ class NotionService:
         else:
             results = []
         return results
+
+    def get_new_unresolved_comments(self, page_id: str, last_cursor: str = None):
+        """
+        Get all the unresolved comments in a page.
+        """
+        results = (
+            requests.request(
+                "GET",
+                f"{self._NOTION_COMMENTS}?block_id={page_id}&start_cursor={last_cursor}"
+                if last_cursor
+                else f"{self._NOTION_COMMENTS}?block_id={page_id}",
+                headers={
+                    "Notion-Version": "2022-02-22",
+                    "Authorization": "Bearer secret_S6gXsdUkaxpiwL5iNlZHD4DYVxJkmMtMVr61wvB7IG8",
+                },
+                data={},
+            )
+            .json()
+            .get("results", [])
+        )
+        if results.get("has_more", False):
+            results += self.get_unresolved_comments(
+                page_id=page_id, last_cursor=results["next_cursor"]
+            )
+        return results[1:] if last_cursor else results
+
+    def fetch_all_users(self):
+        headers = {
+            "Notion-Version": "2022-02-22",
+            "Authorization": f"Bearer {self._token['access_token']}",
+        }
+        response = requests.request(
+            "GET", self._NOTION_BOT_USER, headers=headers, data={}
+        )
+        return response.json()
+
+
+# CRON job to poll new comments from Notion.
+def poll_new_comments():
+    try:
+        user_integrations = IntegrationRepository.get_user_integrations(
+            {
+                "integration__name": "Notion",
+            }
+        )
+        inbox_items = []
+        configuration_map = {}
+        for user_integration in user_integrations:
+            try:
+                process_user_integration(
+                    user_integration, inbox_items, configuration_map
+                )
+            except Exception as err:
+                logger.exception(
+                    f"An error occurred while fetching notion comments for user {user_integration['user_id']}",
+                    exc_info=True,
+                )
+        with transaction.atomic():
+            InboxRepository.add_items(inbox_items)
+            for user_integration_id, configuration in configuration_map.items():
+                IntegrationRepository.update_integration_configuration(
+                    user_integration_id, configuration=configuration
+                )
+    except Exception as err:
+        logger.exception(
+            "An error occurred while fetching notion comments", exc_info=True
+        )
+
+
+def process_user_integration(
+    user_integration: dict, inbox_items: list, configuration_map: dict
+):
+    """
+    Process a user integration for new comments.
+    """
+    configuration_map[user_integration["id"]] = user_integration["configuration"]
+    service = NotionService(token=user_integration["meta_data"]["token"])
+    pages = user_integration["configuration"]["pages"]
+    users = service.fetch_all_users()
+    user_map = {user["id"]: user for user in users}
+
+    for i, page in enumerate(pages):
+        try:
+            process_page(
+                i,
+                page,
+                user_integration,
+                service,
+                user_map,
+                inbox_items,
+                configuration_map,
+            )
+        except Exception as err:
+            logger.exception(
+                f"An error occurred while fetching notion comments for page {page['page_id']}",
+                exc_info=True,
+            )
+
+
+def process_page(
+    i: int,
+    page: dict,
+    user_integration: dict,
+    service: "NotionService",
+    user_map: dict[str, dict],
+    inbox_items: list,
+    configuration_map: dict,
+):
+    """
+    Process a page for new comments.
+    """
+    comments = service.get_new_unresolved_comments(page["page_id"], page["last_cursor"])
+    if comments:
+        comment_from = user_map.get(comments[0]["created_by"]["id"])
+        inbox_items.extend(
+            [
+                {
+                    "title": f"New comment on {page['page_name']}",
+                    "cause": json.dumps(comment_from),
+                    "body": json.dumps(comment),
+                    "is_body_html": False,
+                    "user_integration_id": user_integration.id,
+                    "uid": f"{comment['id']}-{user_integration.id}",
+                }
+                for comment in comments
+            ]
+        )
+        configuration_map[user_integration["id"]]["pages"][i]["last_cursor"] = comments[
+            -1
+        ]["id"]

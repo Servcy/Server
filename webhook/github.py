@@ -1,6 +1,5 @@
 import json
 import logging
-import traceback
 
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -62,8 +61,8 @@ def github(request):
             ]
         )
         return HttpResponse(status=200)
-    except Exception:
-        logger.error(
-            f"An error occurred while processing github webhook.\n{traceback.format_exc()}"
+    except Exception as err:
+        logger.exception(
+            f"An error occurred while processing github webhook.", exc_info=True
         )
         return HttpResponse(status=500)

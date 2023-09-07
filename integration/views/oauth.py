@@ -50,7 +50,7 @@ class OauthViewset(viewsets.ViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         except Exception as ex:
-            logger.error(
+            logger.exception(
                 f"An unexpected error occurred processing oauth request for {service_name}: {str(ex)}"
             )
             return error_response(

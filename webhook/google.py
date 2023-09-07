@@ -1,6 +1,5 @@
 import json
 import logging
-import traceback
 from base64 import decodebytes
 
 from django.db import transaction
@@ -68,8 +67,9 @@ def google(request):
     except IntegrationAccessRevokedException:
         IntegrationRepository.revoke_user_integrations(integration.get("id", 0))
         return HttpResponse(status=200)
-    except Exception:
-        logger.error(
-            f"An error occurred processing webhook for google request. {email} {history_id}\n{traceback.format_exc()}"
+    except Exception as err:
+        logger.exception(
+            f"An error occurred processing webhook for google request. {email} {history_id}",
+            exc_info=True,
         )
         return HttpResponse(status=500)

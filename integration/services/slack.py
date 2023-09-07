@@ -1,5 +1,4 @@
 import logging
-import traceback
 
 import requests
 from django.conf import settings
@@ -120,9 +119,10 @@ def update_members():
                 )
             except:
                 logger.exception(
-                    f"An error occurred while updating slack members for user {user_integration['user_id']}.\n{traceback.format_exc()}"
+                    f"An error occurred while updating slack members for user {user_integration['user_id']}.",
+                    exc_info=True,
                 )
-    except Exception:
+    except Exception as err:
         logger.exception(
-            f"An error occurred while updating slack members.\n{traceback.format_exc()}"
+            f"An error occurred while updating slack members.", exc_info=True
         )

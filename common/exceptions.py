@@ -68,7 +68,7 @@ def servcy_exception_handler(exception, context):
         "exception_detail": str(exception),
         "context": context,
     }
-    logger.error("An error occurred in the API.", extra=log_data)
+    logger.exception("An error occurred in the API.", extra=log_data, exc_info=True)
 
     # Notify New Relic
     notice_error(exception)
