@@ -32,7 +32,7 @@ class NotionService:
         self._token = None
         if kwargs.get("code"):
             self._fetch_token(kwargs.get("code"))
-        if self.kwargs.get("token", False):
+        if kwargs.get("token", False):
             self._token = kwargs.get("token")
 
     def _create_basic_auth_header(self) -> dict:
@@ -273,24 +273,21 @@ class NotionService:
         """
         Get all the unresolved comments in a page.
         """
-        results = (
-            requests.request(
-                "GET",
-                f"{self._NOTION_COMMENTS}?block_id={page_id}&start_cursor={last_cursor}"
-                if last_cursor
-                else f"{self._NOTION_COMMENTS}?block_id={page_id}",
-                headers={
-                    "Notion-Version": "2022-02-22",
-                    "Authorization": "Bearer secret_S6gXsdUkaxpiwL5iNlZHD4DYVxJkmMtMVr61wvB7IG8",
-                },
-                data={},
-            )
-            .json()
-            .get("results", [])
-        )
-        if results.get("has_more", False):
+        response = requests.request(
+            "GET",
+            f"{self._NOTION_COMMENTS}?block_id={page_id}&start_cursor={last_cursor}"
+            if last_cursor
+            else f"{self._NOTION_COMMENTS}?block_id={page_id}",
+            headers={
+                "Notion-Version": "2022-02-22",
+                "Authorization": "Bearer secret_S6gXsdUkaxpiwL5iNlZHD4DYVxJkmMtMVr61wvB7IG8",
+            },
+            data={},
+        ).json()
+        results = response.get("results", [])
+        if response.get("has_more", False):
             results += self.get_unresolved_comments(
-                page_id=page_id, last_cursor=results["next_cursor"]
+                page_id=page_id, last_cursor=response.get("next_cursor", "")
             )
         return results[1:] if last_cursor else results
 
@@ -302,7 +299,7 @@ class NotionService:
         response = requests.request(
             "GET", self._NOTION_BOT_USER, headers=headers, data={}
         )
-        return response.json()
+        return response.json().get("results", [])
 
 
 # CRON job to poll new comments from Notion.
@@ -328,7 +325,7 @@ def poll_new_comments():
         with transaction.atomic():
             InboxRepository.add_items(inbox_items)
             for user_integration_id, configuration in configuration_map.items():
-                IntegrationRepository.update_integration_configuration(
+                IntegrationRepository.update_integraion_configuration(
                     user_integration_id, configuration=configuration
                 )
     except Exception as err:
@@ -379,7 +376,9 @@ def process_page(
     """
     Process a page for new comments.
     """
-    comments = service.get_new_unresolved_comments(page["page_id"], page["last_cursor"])
+    comments = service.get_new_unresolved_comments(
+        page["page_id"], page.get("last_cursor", "")
+    )
     if comments:
         comment_from = user_map.get(comments[0]["created_by"]["id"])
         inbox_items.extend(
@@ -389,8 +388,8 @@ def process_page(
                     "cause": json.dumps(comment_from),
                     "body": json.dumps(comment),
                     "is_body_html": False,
-                    "user_integration_id": user_integration.id,
-                    "uid": f"{comment['id']}-{user_integration.id}",
+                    "user_integration_id": user_integration["id"],
+                    "uid": f"{comment['id']}-{user_integration['id']}",
                 }
                 for comment in comments
             ]
