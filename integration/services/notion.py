@@ -280,7 +280,7 @@ class NotionService:
             else f"{self._NOTION_COMMENTS}?block_id={page_id}",
             headers={
                 "Notion-Version": "2022-02-22",
-                "Authorization": "Bearer secret_S6gXsdUkaxpiwL5iNlZHD4DYVxJkmMtMVr61wvB7IG8",
+                "Authorization": f"Bearer {self._token['access_token']}",
             },
             data={},
         ).json()
