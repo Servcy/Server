@@ -85,12 +85,14 @@ class SlackService:
         self._token = meta_data["token"]
         response = requests.post(
             url="https://slack.com/api/auth.test",
-            headers={"Authorization": f"Bearer {self._token['access_token']}"},
+            headers={
+                "Authorization": f"Bearer {self._token['authed_user']['access_token']}"
+            },
         ).json()
         return response.get("ok") is True
 
     def fetch_team_members(self) -> list:
-        client = WebClient(self._token["access_token"])
+        client = WebClient(self._token["authed_user"]["access_token"])
         users_list = client.users_list()
         members = users_list["members"]
         cursor = users_list["response_metadata"]["next_cursor"]

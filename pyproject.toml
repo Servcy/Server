@@ -32,6 +32,7 @@ google-cloud-pubsub = "^2.18.3"
 msal = "^1.23.0"
 newrelic = "^8.11.0"
 slack-sdk = "^3.21.3"
+pre-commit = "^3.4.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.3.0"
