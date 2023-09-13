@@ -1,6 +1,6 @@
 import json
 import logging
-
+import traceback
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
@@ -31,6 +31,7 @@ VALID_EVENTS = [
 def github(request):
     try:
         payload = json.loads(request.body)
+        logger.info(f"Received github webhook: {payload}")
         event = request.headers.get("X-GitHub-Event", "ping")
         guid = request.headers.get("X-GitHub-Delivery")
         if event == "ping":
@@ -64,7 +65,7 @@ def github(request):
         return HttpResponse(status=200)
     except Exception as err:
         logger.exception(
-            f"An error occurred while processing github webhook.",
+            f"An error occurred while processing github webhook. {traceback.format_exc()}",
             exc_info=True,
             extra={"body": request.body, "headers": request.headers},
         )
