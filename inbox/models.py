@@ -10,7 +10,7 @@ class InboxItem(TimeStampedModel):
     body = models.TextField(null=True, blank=False, default=None)
     is_archived = models.BooleanField(default=False)
     is_deleted = models.BooleanField(default=False)
-    cause = models.CharField(max_length=255, null=True, blank=False, default=None)
+    cause = models.CharField(max_length=10000, null=True, blank=False, default=None)
     is_body_html = models.BooleanField(default=False)
     user_integration = models.ForeignKey(
         UserIntegration, on_delete=models.CASCADE, related_name="inbox_items"
