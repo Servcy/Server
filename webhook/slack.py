@@ -134,15 +134,15 @@ def slack(request):
         )
         inbox_items = []
         members = user_integrations[0]["configuration"] or []
-        cause = "From Unknown Member"
+        cause = "-"
         for member in members:
             if member.get("id", None) == body["event"]["user"]:
-                cause = member["profile"]["display_name"]
+                cause = member["profile"]
         for user_integration in user_integrations:
             inbox_items.append(
                 {
                     "title": EVENT_MAP[body["event"]["type"]],
-                    "cause": cause,
+                    "cause": json.dumps(cause),
                     "body": json.dumps(body["event"]),
                     "is_body_html": False,
                     "user_integration_id": user_integration["id"],

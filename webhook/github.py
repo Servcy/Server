@@ -52,7 +52,7 @@ def github(request):
             [
                 {
                     "title": f"{' '.join(event.split('_'))} {' '.join(payload.get('action', '').split('_'))}",
-                    "cause": f"{payload['sender']['login']} <{payload['sender']['html_url']}>",
+                    "cause": json.dumps(payload["sender"]),
                     "body": json.dumps(payload),
                     "is_body_html": False,
                     "user_integration_id": user_integration.id,

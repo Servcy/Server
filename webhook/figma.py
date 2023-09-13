@@ -10,13 +10,21 @@ from integration.repository import IntegrationRepository
 
 logger = logging.getLogger(__name__)
 
-EVENT_MAP = {
-    "FILE_UPDATE": "A file was updated",
-    "FILE_DELETE": "A file was deleted",
-    "FILE_VERSION_UPDATE": "A file version was updated",
-    "FILE_COMMENT": "A file was commented on",
-    "LIBRARY_PUBLISH": "A library was published",
-}
+
+def get_title(event: dict):
+    event_type = event["event_type"]
+    if event_type == "FILE_UPDATE":
+        return f"{event['file_name']} file was updated"
+    elif event_type == "FILE_DELETE":
+        return f"{event['file_name']} file was deleted"
+    elif event_type == "FILE_VERSION_UPDATE":
+        return f"{event['file_name']} file version was updated"
+    elif event_type == "FILE_COMMENT":
+        return f"{event['file_name']} file was commented on"
+    elif event_type == "LIBRARY_PUBLISH":
+        return f"{event['library_name']} library was published"
+    else:
+        raise ValueError(f"Unknown event type: {event_type}")
 
 
 @csrf_exempt
@@ -36,9 +44,9 @@ def figma(request):
         InboxRepository.add_items(
             [
                 {
-                    "title": EVENT_MAP[body["event"]["type"]],
-                    "cause": body.get("triggered_by", {}).get("handle", "Unknown"),
-                    "body": json.dumps(body),
+                    "title": get_title(body["event"]),
+                    "cause": body.get("triggered_by", {}).get("handle", "-"),
+                    "body": json.dumps(body["event"]),
                     "is_body_html": False,
                     "user_integration_id": user_integration.id,
                     "uid": f"{body['webhook_id']}-{user_integration.id}",
