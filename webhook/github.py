@@ -31,7 +31,7 @@ VALID_EVENTS = [
 def github(request):
     try:
         payload = json.loads(request.body)
-        logger.info(f"Received github webhook: {payload}")
+        logger.info(f"Received github webhook: {payload['installation']}")
         event = request.headers.get("X-GitHub-Event", "ping")
         guid = request.headers.get("X-GitHub-Delivery")
         if event == "ping":
