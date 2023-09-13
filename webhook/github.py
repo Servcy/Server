@@ -66,6 +66,6 @@ def github(request):
         logger.exception(
             f"An error occurred while processing github webhook.",
             exc_info=True,
-            extra={"body": request.body},
+            extra={"body": installation_id},
         )
         return HttpResponse(status=500)
