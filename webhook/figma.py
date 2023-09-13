@@ -59,6 +59,8 @@ def figma(request):
         return HttpResponse(status=200)
     except Exception as err:
         logger.exception(
-            f"An error occurred while processing figma webhook.", exc_info=True
+            f"An error occurred while processing figma webhook.",
+            exc_info=True,
+            extra={"body": request.body},
         )
         return HttpResponse(status=500)

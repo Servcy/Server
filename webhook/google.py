@@ -70,6 +70,7 @@ def google(request):
     except Exception as err:
         logger.exception(
             f"An error occurred processing webhook for google request. {email} {history_id}",
+            extra={"body": request.body},
             exc_info=True,
         )
         return HttpResponse(status=500)
