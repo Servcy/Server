@@ -302,11 +302,15 @@ CRONJOBS = [
         "integration.services.audit.main",
     ),
     (
-        "0 0 * * *",  # every day at midnight
+        "0 0 * * *",
         "integration.services.slack.update_members",
     ),
     (
-        "0 0 * * *",  # every day at midnight
+        "0 0 * * *",
         "integration.services.notion.poll_new_comments",
+    ),
+    (
+        "0 0 * * *",
+        "integration.services.google.refresh_google_watchers",
     ),
 ]

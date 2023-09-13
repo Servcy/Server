@@ -223,3 +223,25 @@ class GoogleService(BaseService):
         self._token = meta_data["token"]
         self._initialize_google_service()
         return True
+
+
+def refresh_google_watchers():
+    """
+    Refresh watchers for all users in the system.
+    """
+    try:
+        user_integrations = IntegrationRepository.get_user_integrations(
+            {
+                "integration__name": "Gmail",
+            }
+        )
+        for user_integration in user_integrations:
+            google_service = GoogleService(
+                access_token=user_integration.meta_data["token"]["access_token"],
+                refresh_token=user_integration.meta_data["token"]["refresh_token"],
+            )
+            google_service._add_watcher_to_inbox_pub_sub()
+    except Exception as err:
+        logger.exception(
+            f"Error in refreshing watchers for gmail: {err}", exc_info=True
+        )
