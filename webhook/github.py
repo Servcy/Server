@@ -1,6 +1,7 @@
 import json
 import logging
 import traceback
+
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
@@ -48,10 +49,12 @@ def github(request):
                 "configuration__contains": [installation_id],
             },
         )
+        title = f"{' '.join(event.split('_'))} {' '.join(payload.get('action', '').split('_'))}"
+        title = title[0].upper() + title[1:]
         InboxRepository.add_items(
             [
                 {
-                    "title": f"{' '.join(event.split('_'))} {' '.join(payload.get('action', '').split('_'))}",
+                    "title": title,
                     "cause": json.dumps(payload["sender"]),
                     "body": json.dumps(payload),
                     "is_body_html": False,

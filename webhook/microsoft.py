@@ -9,7 +9,6 @@ from rest_framework import status
 
 from common.responses import error_response
 from inbox.repository import InboxRepository
-from inbox.repository.microsoft import OutlookMailRepository
 from integration.repository import IntegrationRepository
 from integration.services.microsoft import MicrosoftService
 
@@ -44,11 +43,19 @@ def microsoft(request):
         )
         mail = service.get_message(message_id)
         with transaction.atomic():
-            inbox_item = OutlookMailRepository.create_mail(
-                mail=mail,
-                user_integration_id=integration["id"],
+            InboxRepository.add_items(
+                [
+                    {
+                        "title": mail["subject"],
+                        "cause": f"{mail['from']['emailAddress']['name']} <{mail['from']['emailAddress']['address']}>",
+                        "body": mail["body"]["content"],
+                        "is_body_html": mail["body"]["contentType"] == "html",
+                        "user_integration_id": integration["id"],
+                        "uid": f"{mail['id']}-{integration['id']}",
+                        "category": "message",
+                    }
+                ]
             )
-            InboxRepository.add_items([inbox_item])
         return HttpResponse(status=200)
     except IntegrityError:
         return HttpResponse(status=200)

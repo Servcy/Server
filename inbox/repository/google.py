@@ -1,9 +1,3 @@
-import datetime
-
-from django.db import IntegrityError
-from django.utils import timezone
-
-from inbox.models import GoogleMail
 from inbox.services.google import GoogleMailService
 
 REQUIRED_LABELS = {"UNREAD", "CATEGORY_PERSONAL", "INBOX"}
@@ -20,10 +14,6 @@ EXCLUDED_LABELS = {
 
 class GoogleMailRepository:
     @staticmethod
-    def get_mails(filters={}):
-        return GoogleMail.objects.filter(**filters)
-
-    @staticmethod
     def _has_valid_labels(mail):
         labels = set(mail["labelIds"])
         return REQUIRED_LABELS.issubset(labels) and not labels.intersection(
@@ -31,31 +21,11 @@ class GoogleMailRepository:
         )
 
     @staticmethod
-    def create_mails(
-        mails: list, user_integration_id: int, batch_size: int = 100
-    ) -> list[dict]:
-        mail_objects = []
+    def create_mails(mails: list, user_integration_id: int) -> list[dict]:
         inbox_items = []
         for mail in mails:
             if not GoogleMailRepository._has_valid_labels(mail):
                 continue
-            mail_objects.append(
-                GoogleMail(
-                    thread_id=mail["threadId"],
-                    history_id=mail["historyId"],
-                    message_id=mail["id"],
-                    snippet=mail["snippet"],
-                    size_estimate=mail["sizeEstimate"],
-                    label_ids=mail["labelIds"],
-                    payload=mail["payload"],
-                    internal_date=timezone.make_aware(
-                        datetime.datetime.fromtimestamp(
-                            int(mail["internalDate"]) / 1000
-                        )
-                    ),
-                    user_integration_id=user_integration_id,
-                )
-            )
             inbox_items.append(
                 {
                     "title": GoogleMailService._get_mail_header(
@@ -71,8 +41,4 @@ class GoogleMailRepository:
                     "category": "message",
                 }
             )
-        try:
-            GoogleMail.objects.bulk_create(mail_objects, batch_size=batch_size)
-        except IntegrityError:
-            return []
         return inbox_items
