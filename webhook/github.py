@@ -30,7 +30,11 @@ VALID_EVENTS = [
 @require_POST
 def github(request):
     try:
-        payload = json.loads(request.body)
+        payload = (
+            json.loads(request.body)
+            if isinstance(request.body, str)
+            else json.loads(request.body.decode("utf-8"))
+        )
         event = request.headers.get("X-GitHub-Event", "ping")
         guid = request.headers.get("X-GitHub-Delivery")
         if event == "ping":
@@ -42,7 +46,6 @@ def github(request):
             logger.info(f"Received invalid github event: {event} - {payload}")
             return HttpResponse(status=200)
         installation_id = payload["installation"]["id"]
-        logger.info(f"Received github event for installation: {installation_id}")
         user_integration = IntegrationRepository.get_user_integration(
             {
                 "integration__name": "Github",
