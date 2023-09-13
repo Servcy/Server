@@ -57,6 +57,7 @@ def github(request):
                     "is_body_html": False,
                     "user_integration_id": user_integration.id,
                     "uid": f"{guid}-{user_integration.id}",
+                    "category": "comment" if "comment" in event else "notification",
                 }
             ]
         )

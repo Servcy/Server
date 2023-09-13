@@ -68,6 +68,7 @@ class GoogleMailRepository:
                     "is_body_html": GoogleMailService._is_body_html(mail["payload"]),
                     "user_integration_id": user_integration_id,
                     "uid": f"{mail['id']}-{user_integration_id}",
+                    "category": "message",
                 }
             )
         try:

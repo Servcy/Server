@@ -390,6 +390,7 @@ def process_page(
                     "is_body_html": False,
                     "user_integration_id": user_integration["id"],
                     "uid": f"{comment['id']}-{user_integration['id']}",
+                    "category": "comment",
                 }
                 for comment in comments
             ]

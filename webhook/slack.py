@@ -147,6 +147,9 @@ def slack(request):
                     "is_body_html": False,
                     "user_integration_id": user_integration["id"],
                     "uid": f"{uid}-{user_integration['id']}",
+                    "category": "message"
+                    if body["event"].get("type", "").startswith("message")
+                    else "notification",
                 }
             )
         InboxRepository.add_items(inbox_items)

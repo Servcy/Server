@@ -44,12 +44,15 @@ def figma(request):
         InboxRepository.add_items(
             [
                 {
-                    "title": get_title(body["event"]),
+                    "title": get_title(body),
                     "cause": body.get("triggered_by", {}).get("handle", "-"),
-                    "body": json.dumps(body["event"]),
+                    "body": json.dumps(body),
                     "is_body_html": False,
                     "user_integration_id": user_integration.id,
                     "uid": f"{body['webhook_id']}-{user_integration.id}",
+                    "category": "comment"
+                    if "FILE_COMMENT" == body["event_type"]
+                    else "notification",
                 }
             ]
         )
