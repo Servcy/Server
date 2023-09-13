@@ -43,6 +43,7 @@ def github(request):
             logger.info(f"Received invalid github event: {event} - {payload}")
             return HttpResponse(status=200)
         installation_id = payload["installation"]["id"]
+        logger.info(f"Received github webhook: {installation_id}")
         user_integration = IntegrationRepository.get_user_integration(
             {
                 "integration__name": "Github",
