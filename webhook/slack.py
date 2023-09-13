@@ -158,6 +158,6 @@ def slack(request):
         logger.exception(
             f"An error occurred while processing slack webhook.",
             exc_info=True,
-            extra={"body": request.body},
+            extra={"body": request.body, "headers": request.headers},
         )
         return HttpResponse(status=500)

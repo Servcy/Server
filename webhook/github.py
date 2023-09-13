@@ -30,11 +30,7 @@ VALID_EVENTS = [
 @require_POST
 def github(request):
     try:
-        payload = (
-            json.loads(request.body)
-            if isinstance(request.body, str)
-            else json.loads(request.body.decode("utf-8"))
-        )
+        payload = json.loads(request.body)
         event = request.headers.get("X-GitHub-Event", "ping")
         guid = request.headers.get("X-GitHub-Delivery")
         if event == "ping":
@@ -45,9 +41,7 @@ def github(request):
         if event not in VALID_EVENTS:
             logger.info(f"Received invalid github event: {event} - {payload}")
             return HttpResponse(status=200)
-        print(payload)
         installation_id = payload["installation"]["id"]
-        print(installation_id)
         user_integration = IntegrationRepository.get_user_integration(
             {
                 "integration__name": "Github",
@@ -72,6 +66,6 @@ def github(request):
         logger.exception(
             f"An error occurred while processing github webhook.",
             exc_info=True,
-            extra={"body": request.body, "headers": request.headers, "error": err},
+            extra={"body": request.body, "headers": request.headers},
         )
         return HttpResponse(status=500)
