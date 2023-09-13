@@ -41,11 +41,11 @@ def github(request):
         if event not in VALID_EVENTS:
             logger.info(f"Received invalid github event: {event} - {payload}")
             return HttpResponse(status=200)
-        installation_id = str(payload["installation"]["id"])
+        installation_id = payload["installation"]["id"]
         user_integration = IntegrationRepository.get_user_integration(
             {
                 "integration__name": "Github",
-                "configuration__icontains": installation_id,
+                "configuration__contains": [installation_id],
             },
         )
         InboxRepository.add_items(

@@ -121,5 +121,5 @@ class GithubService:
             for repo in payload["repositories_removed"]:
                 if str(repo["id"]) in installation_ids:
                     installation_ids.remove(str(repo["id"]))
-        user_integration.configuration = ",".join(installation_ids)
+        user_integration.configuration = list(installation_ids)
         user_integration.save()
