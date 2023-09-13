@@ -31,20 +31,17 @@ VALID_EVENTS = [
 def github(request):
     try:
         payload = json.loads(request.body)
-        logger.info(f"Received github webhook: {payload['installation']['id']}")
         event = request.headers.get("X-GitHub-Event", "ping")
         guid = request.headers.get("X-GitHub-Delivery")
         if event == "ping":
             return HttpResponse(status=200)
-        if event == "installation" or "installation_repositories":
+        if event == "installation" or event == "installation_repositories":
             GithubService.manage_github_repositories(payload)
             return HttpResponse(status=200)
         if event not in VALID_EVENTS:
             logger.info(f"Received invalid github event: {event} - {payload}")
             return HttpResponse(status=200)
-        logger.info(f"Received github webhook2: {payload['installation']['id']}")
         installation_id = payload["installation"]["id"]
-        logger.info(f"Received github webhook4: {installation_id}")
         user_integration = IntegrationRepository.get_user_integration(
             {
                 "integration__name": "Github",
