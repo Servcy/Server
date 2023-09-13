@@ -97,13 +97,11 @@ class GithubService:
         return True
 
     @staticmethod
-    def manage_github_configuration(payload: dict) -> None:
+    def manage_github_repositories(payload: dict) -> None:
         """
         Used for installation event especially created and deleted action
         """
         action = payload["action"]
-        if action not in ["created", "deleted"]:
-            return
         account_id = payload["sender"]["id"]
         user_integration = IntegrationRepository.get_user_integration(
             {"integration__name": "Github", "account_id": account_id}
@@ -111,7 +109,17 @@ class GithubService:
         installation_ids = set((user_integration.configuration or "").split(","))
         if action == "created":
             installation_ids.add(str(payload["installation"]["id"]))
-        elif str(payload["installation"]["id"]) in installation_ids:
+        elif (
+            action == "deleted"
+            and str(payload["installation"]["id"]) in installation_ids
+        ):
             installation_ids.remove(str(payload["installation"]["id"]))
+        elif action == "added":
+            for repo in payload["repositories_added"]:
+                installation_ids.add(str(repo["id"]))
+        elif action == "removed":
+            for repo in payload["repositories_removed"]:
+                if str(repo["id"]) in installation_ids:
+                    installation_ids.remove(str(repo["id"]))
         user_integration.configuration = ",".join(installation_ids)
         user_integration.save()

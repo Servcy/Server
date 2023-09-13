@@ -35,8 +35,8 @@ def github(request):
         guid = request.headers.get("X-GitHub-Delivery")
         if event == "ping":
             return HttpResponse(status=200)
-        if event == "installation":
-            GithubService.manage_github_configuration(payload)
+        if event == "installation" or "installation_repositories":
+            GithubService.manage_github_repositories(payload)
             return HttpResponse(status=200)
         if event not in VALID_EVENTS:
             logger.info(f"Received invalid github event: {event} - {payload}")
