@@ -106,7 +106,7 @@ class GithubService:
         user_integration = IntegrationRepository.get_user_integration(
             {"integration__name": "Github", "account_id": account_id}
         )
-        installation_ids = set((user_integration.configuration or "").split(","))
+        installation_ids = set(user_integration.configuration or [])
         if action == "created":
             installation_ids.add(str(payload["installation"]["id"]))
         elif (
