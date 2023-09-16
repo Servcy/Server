@@ -237,8 +237,8 @@ def refresh_google_watchers():
         )
         for user_integration in user_integrations:
             google_service = GoogleService(
-                access_token=user_integration.meta_data["token"]["access_token"],
-                refresh_token=user_integration.meta_data["token"]["refresh_token"],
+                access_token=user_integration["meta_data"]["token"]["access_token"],
+                refresh_token=user_integration["meta_data"]["token"]["refresh_token"],
             )
             google_service._add_watcher_to_inbox_pub_sub()
     except Exception as err:
