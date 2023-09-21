@@ -38,6 +38,7 @@ LOCAL_APPS = [
     "iam",
     "integration",
     "inbox",
+    "project",
 ]
 
 OTHER_APPS = ["app", "webhook"]
