@@ -1,19 +1,16 @@
 import logging
 
-from rest_framework.viewsets import GenericViewSet, mixins
+from rest_framework.viewsets import ModelViewSet
 
 from project.serializers import ProjectSerializer
 
 logger = logging.getLogger(__name__)
 
 
-class ProjectViewSet(
-    mixins.ListModelMixin,
-    GenericViewSet,
-):
+class ProjectViewSet(ModelViewSet):
     serializer_class = ProjectSerializer
     queryset = ProjectSerializer.Meta.model.objects.all()
     ordering_fields = ["name"]
 
-    def get_queryset(self):
-        return super().get_queryset()
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
