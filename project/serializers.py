@@ -6,8 +6,5 @@ from project.models import Project
 class ProjectSerializer(ModelSerializer):
     class Meta:
         model = Project
-        read_only_fields = (
-            "id",
-            "account_display_name",
-        )
-        fields = read_only_fields + ("configuration",)
+        fields = ["id", "name", "description", "created_at", "updated_at"]
+        read_only_fields = ["id", "created_at", "updated_at"]

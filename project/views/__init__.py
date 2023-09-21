@@ -16,4 +16,4 @@ class ProjectViewSet(
     ordering_fields = ["name"]
 
     def get_queryset(self):
-        return super().get_queryset().prefetch_related("user_integrations")
+        return super().get_queryset()
