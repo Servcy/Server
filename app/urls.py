@@ -12,4 +12,5 @@ urlpatterns = [
     path("inbox/", include("inbox.urls")),
     path("project/", include("project.urls")),
     path("webhook/", include("webhook.urls")),
+    path("client/", include("client.urls")),
 ]
