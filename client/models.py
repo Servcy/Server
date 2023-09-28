@@ -7,11 +7,11 @@ from iam.models import User
 
 class Client(TimeStampedModel):
     name = models.CharField(max_length=255)
-    email = models.EmailField(max_length=255, null=True)
-    phone = models.CharField(max_length=255, null=True)
-    address = models.CharField(max_length=255, null=True)
-    notes = models.TextField(null=True)
-    website = models.CharField(max_length=255, null=True)
+    email = models.EmailField(max_length=255, null=True, blank=True)
+    phone = models.CharField(max_length=255, null=True, blank=True)
+    address = models.CharField(max_length=255, null=True, blank=True)
+    notes = models.TextField(null=True, blank=True)
+    website = models.CharField(max_length=255, null=True, blank=True)
     file_ids = models.JSONField(default=list)
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
