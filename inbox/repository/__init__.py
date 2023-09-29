@@ -1,4 +1,4 @@
-from inbox.models import InboxItem
+from inbox.models import Inbox
 
 
 class InboxRepository:
@@ -7,28 +7,28 @@ class InboxRepository:
     """
 
     @staticmethod
-    def add_item(item: dict) -> InboxItem:
+    def add_item(item: dict) -> Inbox:
         """
         Add an item to the inbox.
         """
-        return InboxItem.objects.create(**item)
+        return Inbox.objects.create(**item)
 
-    def add_items(items: list[dict]) -> list[InboxItem]:
+    def add_items(items: list[dict]) -> list[Inbox]:
         """
         Add items to the inbox.
         """
-        return InboxItem.objects.bulk_create([InboxItem(**item) for item in items])
+        return Inbox.objects.bulk_create([Inbox(**item) for item in items])
 
     @staticmethod
-    def archive_item(item_ids: list[int]) -> InboxItem:
+    def archive_item(item_ids: list[int]) -> Inbox:
         """
         Archive an item in the inbox.
         """
-        return InboxItem.objects.filter(id__in=item_ids).update(is_archived=True)
+        return Inbox.objects.filter(id__in=item_ids).update(is_archived=True)
 
     @staticmethod
-    def delete_item(item_ids: list[int]) -> InboxItem:
+    def delete_item(item_ids: list[int]) -> Inbox:
         """
         Delete an item in the inbox.
         """
-        return InboxItem.objects.filter(id__in=item_ids).update(is_deleted=True)
+        return Inbox.objects.filter(id__in=item_ids).update(is_deleted=True)

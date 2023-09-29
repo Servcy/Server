@@ -4,7 +4,7 @@ from app.models import TimeStampedModel
 from integration.models import UserIntegration
 
 
-class InboxItem(TimeStampedModel):
+class Inbox(TimeStampedModel):
     uid = models.CharField(max_length=255, unique=True, db_index=True)
     title = models.CharField(max_length=255)
     body = models.TextField(null=True, blank=False, default=None)
@@ -18,6 +18,5 @@ class InboxItem(TimeStampedModel):
     category = models.CharField(max_length=255, null=True, blank=False, default=None)
 
     class Meta:
-        db_table = "inbox_item"
-        verbose_name = "Inbox Item"
-        verbose_name_plural = "Inbox Items"
+        db_table = "inbox"
+        verbose_name = "Inbox"
