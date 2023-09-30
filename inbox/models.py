@@ -1,6 +1,7 @@
 from django.db import models
 
 from app.models import TimeStampedModel
+from iam.models import User
 from integration.models import UserIntegration
 
 
