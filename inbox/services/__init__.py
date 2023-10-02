@@ -26,6 +26,11 @@ class InboxService(DataTableBase):
             return Q(user_integration__integration__name=source)
         return Q()
 
+    def category_filter(self, category: str):
+        if self.filters.get("category"):
+            return Q(category=category)
+        return Q()
+
     def is_archived_filter(self, is_archived: bool):
         if self.filters.get("is_archived"):
             return Q(is_archived=is_archived)

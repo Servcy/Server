@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class InboxViewSet(ViewSet):
-    @action(detail=False, methods=["get"], url_path="items")
+    @action(detail=False, methods=["post"], url_path="items")
     def fetch_items(self, request):
         try:
             user_id = request.user.id
