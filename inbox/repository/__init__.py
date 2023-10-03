@@ -25,10 +25,3 @@ class InboxRepository:
         Archive an item in the inbox.
         """
         return Inbox.objects.filter(id__in=item_ids).update(is_archived=True)
-
-    @staticmethod
-    def delete_item(item_ids: list[int]) -> Inbox:
-        """
-        Delete an item in the inbox.
-        """
-        return Inbox.objects.filter(id__in=item_ids).update(is_deleted=True)

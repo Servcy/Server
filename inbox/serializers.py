@@ -1,6 +1,7 @@
+from serpy import MethodField
+
 from app.serializers import ServcyReadSerializer
 from inbox.models import Inbox
-from serpy import MethodField
 
 
 class InboxSerializer(ServcyReadSerializer):

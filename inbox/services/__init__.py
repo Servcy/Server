@@ -31,18 +31,8 @@ class InboxService(DataTableBase):
             return Q(category=category)
         return Q()
 
-    def is_archived_filter(self, is_archived: bool):
-        if self.filters.get("is_archived"):
-            return Q(is_archived=is_archived)
-        return Q(is_archived=False)
-
-    def is_deleted_filter(self, is_deleted: bool):
-        if self.filters.get("is_deleted"):
-            return Q(is_deleted=is_deleted)
-        return Q(is_deleted=False)
-
     def get_queryset(self) -> "InboxService":
-        q = Q(user_integration__user=self.user)
+        q = Q(user_integration__user=self.user, is_archived=False)
         for key, val in self.filters.items():
             if not val:
                 continue
@@ -76,9 +66,3 @@ class InboxService(DataTableBase):
         Archive an item.
         """
         return InboxRepository.archive_item(item_ids=item_ids)
-
-    def delete_item(self, item_ids: list[int]) -> Inbox:
-        """
-        Delete an item.
-        """
-        return InboxRepository.delete_item(item_ids=item_ids)
