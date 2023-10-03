@@ -39,7 +39,9 @@ class GoogleService(BaseService):
         if self._token:
             self._initialize_google_service()
             if code:
-                self._fetch_user_info()._add_publisher_for_user()._add_watcher_to_inbox_pub_sub()
+                self._fetch_user_info()._add_publisher_for_user()._add_watcher_to_inbox_pub_sub(
+                    self._user_info["email"]
+                )
 
     def _initialize_google_service(self):
         """Initialize google service"""
@@ -94,24 +96,36 @@ class GoogleService(BaseService):
             raise
 
     def _fetch_user_info(self) -> "GoogleService":
-        """Fetch user info from google"""
+        """
+        Fetch user info from google
+        No need to refresh token as it is already done in _fetch_token
+        _fetch_token should ALWAYS be called before calling this method
+        """
         self._user_info = requests.get(
             GOOGLE_USER_INFO_URI,
             headers={"Authorization": f"Bearer {self._token['access_token']}"},
         ).json()
         return self
 
-    def _add_watcher_to_inbox_pub_sub(
-        self,
-    ) -> dict:
+    def _fetch_user_info_from_service(self) -> "GoogleService":
+        """Fetch user info from google"""
+        self._user_info = self._make_google_request(
+            self._google_service.users().getProfile,
+            userId="me",
+        )
+        return self
+
+    def _add_watcher_to_inbox_pub_sub(self, email: str = None) -> dict:
         """Add watcher to inbox pub sub"""
+        if not email:
+            raise Exception("Email is required for adding watcher to inbox pub sub!")
         watch_request = {
             "labelIds": ["CATEGORY_PERSONAL", "INBOX", "UNREAD"],
             "topicName": GOOGLE_PUB_SUB_TOPIC,
         }
         self._watcher_response = self._make_google_request(
             self._google_service.users().watch,
-            userId=self._user_info["email"],
+            userId=email,
             body=watch_request,
         )
 
@@ -240,7 +254,9 @@ def refresh_google_watchers():
                 access_token=user_integration["meta_data"]["token"]["access_token"],
                 refresh_token=user_integration["meta_data"]["token"]["refresh_token"],
             )
-            google_service._add_watcher_to_inbox_pub_sub()
+            google_service._fetch_user_info_from_service()._add_watcher_to_inbox_pub_sub(
+                google_service._user_info["emailAddress"]
+            )
     except Exception as err:
         logger.exception(
             f"Error in refreshing watchers for gmail: {err}", exc_info=True
