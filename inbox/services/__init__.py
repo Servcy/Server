@@ -49,7 +49,9 @@ class InboxService(DataTableBase):
             func = getattr(self, f"{key}_filter", None)
             assert callable(func), f"Filter {key} not implemented"
             q &= func(val)
-        self.queryset = Inbox.objects.filter(q)
+        self.queryset = Inbox.objects.filter(q).select_related(
+            "user_integration__integration"
+        )
         return self
 
     def get_paginated_items(
