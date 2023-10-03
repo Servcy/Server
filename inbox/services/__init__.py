@@ -71,12 +71,6 @@ class InboxService(DataTableBase):
         self.page_size = page_size
         return super().get_paginated_items()
 
-    def read_item(self, item_ids: list[int]) -> Inbox:
-        """
-        Read an item.
-        """
-        return InboxRepository.read_item(item_ids=item_ids)
-
     def archive_item(self, item_ids: list[int]) -> Inbox:
         """
         Archive an item.

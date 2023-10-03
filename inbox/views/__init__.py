@@ -40,3 +40,41 @@ class InboxViewSet(ViewSet):
                 logger=logger,
                 logger_message="Error while fetching inbox",
             )
+
+    @action(detail=False, methods=["post"], url_path="delete")
+    def delete_items(self, request):
+        try:
+            user_id = request.user.id
+            user = request.user
+            items_to_delete = request.data.get("item_ids", [])
+            if not items_to_delete:
+                return error_response(
+                    logger=logger,
+                    logger_message="No items to delete",
+                )
+            inbox_service = InboxService(user=user, user_id=user_id)
+            inbox_service.delete_item(item_ids=items_to_delete)
+        except Exception as err:
+            return error_response(
+                logger=logger,
+                logger_message="Error while deleting inbox items",
+            )
+
+    @action(detail=False, methods=["post"], url_path="archive")
+    def archive_items(self, request):
+        try:
+            user_id = request.user.id
+            user = request.user
+            items_to_archive = request.data.get("item_ids", [])
+            if not items_to_archive:
+                return error_response(
+                    logger=logger,
+                    logger_message="No items to archive",
+                )
+            inbox_service = InboxService(user=user, user_id=user_id)
+            inbox_service.archive_item(item_ids=items_to_archive)
+        except Exception as err:
+            return error_response(
+                logger=logger,
+                logger_message="Error while archiving inbox items",
+            )
