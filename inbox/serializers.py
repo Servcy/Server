@@ -6,9 +6,13 @@ from inbox.models import Inbox
 
 class InboxSerializer(ServcyReadSerializer):
     source = MethodField()
+    account = MethodField()
 
     def get_source(self, obj):
         return obj.user_integration.integration.name
+
+    def get_account(self, obj):
+        return obj.user_integration.account_display_name
 
     class Meta:
         model = Inbox
