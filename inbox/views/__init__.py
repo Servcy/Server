@@ -53,6 +53,10 @@ class InboxViewSet(ViewSet):
                 )
             inbox_service = InboxService(user=user, user_id=user_id)
             inbox_service.archive_item(item_ids=items_to_archive)
+            return success_response(
+                success_message="Inbox items archived successfully",
+                status=status.HTTP_200_OK,
+            )
         except Exception as err:
             return error_response(
                 logger=logger,
