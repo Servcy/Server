@@ -24,6 +24,7 @@ VALID_EVENTS = [
     "project",
     "milestone",
     "issue_comment",
+    "projects_v2",
 ]
 
 
@@ -51,6 +52,7 @@ def github(request):
         )
         title = f"{' '.join(event.split('_'))} {' '.join(payload.get('action', '').split('_'))}"
         title = title[0].upper() + title[1:]
+        payload["event"] = event
         InboxRepository.add_items(
             [
                 {
