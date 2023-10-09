@@ -120,7 +120,7 @@ def update_members():
                 IntegrationRepository.update_integraion_configuration(
                     user_integration["id"], configuration=members
                 )
-                time.sleep(30)  # To avoid rate limiting
+                time.sleep(60)
             except:
                 logger.exception(
                     f"An error occurred while updating slack members for user {user_integration['user_id']}.",
