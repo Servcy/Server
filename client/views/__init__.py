@@ -22,6 +22,9 @@ class ClientViewSet(ModelViewSet):
         serializer.save(user=self.request.user)
 
     def get_queryset(self):
+        serach = self.request.query_params.get("search", None)
+        if serach:
+            return self.queryset.filter(user=self.request.user, name__icontains=serach)
         return self.queryset.filter(user=self.request.user)
 
     @action(detail=False, methods=["post"], url_path="upload")
