@@ -74,7 +74,6 @@ class AsanaService:
             "POST",
             f"webhooks",
             data={
-                "resource": self._user_info["data"]["gid"],
                 "target": f"{settings.BACKEND_URL}/webhook/asana",
             },
             headers={
