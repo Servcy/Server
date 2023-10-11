@@ -1,6 +1,9 @@
 import requests
 from django.conf import settings
+
 from common.exceptions import ServcyOauthCodeException
+from integration.models import UserIntegration
+from integration.repository import IntegrationRepository
 
 
 class AsanaService:
@@ -15,6 +18,7 @@ class AsanaService:
         self._user_info = None
         if kwargs.get("code"):
             self.authenticate(kwargs.get("code"))
+            self._establish_webhook()
 
     def authenticate(self, code: str) -> "AsanaService":
         """Authenticate using code."""
@@ -56,5 +60,38 @@ class AsanaService:
     def _fetch_user_info(self) -> dict:
         """Fetches user info from Asana."""
         return self._make_request(
-            "GET", f"users/me?access_token={self._token['access_token']}"
+            "GET",
+            "users/me",
+            headers={
+                "Authorization": f"Bearer {self._token['access_token']}",
+                "Accept": "application/json",
+            },
+        )
+
+    def _establish_webhook(self) -> None:
+        """Establishes webhook for Asana."""
+        self.webhook = self._make_request(
+            "POST",
+            f"webhooks",
+            data={
+                "resource": self._user_info["data"]["id"],
+                "target": settings.ASANA_APP_WEBHOOK_URL,
+            },
+            headers={
+                "Authorization": f"Bearer {self._token['access_token']}",
+                "Accept": "application/json",
+            },
+        )
+
+    def create_integration(self, user_id: int) -> UserIntegration:
+        """Creates integration for user."""
+        return IntegrationRepository.create_user_integration(
+            integration_id=IntegrationRepository.get_integration(
+                filters={"name": "Asana"}
+            ).id,
+            user_id=user_id,
+            account_id=self._user_info["data"]["gid"],
+            meta_data={"token": self._token, "user_info": self._user_info},
+            account_display_name=self._user_info["data"]["name"],
+            configuration=self.webhook,
         )

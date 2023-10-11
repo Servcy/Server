@@ -17,7 +17,7 @@ class IntegrationRepository:
         meta_data: dict,
         account_id: str,
         account_display_name: str = "",
-        configuration: list = None,
+        configuration: list | dict = None,
     ) -> UserIntegration:
         try:
             user_integration = UserIntegration.objects.create(
