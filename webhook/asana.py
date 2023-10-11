@@ -15,6 +15,7 @@ def asana(request):
             return HttpResponse(
                 status=200, headers={"X-Hook-Secret": request.headers["X-Hook-Secret"]}
             )
+        logger.info("Asana webhook received.", extra={"body": request.body})
         return HttpResponse(status=200)
     except Exception as err:
         logger.exception(
