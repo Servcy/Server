@@ -1,6 +1,6 @@
 import requests
 from django.conf import settings
-
+import asana
 from common.exceptions import ServcyOauthCodeException
 from integration.models import UserIntegration
 from integration.repository import IntegrationRepository
@@ -70,17 +70,21 @@ class AsanaService:
 
     def _establish_webhook(self) -> None:
         """Establishes webhook for Asana."""
-        self.webhook = self._make_request(
-            "POST",
-            f"webhooks",
-            data={
-                "target": f"{settings.BACKEND_URL}/webhook/asana",
-            },
-            headers={
-                "Authorization": f"Bearer {self._token['access_token']}",
-                "Accept": "application/json",
-            },
-        )
+        client = asana.Client.access_token(self._token["access_token"])
+        for workspace in self._user_info["data"]["workspaces"]:
+            projects = client.projects.get_projects_for_workspace(
+                workspace["gid"], opt_pretty=True
+            )
+            for project in projects:
+                hook = client.webhooks.create_webhook(
+                    resource=project["gid"],
+                    target="https://server.servcy.com/webhook/asana",
+                    opt_pretty=True,
+                )
+            if "errors" in hook:
+                raise ServcyOauthCodeException(
+                    f"An error occurred while establishing webhook for Asana.\n{str(hook)}"
+                )
 
     def create_integration(self, user_id: int) -> UserIntegration:
         """Creates integration for user."""
@@ -92,5 +96,4 @@ class AsanaService:
             account_id=self._user_info["data"]["gid"],
             meta_data={"token": self._token, "user_info": self._user_info},
             account_display_name=self._user_info["data"]["name"],
-            configuration=self.webhook,
         )

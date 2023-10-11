@@ -140,6 +140,22 @@ files = [
 frozenlist = ">=1.1.0"
 
 [[package]]
+name = "asana"
+version = "3.2.2"
+description = "Asana API client"
+category = "main"
+optional = false
+python-versions = "*"
+files = [
+    {file = "asana-3.2.2-py2.py3-none-any.whl", hash = "sha256:e8426ae5f5cda2c27d29874145acb589b91e673a84e3fbd45404679499d9604a"},
+    {file = "asana-3.2.2.tar.gz", hash = "sha256:3a0c64ad5baaa8c52465fe400cedbc873b2127a77df135af518fd8da1af8d6b9"},
+]
+
+[package.dependencies]
+requests = ">=2.20.0,<3.0.0"
+requests-oauthlib = ">=0.8.0,<2.0"
+
+[[package]]
 name = "asgiref"
 version = "3.6.0"
 description = "ASGI specs, helper code, and adapters"
@@ -2454,4 +2470,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "3.11.1"
-content-hash = "2a98ac833a9fdb3293484a4cebac18dc9b960646e74c49e7f2704643b33afc8b"
+content-hash = "57c2e08b7a81d21296f5fb853e7063ddfff9fa53cf516f64d78dafbd4632dc47"
