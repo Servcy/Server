@@ -1,5 +1,6 @@
 from django.urls import path
 
+from webhook.asana import asana
 from webhook.figma import figma
 from webhook.github import github
 from webhook.google import google
@@ -12,4 +13,5 @@ urlpatterns = [
     path("slack", slack, name="Slack"),
     path("figma", figma, name="Figma"),
     path("github", github, name="Github"),
+    path("asana", asana, name="Asana"),
 ]

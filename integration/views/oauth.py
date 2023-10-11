@@ -43,7 +43,7 @@ class OauthViewset(viewsets.ViewSet):
                 logger_message=error.message,
                 error_message=f"An error occurred while integrating with {service_name}. Please try again later.",
             )
-        except KeyError:
+        except KeyError as err:
             return error_response(
                 logger=logger,
                 logger_message="KeyError occurred processing oauth request.",

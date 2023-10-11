@@ -75,7 +75,7 @@ class AsanaService:
             f"webhooks",
             data={
                 "resource": self._user_info["data"]["gid"],
-                "target": settings.ASANA_APP_WEBHOOK_URL,
+                "target": f"{settings.BACKEND_URL}/webhook/asana",
             },
             headers={
                 "Authorization": f"Bearer {self._token['access_token']}",
