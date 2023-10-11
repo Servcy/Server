@@ -12,6 +12,7 @@ from integration.services.google import GOOGLE_SCOPES, GoogleService
 from integration.services.microsoft import MicrosoftService
 from integration.services.notion import NotionService
 from integration.services.slack import SlackService
+from integration.services.asana import AsanaService
 
 logger = logging.getLogger(__name__)
 
@@ -91,3 +92,7 @@ class OauthViewset(viewsets.ViewSet):
     @action(detail=False, methods=["put"], url_path="github")
     def github(self, request):
         return self._handle_oauth_code(request, GithubService, "Github")
+
+    @action(detail=False, methods=["put"], url_path="asana")
+    def asana(self, request):
+        return self._handle_oauth_code(request, AsanaService, "Asana")

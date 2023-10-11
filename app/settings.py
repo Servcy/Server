@@ -293,6 +293,10 @@ GITHUB_APP_REDIRECT_URI = f"{FRONTEND_URL}/{config.get('github', 'redirect_uri')
 FIGMA_APP_CLIENT_ID = config.get("figma", "client_id")
 FIGMA_APP_CLIENT_SECRET = config.get("figma", "client_secret")
 FIGMA_APP_REDIRECT_URI = f"{FRONTEND_URL}/{config.get('figma', 'redirect_uri')}"
+# Asana
+ASANA_APP_CLIENT_ID = config.get("asana", "client_id")
+ASANA_APP_CLIENT_SECRET = config.get("asana", "client_secret")
+ASANA_APP_REDIRECT_URI = f"{FRONTEND_URL}/{config.get('asana', 'redirect_uri')}"
 
 # Cron Jobs
 CRONJOBS = [

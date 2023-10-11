@@ -69,3 +69,8 @@ redirect_uri=
 client_secret=
 client_id=
 redirect_uri=
+
+[asana]
+client_id=
+client_secret=
+redirect_uri=integrations/asana/oauth
