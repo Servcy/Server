@@ -1,6 +1,7 @@
+import asana
 import requests
 from django.conf import settings
-import asana
+
 from common.exceptions import ServcyOauthCodeException
 from integration.models import UserIntegration
 from integration.repository import IntegrationRepository
@@ -18,7 +19,10 @@ class AsanaService:
         self._user_info = None
         if kwargs.get("code"):
             self.authenticate(kwargs.get("code"))
-            self._establish_webhook()
+            self._establish_webhooks()
+        elif kwargs.get("refresh_token"):
+            self._token = AsanaService._refresh_tokens(kwargs.get("refresh_token"))
+            self._user_info = self._fetch_user_info()
 
     def authenticate(self, code: str) -> "AsanaService":
         """Authenticate using code."""
@@ -68,23 +72,35 @@ class AsanaService:
             },
         )
 
-    def _establish_webhook(self) -> None:
+    @staticmethod
+    def _refresh_tokens(refresh_token) -> None:
+        """Refreshes tokens."""
+        response = requests.post(
+            AsanaService._token_uri,
+            data={
+                "grant_type": "refresh_token",
+                "client_id": settings.ASANA_APP_CLIENT_ID,
+                "client_secret": settings.ASANA_APP_CLIENT_SECRET,
+                "refresh_token": refresh_token,
+            },
+        )
+        token_data = response.json()
+        if "error" in token_data:
+            raise ServcyOauthCodeException(
+                f"An error occurred while refreshing access token from Asana.\n{str(token_data)}"
+            )
+        return token_data
+
+    def _establish_webhooks(self) -> None:
         """Establishes webhook for Asana."""
         client = asana.Client.access_token(self._token["access_token"])
         for workspace in self._user_info["data"]["workspaces"]:
+            self.create_project_monitoring_webhook(workspace["gid"])
             projects = client.projects.get_projects_for_workspace(
                 workspace["gid"], opt_pretty=True
             )
             for project in projects:
-                hook = client.webhooks.create_webhook(
-                    resource=project["gid"],
-                    target="https://server.servcy.com/webhook/asana",
-                    opt_pretty=True,
-                )
-            if "errors" in hook:
-                raise ServcyOauthCodeException(
-                    f"An error occurred while establishing webhook for Asana.\n{str(hook)}"
-                )
+                self.create_task_monitoring_webhook(project["gid"])
 
     def create_integration(self, user_id: int) -> UserIntegration:
         """Creates integration for user."""
@@ -97,3 +113,39 @@ class AsanaService:
             meta_data={"token": self._token, "user_info": self._user_info},
             account_display_name=self._user_info["data"]["name"],
         )
+
+    def create_task_monitoring_webhook(self, project_id):
+        client = asana.Client.access_token(self._token["access_token"])
+        hook = client.webhooks.create_webhook(
+            resource=project_id,
+            target="https://server.servcy.com/webhook/asana",
+            opt_pretty=True,
+            filters=[
+                {
+                    "resource_type": "task",
+                    "fields": [],
+                },
+            ],
+        )
+        if "errors" in hook:
+            raise ServcyOauthCodeException(
+                f"An error occurred while creating task monitoring webhook for Asana.\n{str(hook)}"
+            )
+
+    def create_project_monitoring_webhook(self, workspace_id):
+        client = asana.Client.access_token(self._token["access_token"])
+        hook = client.webhooks.create_webhook(
+            resource=workspace_id,
+            target="https://server.servcy.com/webhook/asana",
+            opt_pretty=True,
+            filters=[
+                {
+                    "resource_type": "project",
+                    "action": "added",
+                },
+            ],
+        )
+        if "errors" in hook:
+            raise ServcyOauthCodeException(
+                f"An error occurred while creating project monitoring webhook for Asana.\n{str(hook)}"
+            )
