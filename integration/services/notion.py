@@ -10,13 +10,15 @@ from common.exceptions import ServcyOauthCodeException
 from inbox.services import InboxRepository
 from integration.repository import IntegrationRepository
 
+from .base import BaseService
+
 NOTION_API_BASE_URL = "https://api.notion.com"
 NOTION_OAUTH_TOKEN_ENDPOINT = f"{NOTION_API_BASE_URL}/v1/oauth/token"
 
 logger = logging.getLogger(__name__)
 
 
-class NotionService:
+class NotionService(BaseService):
     """Service class for Notion integration."""
 
     _NOTION_PAGE_SEARCH = "https://api.notion.com/v1/search"

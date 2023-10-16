@@ -3,6 +3,7 @@ from django.db import models
 from app.models import TimeStampedModel
 from client.models import Client
 from iam.models import User
+from integration.models import UserIntegration
 
 
 class Project(TimeStampedModel):
@@ -13,6 +14,13 @@ class Project(TimeStampedModel):
         Client, on_delete=models.CASCADE, null=True, blank=False, default=None
     )
     file_ids = models.JSONField(default=list)
+    user_integration = models.ForeignKey(
+        UserIntegration,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=False,
+        default=None,
+    )
 
     class Meta:
         db_table = "project"

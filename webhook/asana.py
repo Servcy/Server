@@ -1,12 +1,14 @@
 import json
 import logging
 
+import asana
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from integration.repository import IntegrationRepository
 from integration.services.asana import AsanaService
+from project.repository import ProjectRepository
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +39,19 @@ def asana(request):
                     )
                     AsanaService(
                         refresh_token=meta_data["token"]["refresh_token"]
-                    ).create_project_webhook(event["resource"]["gid"])
+                    ).create_task_monitoring_webhook(event["resource"]["gid"])
+                    asana_client = asana.Client.access_token(
+                        meta_data["token"]["access_token"]
+                    )
+                    project = asana_client.projects.get_project(
+                        event["resource"]["gid"], opt_pretty=True
+                    )
+                    ProjectRepository.create(
+                        name=project["name"],
+                        description=project["notes"],
+                        user_id=user_integration.user.id,
+                        user_integration_id=user_integration.id,
+                    )
                 if event["resource"]["resource_type"] == "task":
                     user_integration = IntegrationRepository.get_user_integration(
                         {

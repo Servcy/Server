@@ -5,11 +5,13 @@ from common.exceptions import ServcyOauthCodeException
 from integration.models import UserIntegration
 from integration.repository import IntegrationRepository
 
+from .base import BaseService
+
 GITHUB_API_BASE_URL = "https://api.github.com"
 GITHUB_OAUTH_URL = "https://github.com/login/oauth"
 
 
-class GithubService:
+class GithubService(BaseService):
     """Service class for Github integration."""
 
     def __init__(self, **kwargs) -> None:
@@ -121,3 +123,17 @@ class GithubService:
                     installation_ids.remove(str(repo["id"]))
         user_integration.configuration = list(installation_ids)
         user_integration.save()
+
+    def is_active(self, meta_data: dict, **kwargs) -> bool:
+        """
+        Check if the user's integration is active.
+
+        Args:
+        - meta_data: The user integration meta data.
+
+        Returns:
+        - bool: True if integration is active, False otherwise.
+        """
+        self._token = meta_data["token"]
+        self._fetch_user_info()
+        return True

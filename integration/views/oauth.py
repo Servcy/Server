@@ -28,7 +28,7 @@ class OauthViewset(viewsets.ViewSet):
         """
         try:
             code = urllib.parse.unquote(request.data["code"])
-            service = service_class(code=code)
+            service = service_class(code=code, user_id=request.user.id)
             user_integration = service.create_integration(user_id=request.user.id)
             return success_response(
                 results={"redirect_uri": f"{user_integration.integration.configure_at}"}

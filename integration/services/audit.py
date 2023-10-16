@@ -2,6 +2,7 @@ import logging
 
 from integration.repository import IntegrationRepository
 from integration.services import (
+    AsanaService,
     FigmaService,
     GithubService,
     GoogleService,
@@ -55,6 +56,8 @@ def main():
                     service_class = FigmaService
                 elif user_integration.integration.name == "Outlook":
                     service_class = MicrosoftService
+                elif user_integration.integration.name == "Asana":
+                    service_class = AsanaService
                 if service_class:
                     is_active = check_integration_status(
                         service_class, user_integration

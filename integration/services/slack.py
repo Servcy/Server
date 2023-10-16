@@ -8,12 +8,14 @@ from slack_sdk import WebClient
 from common.exceptions import ServcyOauthCodeException
 from integration.repository import IntegrationRepository
 
+from .base import BaseService
+
 logger = logging.getLogger(__name__)
 
 SLACK_TOKEN_URL = "https://slack.com/api/oauth.v2.access"
 
 
-class SlackService:
+class SlackService(BaseService):
     """Service class for Slack integration."""
 
     def __init__(self, **kwargs) -> None:

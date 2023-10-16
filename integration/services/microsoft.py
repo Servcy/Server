@@ -24,7 +24,7 @@ class MicrosoftService:
     """Service class for Microsoft integration."""
 
     def __init__(
-        self, code: str = None, refresh_token: str = None, scopes: list = None
+        self, code: str = None, refresh_token: str = None, scopes: list = None, **kwargs
     ) -> None:
         """Initialize the MicrosoftService with either an authorization code or refresh token.
 

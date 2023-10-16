@@ -5,17 +5,21 @@ from django.conf import settings
 from common.exceptions import ServcyOauthCodeException
 from integration.models import UserIntegration
 from integration.repository import IntegrationRepository
+from project.repository import ProjectRepository
+
+from .base import BaseService
 
 
-class AsanaService:
+class AsanaService(BaseService):
     _token_uri = "https://app.asana.com/-/oauth_token"
     _api_uri = "https://app.asana.com/api/1.0"
 
     """Service class for Asana integration."""
 
-    def __init__(self, **kwargs) -> None:
+    def __init__(self, user_id: int, **kwargs) -> None:
         """Initializes AsanaService."""
         self._token = None
+        self.user_id = user_id
         self._user_info = None
         if kwargs.get("code"):
             self.authenticate(kwargs.get("code"))
@@ -99,12 +103,13 @@ class AsanaService:
             projects = client.projects.get_projects_for_workspace(
                 workspace["gid"], opt_pretty=True
             )
+            self.create_projects(projects)
             for project in projects:
                 self.create_task_monitoring_webhook(project["gid"])
 
     def create_integration(self, user_id: int) -> UserIntegration:
         """Creates integration for user."""
-        return IntegrationRepository.create_user_integration(
+        self.user_integration = IntegrationRepository.create_user_integration(
             integration_id=IntegrationRepository.get_integration(
                 filters={"name": "Asana"}
             ).id,
@@ -113,6 +118,7 @@ class AsanaService:
             meta_data={"token": self._token, "user_info": self._user_info},
             account_display_name=self._user_info["data"]["name"],
         )
+        return self.user_integration
 
     def create_task_monitoring_webhook(self, project_id):
         client = asana.Client.access_token(self._token["access_token"])
@@ -149,3 +155,30 @@ class AsanaService:
             raise ServcyOauthCodeException(
                 f"An error occurred while creating project monitoring webhook for Asana.\n{str(hook)}"
             )
+
+    def create_projects(self, projects: list):
+        ProjectRepository.create_bulk(
+            [
+                {
+                    "name": project["name"],
+                    "description": project["notes"],
+                    "user": self.user_id,
+                    "user_integration_id": self.user_integration.id,
+                }
+                for project in projects
+            ]
+        )
+
+    def is_active(self, meta_data: dict, **kwargs) -> bool:
+        """
+        Check if the user's integration is active.
+
+        Args:
+        - meta_data: The user integration meta data.
+
+        Returns:
+        - bool: True if integration is active, False otherwise.
+        """
+        self._token = meta_data["token"]
+        self._fetch_user_info()
+        return True

@@ -14,7 +14,7 @@ FIGMA_OAUTH_URL = "https://www.figma.com/api/oauth"
 class FigmaService(BaseService):
     """Service class for Figma integration."""
 
-    def __init__(self, code: str = None, refresh_token: str = None) -> None:
+    def __init__(self, code: str = None, refresh_token: str = None, **kwargs) -> None:
         """Initializes FigmaService."""
         self._token = None
         self._user_info = None
