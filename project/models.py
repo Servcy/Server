@@ -8,12 +8,16 @@ from integration.models import UserIntegration
 
 class Project(TimeStampedModel):
     name = models.CharField(max_length=100)
+    uid = models.CharField(
+        max_length=100, null=False, blank=False, db_index=True, unique=True
+    )
     description = models.TextField()
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=False, blank=False)
     client = models.ForeignKey(
         Client, on_delete=models.CASCADE, null=True, blank=False, default=None
     )
     file_ids = models.JSONField(default=list)
+    meta_data = models.JSONField(default=dict, null=False, blank=False)
     user_integration = models.ForeignKey(
         UserIntegration,
         on_delete=models.CASCADE,

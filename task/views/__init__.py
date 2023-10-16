@@ -8,14 +8,14 @@ from rest_framework.viewsets import ModelViewSet
 
 from common.responses import error_response, success_response
 from document.models import Document
-from project.serializers import ProjectSerializer
+from task.serializers import TaskSerializer
 
 logger = logging.getLogger(__name__)
 
 
-class ProjectViewSet(ModelViewSet):
-    serializer_class = ProjectSerializer
-    queryset = ProjectSerializer.Meta.model.objects.all()
+class TaskViewSet(ModelViewSet):
+    serializer_class = TaskSerializer
+    queryset = TaskSerializer.Meta.model.objects.all()
     ordering_fields = ["name"]
 
     def perform_create(self, serializer):
@@ -34,12 +34,12 @@ class ProjectViewSet(ModelViewSet):
             for file in files:
                 file_name = file.name
                 file.name = f"{user_id}_{file.name}_{int(time())}"
-                project_document = Document.objects.create(
+                task_document = Document.objects.create(
                     file=file,
                     user_id=user_id,
                     name=file_name,
                 )
-                file_ids.append(project_document.id)
+                file_ids.append(task_document.id)
             return success_response(
                 results={"file_ids": file_ids},
                 status=status.HTTP_201_CREATED,

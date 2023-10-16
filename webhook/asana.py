@@ -9,6 +9,7 @@ from django.views.decorators.http import require_POST
 from integration.repository import IntegrationRepository
 from integration.services.asana import AsanaService
 from project.repository import ProjectRepository
+from task.repository import TaskRepository
 
 logger = logging.getLogger(__name__)
 
@@ -23,56 +24,84 @@ def asana(request):
             )
         elif "X-Hook-Signature" in request.headers:
             events = json.loads(request.body)
+            user_integration = None
+            asana_client = None
+            meta_data = None
+            projects_to_create = []
+            tasks_to_create = []
+            tasks_to_delete = []
             for event in events:
                 if (
                     event["resource"]["resource_type"] == "project"
                     and event["action"] == "added"
                 ):
-                    user_integration = IntegrationRepository.get_user_integration(
-                        {
-                            "account_id": event["user"]["gid"],
-                            "integration__name": "Asana",
-                        }
-                    )
-                    meta_data = IntegrationRepository.decrypt_meta_data(
-                        user_integration.meta_data
-                    )
+                    if user_integration is None:
+                        user_integration = IntegrationRepository.get_user_integration(
+                            {
+                                "account_id": event["user"]["gid"],
+                                "integration__name": "Asana",
+                            }
+                        )
+                        meta_data = IntegrationRepository.decrypt_meta_data(
+                            user_integration.meta_data
+                        )
+                        asana_client = asana.Client.access_token(
+                            meta_data["token"]["access_token"]
+                        )
                     AsanaService(
                         refresh_token=meta_data["token"]["refresh_token"]
                     ).create_task_monitoring_webhook(event["resource"]["gid"])
-                    asana_client = asana.Client.access_token(
-                        meta_data["token"]["access_token"]
-                    )
                     project = asana_client.projects.get_project(
                         event["resource"]["gid"], opt_pretty=True
                     )
-                    ProjectRepository.create(
-                        name=project["name"],
-                        description=project["notes"],
-                        user_id=user_integration.user.id,
-                        user_integration_id=user_integration.id,
-                    )
+                    projects_to_create.append(project)
                 if event["resource"]["resource_type"] == "task":
-                    user_integration = IntegrationRepository.get_user_integration(
-                        {
-                            "account_id": event["user"]["gid"],
-                            "integration__name": "Asana",
-                        }
-                    )
-                    meta_data = IntegrationRepository.decrypt_meta_data(
-                        user_integration.meta_data
-                    )
                     action = event["action"]
                     task_id = event["resource"]["gid"]
                     change = None
+                    task = asana_client.tasks.get_task(task_id, opt_pretty=True)
                     if action == "changed":
                         changes = event["change"]
                         for change in changes:
                             logger.info(
                                 f"{change['field']} {change['action']} for task: {task_id}"
                             )
-                    else:
-                        logger.info(f"Task {action}: {task_id}")
+                    if action == "added":
+                        tasks_to_create.append(task)
+                    if action in ["removed", "deleted"]:
+                        tasks_to_delete.append(task)
+            if tasks_to_delete:
+                TaskRepository.delete_bulk(
+                    [task["gid"] for task in tasks_to_delete if task["gid"] is not None]
+                )
+            if projects_to_create and user_integration:
+                ProjectRepository.create_bulk(
+                    [
+                        {
+                            "name": project["name"],
+                            "description": project["notes"],
+                            "uid": project["gid"],
+                            "user": user_integration.user.id,
+                            "user_integration_id": user_integration.id,
+                            "meta_data": project,
+                        }
+                        for project in projects_to_create
+                    ]
+                )
+            if tasks_to_create and user_integration:
+                TaskRepository.create_bulk(
+                    [
+                        {
+                            "uid": task["gid"],
+                            "name": task["name"],
+                            "description": task["notes"],
+                            "project_uid": task["projects"][0]["gid"],
+                            "user": user_integration.user.id,
+                            "meta_data": task,
+                        }
+                        for task in tasks_to_create
+                    ],
+                )
             logger.info("Asana webhook received.", extra={"body": request.body})
             return HttpResponse(
                 status=200, content="OK", content_type="application/json"

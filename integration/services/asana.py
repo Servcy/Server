@@ -131,6 +131,11 @@ class AsanaService(BaseService):
                     "resource_type": "task",
                     "fields": [],
                 },
+                {
+                    "resource_type": "attachment",
+                    "action": "added",
+                    "fields": [],
+                },
             ],
         )
         if "errors" in hook:

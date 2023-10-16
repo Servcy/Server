@@ -40,6 +40,7 @@ LOCAL_APPS = [
     "inbox",
     "project",
     "client",
+    "task",
     "document",
 ]
 
