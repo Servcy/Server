@@ -2,6 +2,7 @@ import json
 import logging
 
 import asana
+from django.db import transaction
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
@@ -30,6 +31,8 @@ def asana(request):
             projects_to_create = []
             tasks_to_create = []
             tasks_to_delete = []
+            tasks_to_undelete = []
+            tasks_to_update = []
             for event in events:
                 if (
                     event["resource"]["resource_type"] == "project"
@@ -55,13 +58,14 @@ def asana(request):
                         event["resource"]["gid"], opt_pretty=True
                     )
                     projects_to_create.append(project)
-                if event["resource"]["resource_type"] == "task":
+                elif event["resource"]["resource_type"] == "task":
                     action = event["action"]
                     task_id = event["resource"]["gid"]
                     change = None
                     task = asana_client.tasks.get_task(task_id, opt_pretty=True)
                     if action == "changed":
                         changes = event["change"]
+                        tasks_to_update.append(task)
                         for change in changes:
                             logger.info(
                                 f"{change['field']} {change['action']} for task: {task_id}"
@@ -70,38 +74,70 @@ def asana(request):
                         tasks_to_create.append(task)
                     if action in ["removed", "deleted"]:
                         tasks_to_delete.append(task)
-            if tasks_to_delete:
-                TaskRepository.delete_bulk(
-                    [task["gid"] for task in tasks_to_delete if task["gid"] is not None]
-                )
-            if projects_to_create and user_integration:
-                ProjectRepository.create_bulk(
-                    [
-                        {
-                            "name": project["name"],
-                            "description": project["notes"],
-                            "uid": project["gid"],
-                            "user": user_integration.user.id,
-                            "user_integration_id": user_integration.id,
-                            "meta_data": project,
-                        }
-                        for project in projects_to_create
-                    ]
-                )
-            if tasks_to_create and user_integration:
-                TaskRepository.create_bulk(
-                    [
-                        {
-                            "uid": task["gid"],
-                            "name": task["name"],
-                            "description": task["notes"],
-                            "project_uid": task["projects"][0]["gid"],
-                            "user": user_integration.user.id,
-                            "meta_data": task,
-                        }
-                        for task in tasks_to_create
-                    ],
-                )
+                    if action == "undeleted":
+                        tasks_to_undelete.append(task)
+                else:
+                    logger.warning(
+                        f"Received an unknown event from Asana webhook.",
+                        extra={"event": event},
+                    )
+            with transaction.atomic():
+                if tasks_to_delete:
+                    TaskRepository.delete_bulk(
+                        [
+                            task["gid"]
+                            for task in tasks_to_delete
+                            if task["gid"] is not None
+                        ]
+                    )
+                if tasks_to_update:
+                    TaskRepository.update_bulk(
+                        [
+                            {
+                                "uid": task["gid"],
+                                "name": task["name"],
+                                "description": task["notes"],
+                                "meta_data": task,
+                            }
+                            for task in tasks_to_update
+                        ]
+                    )
+                if tasks_to_undelete:
+                    TaskRepository.undelete(
+                        [
+                            task["gid"]
+                            for task in tasks_to_undelete
+                            if task["gid"] is not None
+                        ]
+                    )
+                if projects_to_create and user_integration:
+                    ProjectRepository.create_bulk(
+                        [
+                            {
+                                "name": project["name"],
+                                "description": project["notes"],
+                                "uid": project["gid"],
+                                "user": user_integration.user.id,
+                                "user_integration_id": user_integration.id,
+                                "meta_data": project,
+                            }
+                            for project in projects_to_create
+                        ]
+                    )
+                if tasks_to_create and user_integration:
+                    TaskRepository.create_bulk(
+                        [
+                            {
+                                "uid": task["gid"],
+                                "name": task["name"],
+                                "description": task["notes"],
+                                "project_uid": task["projects"][0]["gid"],
+                                "user": user_integration.user.id,
+                                "meta_data": task,
+                            }
+                            for task in tasks_to_create
+                        ],
+                    )
             logger.info("Asana webhook received.", extra={"body": request.body})
             return HttpResponse(
                 status=200, content="OK", content_type="application/json"

@@ -136,6 +136,16 @@ class AsanaService(BaseService):
                     "action": "added",
                     "fields": [],
                 },
+                {
+                    "resource_type": "story",
+                    "fields": [],
+                    "resource_subtype": "comment_added",
+                },
+                {
+                    "resource_type": "story",
+                    "fields": [],
+                    "resource_subtype": "comment_changed",
+                },
             ],
         )
         if "errors" in hook:
