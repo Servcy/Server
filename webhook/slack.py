@@ -139,11 +139,26 @@ def slack(request):
             if member.get("id", None) == body["event"]["user"]:
                 cause = member["profile"]
         for user_integration in user_integrations:
+            workspace_members = user_integration["configuration"] or []
+            event_body = body["event"]
+            try:
+                mentions = [
+                    mention[2:-1]
+                    for mention in event_body.get("text", "").split()
+                    if mention.startswith("<@") and mention.endswith(">")
+                ]
+            except:
+                mentions = []
+            event_body["x-servcy-mentions"] = [
+                member
+                for member in workspace_members
+                if member.get("id", None) in mentions
+            ]
             inbox_items.append(
                 {
                     "title": EVENT_MAP[body["event"]["type"]],
                     "cause": json.dumps(cause),
-                    "body": json.dumps(body["event"]),
+                    "body": json.dumps(event_body),
                     "is_body_html": False,
                     "user_integration_id": user_integration["id"],
                     "uid": f"{uid}-{user_integration['id']}",
