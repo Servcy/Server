@@ -34,7 +34,7 @@ def asana(request):
             tasks_to_undelete = []
             tasks_to_update = []
             for event in events:
-                if user_integration is None:
+                if user_integration is None and event["user"]["gid"] is not None:
                     user_integration = IntegrationRepository.get_user_integration(
                         {
                             "account_id": event["user"]["gid"],
@@ -46,6 +46,11 @@ def asana(request):
                     )
                     asana_client = asana.Client.access_token(
                         meta_data["token"]["access_token"]
+                    )
+                elif event["user"]["gid"] is None:
+                    raise Exception(
+                        f"Received an event with no user gid from Asana webhook.",
+                        extra={"event": event},
                     )
                 if (
                     event["resource"]["resource_type"] == "project"
