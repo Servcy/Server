@@ -91,13 +91,11 @@ class AsanaService(BaseService):
                     project["gid"], opt_pretty=True
                 )
                 ProjectRepository.create(
-                    {
-                        "name": project["name"],
-                        "description": project["notes"],
-                        "user": user_id,
-                        "user_integration_id": self.user_integration.id,
-                        "uid": project["gid"],
-                    }
+                    name=project["name"],
+                    description=project["notes"],
+                    user_id=user_id,
+                    user_integration_id=self.user_integration.id,
+                    uid=project["gid"],
                 )
                 self.create_task_monitoring_webhook(project["gid"])
 
