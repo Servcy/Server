@@ -20,10 +20,11 @@ class AsanaService(BaseService):
         """Initializes AsanaService."""
         self._token = None
         self.user_id = user_id
+        self.user_integration = None
+        self.client = None
         self._user_info = None
         if kwargs.get("code"):
             self.authenticate(kwargs.get("code"))
-            self._establish_webhooks()
         elif kwargs.get("refresh_token"):
             self._token = AsanaService._refresh_tokens(kwargs.get("refresh_token"))
             self._user_info = self._fetch_user_info()
@@ -33,20 +34,6 @@ class AsanaService(BaseService):
         self._fetch_token(code)
         self._user_info = self._fetch_user_info()
         return self
-
-    def _make_request(self, method: str, endpoint: str, **kwargs) -> dict:
-        """Helper function to make requests to Asana API."""
-        url = (
-            f"{AsanaService._api_uri}/{endpoint}"
-            if "asana.com" not in endpoint
-            else endpoint
-        )
-        response = requests.request(method, url, **kwargs)
-        json_response = response.json()
-        if "error" in json_response:
-            error_msg = f"An error occurred while communicating with Asana API.\n{str(json_response)}"
-            raise ServcyOauthCodeException(error_msg)
-        return json_response
 
     def _fetch_token(self, code: str) -> None:
         """Fetches access token from Asana."""
@@ -67,14 +54,10 @@ class AsanaService(BaseService):
 
     def _fetch_user_info(self) -> dict:
         """Fetches user info from Asana."""
-        return self._make_request(
-            "GET",
-            "users/me",
-            headers={
-                "Authorization": f"Bearer {self._token['access_token']}",
-                "Accept": "application/json",
-            },
-        )
+        if not self.client:
+            self.client = asana.Client.access_token(self._token["access_token"])
+        user_info = self.client.users.me(opt_pretty=True)
+        return user_info
 
     @staticmethod
     def _refresh_tokens(refresh_token) -> None:
@@ -97,14 +80,26 @@ class AsanaService(BaseService):
 
     def _establish_webhooks(self) -> None:
         """Establishes webhook for Asana."""
-        client = asana.Client.access_token(self._token["access_token"])
-        for workspace in self._user_info["data"]["workspaces"]:
+        if not self.client:
+            self.client = asana.Client.access_token(self._token["access_token"])
+        for workspace in self._user_info["workspaces"]:
             self.create_project_monitoring_webhook(workspace["gid"])
-            projects = client.projects.get_projects_for_workspace(
+            projects = self.client.projects.get_projects_for_workspace(
                 workspace["gid"], opt_pretty=True
             )
-            self.create_projects(projects)
             for project in projects:
+                project = self.client.projects.get_project(
+                    project["gid"], opt_pretty=True
+                )
+                ProjectRepository.create(
+                    {
+                        "name": project["name"],
+                        "description": project["notes"],
+                        "user": self.user_id,
+                        "user_integration_id": self.user_integration.id,
+                        "uid": project["gid"],
+                    }
+                )
                 self.create_task_monitoring_webhook(project["gid"])
 
     def create_integration(self, user_id: int) -> UserIntegration:
@@ -114,75 +109,67 @@ class AsanaService(BaseService):
                 filters={"name": "Asana"}
             ).id,
             user_id=user_id,
-            account_id=self._user_info["data"]["gid"],
+            account_id=self._user_info["gid"],
             meta_data={"token": self._token, "user_info": self._user_info},
-            account_display_name=self._user_info["data"]["name"],
+            account_display_name=self._user_info["name"],
         )
+        self._establish_webhooks()
         return self.user_integration
 
     def create_task_monitoring_webhook(self, project_id):
-        client = asana.Client.access_token(self._token["access_token"])
-        hook = client.webhooks.create_webhook(
-            resource=project_id,
-            target="https://server.servcy.com/webhook/asana",
-            opt_pretty=True,
-            filters=[
-                {
-                    "resource_type": "task",
-                    "fields": [],
-                },
-                {
-                    "resource_type": "attachment",
-                    "action": "added",
-                    "fields": [],
-                },
-                {
-                    "resource_type": "story",
-                    "fields": [],
-                    "resource_subtype": "comment_added",
-                },
-                {
-                    "resource_type": "story",
-                    "fields": [],
-                    "resource_subtype": "comment_changed",
-                },
-            ],
-        )
-        if "errors" in hook:
-            raise ServcyOauthCodeException(
-                f"An error occurred while creating task monitoring webhook for Asana.\n{str(hook)}"
+        if not self.client:
+            self.client = asana.Client.access_token(self._token["access_token"])
+        try:
+            self.client.webhooks.create_webhook(
+                resource=project_id,
+                target="https://server.servcy.com/webhook/asana",
+                opt_pretty=True,
+                filters=[
+                    {
+                        "resource_type": "task",
+                        "fields": [],
+                    },
+                    {
+                        "resource_type": "attachment",
+                        "action": "added",
+                        "fields": [],
+                    },
+                    {
+                        "resource_type": "story",
+                        "fields": [],
+                        "resource_subtype": "comment_added",
+                    },
+                    {
+                        "resource_type": "story",
+                        "fields": [],
+                        "resource_subtype": "comment_changed",
+                    },
+                ],
             )
+        except asana.error.ForbiddenError as err:
+            if "duplicate" in str(err.message).lower():
+                return
+            raise err
 
     def create_project_monitoring_webhook(self, workspace_id):
-        client = asana.Client.access_token(self._token["access_token"])
-        hook = client.webhooks.create_webhook(
-            resource=workspace_id,
-            target="https://server.servcy.com/webhook/asana",
-            opt_pretty=True,
-            filters=[
-                {
-                    "resource_type": "project",
-                    "action": "added",
-                },
-            ],
-        )
-        if "errors" in hook:
-            raise ServcyOauthCodeException(
-                f"An error occurred while creating project monitoring webhook for Asana.\n{str(hook)}"
+        if not self.client:
+            self.client = asana.Client.access_token(self._token["access_token"])
+        try:
+            self.client.webhooks.create_webhook(
+                resource=workspace_id,
+                target="https://server.servcy.com/webhook/asana",
+                opt_pretty=True,
+                filters=[
+                    {
+                        "resource_type": "project",
+                        "action": "added",
+                    },
+                ],
             )
-
-    def create_projects(self, projects: list):
-        ProjectRepository.create_bulk(
-            [
-                {
-                    "name": project["name"],
-                    "description": project["notes"],
-                    "user": self.user_id,
-                    "user_integration_id": self.user_integration.id,
-                }
-                for project in projects
-            ]
-        )
+        except asana.error.ForbiddenError as err:
+            if "duplicate" in str(err.message).lower():
+                return
+            raise err
 
     def is_active(self, meta_data: dict, **kwargs) -> bool:
         """
