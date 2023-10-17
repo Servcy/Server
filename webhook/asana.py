@@ -34,23 +34,23 @@ def asana(request):
             tasks_to_undelete = []
             tasks_to_update = []
             for event in events:
+                if user_integration is None:
+                    user_integration = IntegrationRepository.get_user_integration(
+                        {
+                            "account_id": event["user"]["gid"],
+                            "integration__name": "Asana",
+                        }
+                    )
+                    meta_data = IntegrationRepository.decrypt_meta_data(
+                        user_integration.meta_data
+                    )
+                    asana_client = asana.Client.access_token(
+                        meta_data["token"]["access_token"]
+                    )
                 if (
                     event["resource"]["resource_type"] == "project"
                     and event["action"] == "added"
                 ):
-                    if user_integration is None:
-                        user_integration = IntegrationRepository.get_user_integration(
-                            {
-                                "account_id": event["user"]["gid"],
-                                "integration__name": "Asana",
-                            }
-                        )
-                        meta_data = IntegrationRepository.decrypt_meta_data(
-                            user_integration.meta_data
-                        )
-                        asana_client = asana.Client.access_token(
-                            meta_data["token"]["access_token"]
-                        )
                     AsanaService(
                         refresh_token=meta_data["token"]["refresh_token"]
                     ).create_task_monitoring_webhook(event["resource"]["gid"])
