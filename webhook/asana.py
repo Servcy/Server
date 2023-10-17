@@ -1,7 +1,7 @@
 import json
 import logging
 
-import asana
+import asana as Asana
 from django.db import transaction
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -44,7 +44,7 @@ def asana(request):
                     meta_data = IntegrationRepository.decrypt_meta_data(
                         user_integration.meta_data
                     )
-                    asana_client = asana.Client.access_token(
+                    asana_client = Asana.Client.access_token(
                         meta_data["token"]["access_token"]
                     )
                 elif event["user"]["gid"] is None:
