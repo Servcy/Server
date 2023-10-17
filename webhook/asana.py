@@ -24,7 +24,7 @@ def asana(request):
                 status=200, headers={"X-Hook-Secret": request.headers["X-Hook-Secret"]}
             )
         elif "X-Hook-Signature" in request.headers:
-            events = json.loads(request.body)
+            events = json.loads(request.body).get("events", [])
             user_integration = None
             asana_client = None
             meta_data = None
