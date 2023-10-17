@@ -124,21 +124,17 @@ class AsanaService(BaseService):
                 filters=[
                     {
                         "resource_type": "task",
-                        "fields": [],
                     },
                     {
                         "resource_type": "attachment",
                         "action": "added",
-                        "fields": [],
                     },
                     {
                         "resource_type": "story",
-                        "fields": [],
                         "resource_subtype": "comment_added",
                     },
                     {
                         "resource_type": "story",
-                        "fields": [],
                         "resource_subtype": "comment_changed",
                     },
                 ],
