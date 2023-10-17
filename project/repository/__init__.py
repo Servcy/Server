@@ -2,10 +2,8 @@ from project.models import Project
 
 
 class ProjectRepository:
-    def __init__(self):
-        pass
-
-    def create(self, **kwargs) -> Project:
+    @staticmethod
+    def create(**kwargs) -> Project:
         """Creates a new project."""
         return Project.objects.create(
             name=kwargs["name"],
@@ -15,6 +13,7 @@ class ProjectRepository:
             user_integration_id=kwargs["user_integration_id"],
         )
 
-    def create_bulk(self, projects: list) -> list:
+    @staticmethod
+    def create_bulk(projects: list) -> list:
         """Creates bulk projects."""
         return Project.objects.bulk_create(projects)
