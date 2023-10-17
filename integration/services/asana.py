@@ -133,10 +133,6 @@ class AsanaService(BaseService):
                         "resource_type": "story",
                         "resource_subtype": "comment_added",
                     },
-                    {
-                        "resource_type": "story",
-                        "resource_subtype": "comment_changed",
-                    },
                 ],
             )
         except asana.error.ForbiddenError as err:
