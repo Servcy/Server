@@ -16,10 +16,9 @@ class AsanaService(BaseService):
 
     """Service class for Asana integration."""
 
-    def __init__(self, user_id: int, **kwargs) -> None:
+    def __init__(self, **kwargs) -> None:
         """Initializes AsanaService."""
         self._token = None
-        self.user_id = user_id
         self.user_integration = None
         self.client = None
         self._user_info = None
@@ -78,7 +77,7 @@ class AsanaService(BaseService):
             )
         return token_data
 
-    def _establish_webhooks(self) -> None:
+    def _establish_webhooks(self, user_id: int) -> None:
         """Establishes webhook for Asana."""
         if not self.client:
             self.client = asana.Client.access_token(self._token["access_token"])
@@ -95,7 +94,7 @@ class AsanaService(BaseService):
                     {
                         "name": project["name"],
                         "description": project["notes"],
-                        "user": self.user_id,
+                        "user": user_id,
                         "user_integration_id": self.user_integration.id,
                         "uid": project["gid"],
                     }
@@ -113,7 +112,7 @@ class AsanaService(BaseService):
             meta_data={"token": self._token, "user_info": self._user_info},
             account_display_name=self._user_info["name"],
         )
-        self._establish_webhooks()
+        self._establish_webhooks(user_id)
         return self.user_integration
 
     def create_task_monitoring_webhook(self, project_id):
