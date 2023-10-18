@@ -123,14 +123,14 @@ class AsanaService(BaseService):
                 opt_pretty=True,
                 filters=[
                     {
-                        "resource_type": "task",
+                        "resource": "task",
                     },
                     {
-                        "resource_type": "attachment",
+                        "resource": "attachment",
                         "action": "added",
                     },
                     {
-                        "resource_type": "story",
+                        "resource": "story",
                         "resource_subtype": "comment_added",
                     },
                 ],
@@ -150,7 +150,7 @@ class AsanaService(BaseService):
                 opt_pretty=True,
                 filters=[
                     {
-                        "resource_type": "project",
+                        "resource": "project",
                     }
                 ],
             )
