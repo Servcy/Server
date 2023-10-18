@@ -9,6 +9,7 @@ from django.views.decorators.http import require_POST
 
 from integration.repository import IntegrationRepository
 from integration.services.asana import AsanaService
+from project.models import Project
 from project.repository import ProjectRepository
 from task.repository import TaskRepository
 
@@ -119,14 +120,14 @@ def asana(request):
                 if projects_to_create and user_integration:
                     ProjectRepository.create_bulk(
                         [
-                            {
-                                "name": project["name"],
-                                "description": project["notes"],
-                                "uid": project["gid"],
-                                "user": user_integration.user.id,
-                                "user_integration_id": user_integration.id,
-                                "meta_data": project,
-                            }
+                            Project(
+                                name=project["name"],
+                                description=project["notes"],
+                                uid=project["gid"],
+                                user=user_integration.user.id,
+                                user_integration_id=user_integration.id,
+                                meta_data=project,
+                            )
                             for project in projects_to_create
                         ]
                     )
