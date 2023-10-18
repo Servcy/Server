@@ -11,6 +11,7 @@ from integration.repository import IntegrationRepository
 from integration.services.asana import AsanaService
 from project.models import Project
 from project.repository import ProjectRepository
+from task.models import Task
 from task.repository import TaskRepository
 
 logger = logging.getLogger(__name__)
@@ -124,8 +125,8 @@ def asana(request):
                                 name=project["name"],
                                 description=project["notes"],
                                 uid=project["gid"],
-                                user=user_integration.user.id,
-                                user_integration_id=user_integration.id,
+                                user=user_integration.user,
+                                user_integration=user_integration,
                                 meta_data=project,
                             )
                             for project in projects_to_create
@@ -134,14 +135,14 @@ def asana(request):
                 if tasks_to_create and user_integration:
                     TaskRepository.create_bulk(
                         [
-                            {
-                                "uid": task["gid"],
-                                "name": task["name"],
-                                "description": task["notes"],
-                                "project_uid": task["projects"][0]["gid"],
-                                "user": user_integration.user.id,
-                                "meta_data": task,
-                            }
+                            Task(
+                                uid=task["gid"],
+                                name=task["name"],
+                                description=task["notes"],
+                                project_uid=task["projects"][0]["gid"],
+                                user=user_integration.user,
+                                meta_data=task,
+                            )
                             for task in tasks_to_create
                         ],
                     )
