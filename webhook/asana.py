@@ -19,12 +19,14 @@ logger = logging.getLogger(__name__)
 @require_POST
 def asana(request):
     try:
-        if "X-Hook-Secret" in request.headers:
+        body = json.loads(request.body)
+        headers = request.headers
+        if "X-Hook-Secret" in headers:
             return HttpResponse(
-                status=200, headers={"X-Hook-Secret": request.headers["X-Hook-Secret"]}
+                status=200, headers={"X-Hook-Secret": headers["X-Hook-Secret"]}
             )
-        elif "X-Hook-Signature" in request.headers:
-            events = json.loads(json.loads(request.body).get("events"))
+        elif "X-Hook-Signature" in headers:
+            events = body.get("events")
             user_integration = None
             meta_data = None
             projects_to_create = []
@@ -149,15 +151,15 @@ def asana(request):
         else:
             logger.warning(
                 f"Received an unknown request from Asana webhook.",
-                extra={"body": request.body, "headers": request.headers},
+                extra={"body": body, "headers": headers},
             )
             return HttpResponse(status=400, content="Bad Request")
     except Exception:
         logger.exception(
             f"An error occurred while processing asana webhook.",
             extra={
-                "body": json.loads(request.body),
-                "headers": request.headers,
+                "body": body,
+                "headers": headers,
                 "traceback": traceback.format_exc(),
             },
         )
