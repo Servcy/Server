@@ -118,33 +118,23 @@ def asana(request):
                             if task["gid"] is not None
                         ]
                     )
-                if projects_to_create and user_integration:
-                    ProjectRepository.create_bulk(
-                        [
-                            Project(
-                                name=project["name"],
-                                description=project["notes"],
-                                uid=project["gid"],
-                                user=user_integration.user,
-                                user_integration=user_integration,
-                                meta_data=project,
-                            )
-                            for project in projects_to_create
-                        ]
+                for project in projects_to_create:
+                    ProjectRepository.create(
+                        uid=project["gid"],
+                        user_integration_id=user_integration.id,
+                        user_id=user_integration.user.id,
+                        name=project["name"],
+                        description=project["notes"],
+                        meta_data=project,
                     )
-                if tasks_to_create and user_integration:
-                    TaskRepository.create_bulk(
-                        [
-                            Task(
-                                uid=task["gid"],
-                                name=task["name"],
-                                description=task["notes"],
-                                project_uid=task["projects"][0]["gid"],
-                                user=user_integration.user,
-                                meta_data=task,
-                            )
-                            for task in tasks_to_create
-                        ],
+                for task in tasks_to_create:
+                    TaskRepository.create(
+                        uid=task["gid"],
+                        name=task["name"],
+                        description=task["notes"],
+                        project_uid=task["projects"][0]["gid"],
+                        user_id=user_integration.user.id,
+                        meta_data=task,
                     )
             logger.info("Asana webhook received.", extra={"body": request.body})
             return HttpResponse(

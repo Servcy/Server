@@ -12,6 +12,7 @@ class ProjectRepository:
             defaults={
                 "name": kwargs["name"],
                 "description": kwargs["description"],
+                "meta_data": kwargs["meta_data"],
             },
         )
 

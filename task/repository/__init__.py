@@ -1,5 +1,3 @@
-import uuid
-
 from django.db import transaction
 
 from task.models import Task
@@ -7,38 +5,23 @@ from task.models import Task
 
 class TaskRepository:
     @staticmethod
-    def create(name, description, user_id, project_uid, file_ids, meta_data={}):
-        task = Task(
-            name=name,
-            description=description,
-            uid=uuid.uuid4().hex,
-            user_id=user_id,
-            project_uid=project_uid,
-            file_ids=file_ids,
-            meta_data=meta_data,
+    def create(**kwargs):
+        task = Task.objects.get_or_create(
+            uid=kwargs["uid"],
+            user_id=kwargs["user_id"],
+            defaults={
+                "name": kwargs["name"],
+                "description": kwargs["description"],
+                "meta_data": kwargs["meta_data"],
+                "project_uid": kwargs["project_uid"],
+            },
         )
-        task.save()
         return task
-
-    @staticmethod
-    @transaction.atomic
-    def create_bulk(tasks: list):
-        Task.objects.bulk_create(tasks)
 
     @staticmethod
     @transaction.atomic
     def delete_bulk(task_uids: list):
         Task.objects.filter(uid__in=task_uids, is_deleted=False).update(is_deleted=True)
-
-    @staticmethod
-    def mark_complete(task_uid: str):
-        Task.objects.filter(uid=task_uid, is_completed=False).update(is_completed=True)
-
-    @staticmethod
-    def update_task(task_uid: str, name: str, description: str, meta_data: dict):
-        Task.objects.filter(uid=task_uid).update(
-            name=name, description=description, meta_data=meta_data
-        )
 
     @staticmethod
     def undelete(task_uid: str):
