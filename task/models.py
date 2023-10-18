@@ -5,9 +5,7 @@ from iam.models import User
 
 
 class Task(TimeStampedModel):
-    uid = models.CharField(
-        max_length=100, null=False, blank=False, unique=True, db_index=True
-    )
+    uid = models.CharField(max_length=100, null=False, blank=False)
     name = models.CharField(max_length=100)
     description = models.TextField()
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=False, blank=False)
