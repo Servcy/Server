@@ -1,4 +1,5 @@
 import logging
+import traceback
 import urllib.parse
 
 from rest_framework import status, viewsets
@@ -43,16 +44,19 @@ class OauthViewset(viewsets.ViewSet):
                 logger_message=error.message,
                 error_message=f"An error occurred while integrating with {service_name}. Please try again later.",
             )
-        except KeyError as err:
+        except KeyError:
             return error_response(
                 logger=logger,
                 logger_message="KeyError occurred processing oauth request.",
                 error_message="code is required!",
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        except Exception as ex:
+        except Exception:
             logger.exception(
-                f"An unexpected error occurred processing oauth request for {service_name}: {str(ex)}"
+                f"An unexpected error occurred processing oauth request for {service_name}",
+                extra={
+                    "traceback": traceback.format_exc(),
+                },
             )
             return error_response(
                 logger=logger,

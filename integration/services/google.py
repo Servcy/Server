@@ -1,4 +1,5 @@
 import logging
+import traceback
 
 import requests
 from django.conf import settings
@@ -62,7 +63,12 @@ class GoogleService(BaseService):
             if err.resp.status == 401:
                 raise IntegrationAccessRevokedException()
             else:
-                logger.exception(f"Error in initializing google service: {err}")
+                logger.exception(
+                    f"Error in initializing google service: {err}",
+                    extra={
+                        "traceback": traceback.format_exc(),
+                    },
+                )
                 raise Exception("Error in initializing google service")
 
     def _fetch_token(self, code: str) -> "GoogleService":
@@ -92,7 +98,12 @@ class GoogleService(BaseService):
         try:
             return method(**kwargs).execute()
         except HttpError as e:
-            logger.exception(f"Error in making request to Google API: {e}")
+            logger.exception(
+                f"Error in making request to Google API: {e}",
+                extra={
+                    "traceback": traceback.format_exc(),
+                },
+            )
             raise
 
     def _fetch_user_info(self) -> "GoogleService":
@@ -257,7 +268,10 @@ def refresh_google_watchers():
             google_service._fetch_user_info_from_service()._add_watcher_to_inbox_pub_sub(
                 google_service._user_info["emailAddress"]
             )
-    except Exception as err:
+    except Exception:
         logger.exception(
-            f"Error in refreshing watchers for gmail: {err}", exc_info=True
+            f"Error in refreshing watchers for gmail.",
+            extra={
+                "traceback": traceback.format_exc(),
+            },
         )

@@ -1,5 +1,6 @@
 import datetime
 import logging
+import traceback
 
 from integration.repository import IntegrationRepository
 from integration.services.microsoft import MicrosoftService
@@ -26,8 +27,10 @@ def renew_microsoft_subscriptions():
                 MicrosoftService(
                     refresh_token=integration["meta_data"]["token"]["refresh_token"]
                 ).renew_subscription(subscription["id"])
-        except Exception as err:
+        except Exception:
             logger.exception(
                 f"An error occurred while renewing subscription for user {integration['user_id']}.",
-                exc_info=True,
+                extra={
+                    "traceback": traceback.format_exc(),
+                },
             )

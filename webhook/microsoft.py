@@ -1,5 +1,6 @@
 import json
 import logging
+import traceback
 
 from django.db import IntegrityError, transaction
 from django.http import HttpResponse
@@ -32,7 +33,7 @@ def microsoft(request):
             first=True,
         )
         if integration is None:
-            logger.exception(f"No integration found for outlook: {account_id}")
+            logger.warning(f"No integration found for outlook: {account_id}")
             return error_response(
                 logger=logger,
                 logger_message="No integration found for email.",
@@ -62,13 +63,19 @@ def microsoft(request):
     except KeyError:
         logger.exception(
             f"A key error occurred while processing microsoft notification {notificaiton}.",
-            exc_info=True,
+            extra={
+                "traceback": traceback.format_exc(),
+            },
         )
         return HttpResponse(status=200)
     except Exception as err:
         logger.exception(
             f"An error occurred while processing notification.",
             exc_info=True,
-            extra={"notificaiton": notificaiton, "headers": request.headers},
+            extra={
+                "notificaiton": notificaiton,
+                "headers": request.headers,
+                "traceback": traceback.format_exc(),
+            },
         )
         return HttpResponse(status=500)

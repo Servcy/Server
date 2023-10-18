@@ -1,5 +1,6 @@
 import json
 import logging
+import traceback
 
 from django.conf import settings
 from django.http import HttpResponse
@@ -170,10 +171,13 @@ def slack(request):
             )
         InboxRepository.add_items(inbox_items)
         return HttpResponse(status=200)
-    except Exception as err:
+    except Exception:
         logger.exception(
             f"An error occurred while processing slack webhook.",
-            exc_info=True,
-            extra={"body": body, "headers": headers},
+            extra={
+                "body": body,
+                "headers": headers,
+                "traceback": traceback.format_exc(),
+            },
         )
         return HttpResponse(status=500)

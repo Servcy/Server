@@ -1,6 +1,7 @@
 import base64
 import json
 import logging
+import traceback
 
 import requests
 from django.conf import settings
@@ -319,10 +320,12 @@ def poll_new_comments():
                 process_user_integration(
                     user_integration, inbox_items, configuration_map
                 )
-            except Exception as err:
+            except Exception:
                 logger.exception(
                     f"An error occurred while fetching notion comments for user {user_integration['user_id']}",
-                    exc_info=True,
+                    extra={
+                        "traceback": traceback.format_exc(),
+                    },
                 )
         with transaction.atomic():
             InboxRepository.add_items(inbox_items)
@@ -330,9 +333,12 @@ def poll_new_comments():
                 IntegrationRepository.update_integraion_configuration(
                     user_integration_id, configuration=configuration
                 )
-    except Exception as err:
+    except Exception:
         logger.exception(
-            "An error occurred while fetching notion comments", exc_info=True
+            "An error occurred while fetching notion comments",
+            extra={
+                "traceback": traceback.format_exc(),
+            },
         )
 
 
@@ -362,7 +368,9 @@ def process_user_integration(
         except Exception as err:
             logger.exception(
                 f"An error occurred while fetching notion comments for page {page['page_id']}",
-                exc_info=True,
+                extra={
+                    "traceback": traceback.format_exc(),
+                },
             )
 
 

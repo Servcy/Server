@@ -1,5 +1,6 @@
 import json
 import logging
+import traceback
 
 from django.db import transaction
 from django.http import HttpResponse
@@ -151,13 +152,13 @@ def asana(request):
                 extra={"body": request.body, "headers": request.headers},
             )
             return HttpResponse(status=400, content="Bad Request")
-    except Exception as err:
+    except Exception:
         logger.exception(
             f"An error occurred while processing asana webhook.",
-            exc_info=True,
             extra={
                 "body": json.loads(request.data),
                 "headers": request.headers,
+                "traceback": traceback.format_exc(),
             },
         )
         return HttpResponse(status=500, content="Internal Server Error")

@@ -1,4 +1,5 @@
 import logging
+import traceback
 import uuid
 from time import time
 
@@ -46,7 +47,10 @@ class TaskViewSet(ModelViewSet):
             )
         except Exception as ex:
             logger.exception(
-                f"An unexpected error occurred processing project file upload request: {str(ex)}"
+                f"An unexpected error occurred processing project file upload request",
+                extra={
+                    "traceback": traceback.format_exc(),
+                },
             )
             return error_response(
                 logger=logger,

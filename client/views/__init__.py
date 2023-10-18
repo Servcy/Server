@@ -1,4 +1,5 @@
 import logging
+import traceback
 from time import time
 
 from rest_framework import status
@@ -47,9 +48,12 @@ class ClientViewSet(ModelViewSet):
                 results={"file_ids": file_ids},
                 status=status.HTTP_201_CREATED,
             )
-        except Exception as ex:
+        except Exception:
             logger.exception(
-                f"An unexpected error occurred processing client file upload request. {ex}"
+                f"An unexpected error occurred processing client file upload request.",
+                extra={
+                    "traceback": traceback.format_exc(),
+                },
             )
             return error_response(
                 logger=logger,
@@ -72,9 +76,12 @@ class ClientViewSet(ModelViewSet):
                     results={"avatar_id": avatar.id},
                     status=status.HTTP_201_CREATED,
                 )
-        except Exception as ex:
+        except Exception:
             logger.exception(
-                f"An unexpected error occurred processing client avatar upload request. {ex}"
+                f"An unexpected error occurred processing client avatar upload request.",
+                extra={
+                    "traceback": traceback.format_exc(),
+                },
             )
             return error_response(
                 logger=logger,

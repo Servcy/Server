@@ -1,5 +1,6 @@
 import json
 import logging
+import traceback
 
 from rest_framework import status
 from rest_framework.response import Response
@@ -26,7 +27,12 @@ def error_response(
     logger_message=None,
 ):
     if logger:
-        logger.exception(logger_message, exc_info=True)
+        logger.exception(
+            logger_message,
+            extra={
+                "traceback": traceback.format_exc(),
+            },
+        )
     return Response(
         {
             "detail": error_message,

@@ -1,4 +1,5 @@
 import logging
+import traceback
 
 from integration.repository import IntegrationRepository
 from integration.services import (
@@ -64,13 +65,18 @@ def main():
                     )
                     if not is_active:
                         revoked_integrations.append(user_integration)
-            except Exception as err:
+            except Exception:
                 logger.exception(
                     f"An error occurred while checking integration status for user {user_integration.user.email}.",
-                    exc_info=True,
+                    extra={
+                        "traceback": traceback.format_exc(),
+                    },
                 )
         IntegrationRepository.revoke_user_integrations(revoked_integrations)
-    except Exception as err:
+    except Exception:
         logger.exception(
-            f"An error occurred while revoking integrations.", exc_info=True
+            f"An error occurred while revoking integrations.",
+            extra={
+                "traceback": traceback.format_exc(),
+            },
         )

@@ -1,5 +1,6 @@
 import json
 import logging
+import traceback
 
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -57,10 +58,13 @@ def figma(request):
             ]
         )
         return HttpResponse(status=200)
-    except Exception as err:
+    except Exception:
         logger.exception(
             f"An error occurred while processing figma webhook.",
-            exc_info=True,
-            extra={"body": body, "headers": request.headers},
+            extra={
+                "body": body,
+                "headers": request.headers,
+                "traceback": traceback.format_exc(),
+            },
         )
         return HttpResponse(status=500)
