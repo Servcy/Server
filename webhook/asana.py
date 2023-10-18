@@ -9,9 +9,7 @@ from django.views.decorators.http import require_POST
 
 from integration.repository import IntegrationRepository
 from integration.services.asana import AsanaService
-from project.models import Project
 from project.repository import ProjectRepository
-from task.models import Task
 from task.repository import TaskRepository
 
 logger = logging.getLogger(__name__)
