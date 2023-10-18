@@ -75,15 +75,9 @@ def asana(request):
                 elif event["resource"]["resource_type"] == "task":
                     action = event["action"]
                     task_id = event["resource"]["gid"]
-                    change = None
                     task = asana_service.get_task(task_id)
                     if action == "changed":
-                        changes = event["change"]
                         tasks_to_update.append(task)
-                        for change in changes:
-                            logger.info(
-                                f"{change['field']} {change['action']} for task: {task_id}"
-                            )
                     elif action == "added":
                         tasks_to_create.append(task)
                     elif action in ["removed", "deleted"]:
