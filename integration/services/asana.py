@@ -96,6 +96,7 @@ class AsanaService(BaseService):
                     user_id=user_id,
                     user_integration_id=self.user_integration.id,
                     uid=project["gid"],
+                    meta_data=project,
                 )
                 self.create_task_monitoring_webhook(project["gid"])
 
