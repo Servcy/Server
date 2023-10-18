@@ -1,7 +1,6 @@
 import json
 import logging
 
-import asana as Asana
 from django.db import transaction
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -24,7 +23,8 @@ def asana(request):
                 status=200, headers={"X-Hook-Secret": request.headers["X-Hook-Secret"]}
             )
         elif "X-Hook-Signature" in request.headers:
-            events = json.loads(request.body.decode("utf-8")).get("events", [])
+            payload = request.body.decode("utf-8")
+            events = json.loads(payload).get("events", [])
             user_integration = None
             meta_data = None
             projects_to_create = []
@@ -156,6 +156,9 @@ def asana(request):
         logger.exception(
             f"An error occurred while processing asana webhook.",
             exc_info=True,
-            extra={"body": json.loads(request.body), "headers": request.headers},
+            extra={
+                "body": json.loads(request.body.decode("utf-8")),
+                "headers": request.headers,
+            },
         )
         return HttpResponse(status=500, content="Internal Server Error")
