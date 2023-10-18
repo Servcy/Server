@@ -119,7 +119,7 @@ class AsanaService(BaseService):
         try:
             self.client.webhooks.create_webhook(
                 resource=project_id,
-                target="https://server.servcy.com/webhook/asana",
+                target=f"{settings.BACKEND_URL}/webhook/asana",
                 opt_pretty=True,
                 filters=[
                     {
@@ -146,7 +146,7 @@ class AsanaService(BaseService):
         try:
             self.client.webhooks.create_webhook(
                 resource=workspace_id,
-                target="https://server.servcy.com/webhook/asana",
+                target=f"{settings.BACKEND_URL}/webhook/asana",
                 opt_pretty=True,
                 filters=[
                     {
