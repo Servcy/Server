@@ -113,6 +113,7 @@ EVENT_MAP = {
 def slack(request):
     try:
         body = json.loads(request.body)
+        headers = request.headers
         if body["type"] == "url_verification":
             return HttpResponse(body["challenge"])
         if body["token"] != settings.SLACK_APP_VERIFICATION_TOKEN:
@@ -173,6 +174,6 @@ def slack(request):
         logger.exception(
             f"An error occurred while processing slack webhook.",
             exc_info=True,
-            extra={"body": request.body, "headers": request.headers},
+            extra={"body": body, "headers": headers},
         )
         return HttpResponse(status=500)

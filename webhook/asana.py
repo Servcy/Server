@@ -157,6 +157,6 @@ def asana(request):
         logger.exception(
             f"An error occurred while processing asana webhook.",
             exc_info=True,
-            extra={"body": request.body, "headers": request.headers},
+            extra={"body": json.loads(request.body), "headers": request.headers},
         )
         return HttpResponse(status=500, content="Internal Server Error")

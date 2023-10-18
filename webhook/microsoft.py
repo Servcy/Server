@@ -69,6 +69,6 @@ def microsoft(request):
         logger.exception(
             f"An error occurred while processing notification.",
             exc_info=True,
-            extra={"body": request.body, "headers": request.headers},
+            extra={"notificaiton": notificaiton, "headers": request.headers},
         )
         return HttpResponse(status=500)
