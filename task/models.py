@@ -16,7 +16,6 @@ class Task(TimeStampedModel):
     project_uid = models.CharField(max_length=100, null=False, blank=False)
 
     class Meta:
-        unique_together = (("user", "uid"),)
         db_table = "task"
         verbose_name = "Task"
         verbose_name_plural = "Tasks"

@@ -26,6 +26,5 @@ class Project(TimeStampedModel):
 
     class Meta:
         db_table = "project"
-        unique_together = (("user", "uid"),)
         verbose_name = "Project"
         verbose_name_plural = "Projects"
