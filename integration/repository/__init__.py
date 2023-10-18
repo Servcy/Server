@@ -3,7 +3,6 @@ from base64 import b64decode, b64encode
 
 from cryptography.fernet import Fernet
 from django.conf import settings
-from django.db import IntegrityError
 
 from integration.models import Integration, UserIntegration
 
@@ -19,29 +18,19 @@ class IntegrationRepository:
         account_display_name: str = "",
         configuration: list | dict = None,
     ) -> UserIntegration:
-        try:
-            user_integration = UserIntegration.objects.create(
-                integration_id=integration_id,
-                user_id=user_id,
-                meta_data=IntegrationRepository.encrypt_meta_data(meta_data),
-                account_id=account_id,
-                account_display_name=account_display_name,
-                configuration=configuration,
-            )
-            return user_integration
-        except IntegrityError:
-            user_integration = UserIntegration.objects.get(
-                integration_id=integration_id,
-                user_id=user_id,
-                account_id=account_id,
-            )
-            user_integration.meta_data = IntegrationRepository.encrypt_meta_data(
-                meta_data
-            )
-            user_integration.save()
-            return user_integration
-        except Exception as err:
-            raise err
+        defaults = {
+            "meta_data": IntegrationRepository.encrypt_meta_data(meta_data),
+            "account_display_name": account_display_name,
+        }
+        if configuration is not None:
+            defaults["configuration"] = configuration
+        user_integration, _ = UserIntegration.objects.update_or_create(
+            integration_id=integration_id,
+            user_id=user_id,
+            account_id=account_id,
+            defaults=defaults,
+        )
+        return user_integration
 
     @classmethod
     def get_integration(self, filters: dict) -> Integration:
