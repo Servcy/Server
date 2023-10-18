@@ -173,3 +173,17 @@ class AsanaService(BaseService):
         self._token = meta_data["token"]
         self._fetch_user_info()
         return True
+
+    def get_project(self, project_gid: str) -> dict:
+        """Get project details."""
+        if not self.client:
+            self.client = asana.Client.access_token(self._token["access_token"])
+        project = self.client.projects.get_project(project_gid, opt_pretty=True)
+        return project
+
+    def get_task(self, task_gid: str) -> dict:
+        """Get task details."""
+        if not self.client:
+            self.client = asana.Client.access_token(self._token["access_token"])
+        task = self.client.tasks.get_task(task_gid, opt_pretty=True)
+        return task

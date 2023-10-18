@@ -32,6 +32,7 @@ def asana(request):
             tasks_to_create = []
             tasks_to_delete = []
             tasks_to_undelete = []
+            asana_service = None
             tasks_to_update = []
             for event in events:
                 if user_integration is None and event["user"]["gid"] is not None:
@@ -44,8 +45,8 @@ def asana(request):
                     meta_data = IntegrationRepository.decrypt_meta_data(
                         user_integration.meta_data
                     )
-                    asana_client = Asana.Client.access_token(
-                        meta_data["token"]["access_token"]
+                    asana_service = AsanaService(
+                        refresh_token=meta_data["token"]["refresh_token"]
                     )
                 elif event["user"]["gid"] is None:
                     raise Exception(
@@ -56,18 +57,17 @@ def asana(request):
                     event["resource"]["resource_type"] == "project"
                     and event["action"] == "added"
                 ):
-                    AsanaService(
-                        refresh_token=meta_data["token"]["refresh_token"]
-                    ).create_task_monitoring_webhook(event["resource"]["gid"])
-                    project = asana_client.projects.get_project(
-                        event["resource"]["gid"], opt_pretty=True
+                    asana_service.create_task_monitoring_webhook(
+                        event["resource"]["gid"]
                     )
-                    projects_to_create.append(project)
+                    projects_to_create.append(
+                        asana_service.get_project(event["resource"]["gid"])
+                    )
                 elif event["resource"]["resource_type"] == "task":
                     action = event["action"]
                     task_id = event["resource"]["gid"]
                     change = None
-                    task = asana_client.tasks.get_task(task_id, opt_pretty=True)
+                    task = asana_service.get_task(task_id)
                     if action == "changed":
                         changes = event["change"]
                         tasks_to_update.append(task)
