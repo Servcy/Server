@@ -23,8 +23,7 @@ def asana(request):
                 status=200, headers={"X-Hook-Secret": request.headers["X-Hook-Secret"]}
             )
         elif "X-Hook-Signature" in request.headers:
-            payload = request.body.decode("utf-8")
-            events = json.loads(payload).get("events", [])
+            events = json.loads(request.data).get("events", [])
             user_integration = None
             meta_data = None
             projects_to_create = []
@@ -157,7 +156,7 @@ def asana(request):
             f"An error occurred while processing asana webhook.",
             exc_info=True,
             extra={
-                "body": json.loads(request.body.decode("utf-8")),
+                "body": json.loads(request.data),
                 "headers": request.headers,
             },
         )
