@@ -151,8 +151,7 @@ class AsanaService(BaseService):
                 filters=[
                     {
                         "resource_type": "project",
-                        "action": "added",
-                    },
+                    }
                 ],
             )
         except asana.error.ForbiddenError as err:

@@ -33,8 +33,11 @@ def asana(request):
             tasks_to_create = []
             tasks_to_delete = []
             tasks_to_undelete = []
+            projects_to_delete = []
+            projects_to_undelete = []
             asana_service = None
             tasks_to_update = []
+            projects_to_update = []
             for event in events:
                 if user_integration is None and event["user"]["gid"] is not None:
                     user_integration = IntegrationRepository.get_user_integration(
@@ -54,16 +57,21 @@ def asana(request):
                         f"Received an event with no user gid from Asana webhook.",
                         extra={"event": event},
                     )
-                if (
-                    event["resource"]["resource_type"] == "project"
-                    and event["action"] == "added"
-                ):
-                    asana_service.create_task_monitoring_webhook(
-                        event["resource"]["gid"]
-                    )
-                    projects_to_create.append(
-                        asana_service.get_project(event["resource"]["gid"])
-                    )
+                if event["resource"]["resource_type"] == "project":
+                    action = event["action"]
+                    if action == "added":
+                        asana_service.create_task_monitoring_webhook(
+                            event["resource"]["gid"]
+                        )
+                        projects_to_create.append(
+                            asana_service.get_project(event["resource"]["gid"])
+                        )
+                    if action == "changed":
+                        projects_to_update.append(task)
+                    if action in ["removed", "deleted"]:
+                        projects_to_delete.append(task)
+                    if action == "undeleted":
+                        projects_to_undelete.append(task)
                 elif event["resource"]["resource_type"] == "task":
                     action = event["action"]
                     task_id = event["resource"]["gid"]
@@ -76,11 +84,11 @@ def asana(request):
                             logger.info(
                                 f"{change['field']} {change['action']} for task: {task_id}"
                             )
-                    if action == "added":
+                    elif action == "added":
                         tasks_to_create.append(task)
-                    if action in ["removed", "deleted"]:
+                    elif action in ["removed", "deleted"]:
                         tasks_to_delete.append(task)
-                    if action == "undeleted":
+                    elif action == "undeleted":
                         tasks_to_undelete.append(task)
                 else:
                     logger.warning(
@@ -114,6 +122,34 @@ def asana(request):
                             task["gid"]
                             for task in tasks_to_undelete
                             if task["gid"] is not None
+                        ]
+                    )
+                if projects_to_delete:
+                    ProjectRepository.delete_bulk(
+                        [
+                            project["gid"]
+                            for project in projects_to_delete
+                            if project["gid"] is not None
+                        ]
+                    )
+                if projects_to_undelete:
+                    ProjectRepository.undelete(
+                        [
+                            project["gid"]
+                            for project in projects_to_undelete
+                            if project["gid"] is not None
+                        ]
+                    )
+                if projects_to_update:
+                    ProjectRepository.update_bulk(
+                        [
+                            {
+                                "uid": project["gid"],
+                                "name": project["name"],
+                                "description": project["notes"],
+                                "meta_data": project,
+                            }
+                            for project in projects_to_update
                         ]
                     )
                 for project in projects_to_create:
