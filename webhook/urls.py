@@ -13,5 +13,5 @@ urlpatterns = [
     path("slack", slack, name="Slack"),
     path("figma", figma, name="Figma"),
     path("github", github, name="Github"),
-    path("asana", asana, name="Asana"),
+    path("asana/<int:user_integration_id>", asana, name="Asana"),
 ]

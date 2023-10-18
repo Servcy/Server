@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 @csrf_exempt
 @require_POST
-def asana(request):
+def asana(request, user_integration_id):
     try:
         body = json.loads(request.body)
         headers = request.headers
@@ -42,7 +42,7 @@ def asana(request):
                 if user_integration is None and event["user"]["gid"] is not None:
                     user_integration = IntegrationRepository.get_user_integration(
                         {
-                            "account_id": event["user"]["gid"],
+                            "id": user_integration_id,
                             "integration__name": "Asana",
                         }
                     )
