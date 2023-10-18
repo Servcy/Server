@@ -26,7 +26,6 @@ def asana(request):
         elif "X-Hook-Signature" in request.headers:
             events = json.loads(request.body).get("events", [])
             user_integration = None
-            asana_client = None
             meta_data = None
             projects_to_create = []
             tasks_to_create = []
