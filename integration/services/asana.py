@@ -123,14 +123,31 @@ class AsanaService(BaseService):
                 opt_pretty=True,
                 filters=[
                     {
-                        "resource": "task",
-                    },
-                    {
-                        "resource": "attachment",
+                        "resource_type": "task",
                         "action": "added",
                     },
                     {
-                        "resource": "story",
+                        "resource_type": "task",
+                        "action": "removed",
+                    },
+                    {
+                        "resource_type": "task",
+                        "action": "deleted",
+                    },
+                    {
+                        "resource_type": "task",
+                        "action": "undeleted",
+                    },
+                    {
+                        "resource_type": "task",
+                        "action": "changed",
+                    },
+                    {
+                        "resource_type": "attachment",
+                        "action": "added",
+                    },
+                    {
+                        "resource_type": "story",
                         "resource_subtype": "comment_added",
                     },
                 ],
@@ -150,8 +167,25 @@ class AsanaService(BaseService):
                 opt_pretty=True,
                 filters=[
                     {
-                        "resource": "project",
-                    }
+                        "resource_type": "project",
+                        "action": "added",
+                    },
+                    {
+                        "resource_type": "project",
+                        "action": "removed",
+                    },
+                    {
+                        "resource_type": "project",
+                        "action": "deleted",
+                    },
+                    {
+                        "resource_type": "project",
+                        "action": "undeleted",
+                    },
+                    {
+                        "resource_type": "project",
+                        "action": "changed",
+                    },
                 ],
             )
         except asana.error.ForbiddenError as err:
