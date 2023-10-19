@@ -1,5 +1,6 @@
-from project.models import Project
 from django.db import transaction
+
+from project.models import Project
 
 
 class ProjectRepository:

@@ -3,6 +3,7 @@ import traceback
 
 import requests
 from django.conf import settings
+from google.auth.exceptions import RefreshError
 from google.cloud import pubsub_v1
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
@@ -97,6 +98,15 @@ class GoogleService(BaseService):
         """Helper function to make request to google api"""
         try:
             return method(**kwargs).execute()
+        except RefreshError:
+            logger.exception(
+                f"Error in refreshing token for google",
+                extra={
+                    "user_info": self._user_info,
+                    "token": self._token,
+                },
+            )
+            raise IntegrationAccessRevokedException()
         except HttpError as e:
             logger.exception(
                 f"Error in making request to Google API: {e}",
