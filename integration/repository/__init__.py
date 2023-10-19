@@ -21,6 +21,7 @@ class IntegrationRepository:
         defaults = {
             "meta_data": IntegrationRepository.encrypt_meta_data(meta_data),
             "account_display_name": account_display_name,
+            "is_revoked": False,
         }
         if configuration is not None:
             defaults["configuration"] = configuration
