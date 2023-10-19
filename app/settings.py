@@ -319,6 +319,6 @@ CRONJOBS = [
     ),
     (
         "0 0 * * *",
-        "integration.services.google.refresh_google_watchers",
+        "integration.services.google.refresh_google_watchers_and_tokens",
     ),
 ]

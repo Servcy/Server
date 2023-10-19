@@ -45,6 +45,26 @@ class GoogleService(BaseService):
                     self._user_info["email"]
                 )
 
+    def refresh_tokens(self):
+        """Refresh tokens"""
+        response = requests.post(
+            GOOGLE_TOKEN_URI,
+            data={
+                "client_id": GOOGLE_CLIENT_ID,
+                "client_secret": GOOGLE_CLIENT_SECRET,
+                "refresh_token": self._token["refresh_token"],
+                "grant_type": "refresh_token",
+            },
+        ).json()
+        if "error" in response:
+            logger.exception(
+                f"Error in refreshing tokens from Google: {response.get('error_description')}"
+            )
+            raise Exception(
+                f"Error refreshing tokens from Google: {response.get('error_description')}"
+            )
+        return response
+
     def _initialize_google_service(self):
         """Initialize google service"""
         try:
@@ -260,7 +280,7 @@ class GoogleService(BaseService):
         return True
 
 
-def refresh_google_watchers():
+def refresh_google_watchers_and_tokens():
     """
     Refresh watchers for all users in the system.
     """
@@ -271,13 +291,32 @@ def refresh_google_watchers():
             }
         )
         for user_integration in user_integrations:
-            google_service = GoogleService(
-                access_token=user_integration["meta_data"]["token"]["access_token"],
-                refresh_token=user_integration["meta_data"]["token"]["refresh_token"],
-            )
-            google_service._fetch_user_info_from_service()._add_watcher_to_inbox_pub_sub(
-                google_service._user_info["emailAddress"]
-            )
+            try:
+                google_service = GoogleService(
+                    access_token=user_integration["meta_data"]["token"]["access_token"],
+                    refresh_token=user_integration["meta_data"]["token"][
+                        "refresh_token"
+                    ],
+                )
+                google_service._fetch_user_info_from_service()._add_watcher_to_inbox_pub_sub(
+                    google_service._user_info["emailAddress"]
+                )
+                new_tokens = google_service.refresh_tokens()
+                IntegrationRepository.update_integraion_meta_data(
+                    user_integration_id=user_integration["id"],
+                    meta_data={
+                        **user_integration["meta_data"],
+                        "token": new_tokens,
+                    },
+                )
+            except:
+                logger.exception(
+                    f"Error in refreshing watchers for gmail for user integration {user_integration['id']}",
+                    extra={
+                        "traceback": traceback.format_exc(),
+                    },
+                )
+                continue
     except Exception:
         logger.exception(
             f"Error in refreshing watchers for gmail.",
