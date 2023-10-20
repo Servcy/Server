@@ -306,7 +306,10 @@ def refresh_google_watchers_and_tokens():
                     user_integration_id=user_integration["id"],
                     meta_data={
                         **user_integration["meta_data"],
-                        "token": new_tokens,
+                        "token": {
+                            **user_integration["meta_data"]["token"],
+                            **new_tokens,
+                        },
                     },
                 )
             except:
