@@ -64,7 +64,7 @@ def main():
                         service_class, user_integration
                     )
                     if not is_active:
-                        revoked_integrations.append(user_integration)
+                        revoked_integrations.append(user_integration.id)
             except Exception:
                 logger.exception(
                     f"An error occurred while checking integration status for user {user_integration.user.email}.",

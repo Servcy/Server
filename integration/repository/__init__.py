@@ -108,13 +108,13 @@ class IntegrationRepository:
         return UserIntegration.objects.filter(is_revoked=False).all()
 
     @staticmethod
-    def revoke_user_integrations(user_integrations: list[UserIntegration] | int):
+    def revoke_user_integrations(user_integrations: list[int] | int):
         """
         Revoke user integrations.
         """
         if isinstance(user_integrations, list):
-            UserIntegration.objects.bulk_update(
-                user_integrations, [{"is_revoked": True} for _ in user_integrations]
+            UserIntegration.objects.filter(id__in=user_integrations).update(
+                is_revoked=True
             )
         elif isinstance(user_integrations, int):
             UserIntegration.objects.filter(id=user_integrations).update(is_revoked=True)
