@@ -11,24 +11,20 @@ class GoogleMailService:
 
     @staticmethod
     def _get_mail_body(payload: dict):
-        # Attempt to get plain text message
+        if "parts" not in payload:
+            return payload.get("body", {}).get("data", "-")
+        # Attempt to get HTML message
         try:
-            for part in payload["parts"]:
-                if part["mimeType"] == "text/plain":
-                    text = base64.urlsafe_b64decode(part["body"]["data"]).decode(
-                        "utf-8"
-                    )
-                    return text
+            for part in payload.get("parts", []):
+                if part.get("mimeType", "") == "text/html":
+                    return part["body"]["data"]
         except KeyError:
             pass
-        # If plain text is not available, get HTML message
+        # If HTML is not available, get plain text message
         try:
-            for part in payload["parts"]:
-                if part["mimeType"] == "text/html":
-                    text = base64.urlsafe_b64decode(part["body"]["data"]).decode(
-                        "utf-8"
-                    )
-                    return text
+            for part in payload.get("parts", []):
+                if part["mimeType"] == "text/plain":
+                    return part["body"]["data"]
         except KeyError:
             pass
         return "Could not find message body."
