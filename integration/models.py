@@ -12,6 +12,7 @@ class Integration(models.Model):
     configure_at = models.CharField(
         max_length=250, default=None, null=True, blank=False
     )
+    is_wip = models.BooleanField(default=False)  # is work in progress
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -38,7 +39,6 @@ class UserIntegration(TimeStampedModel):
         default=None, null=True, blank=False
     )  # comma separated installation ids
     is_revoked = models.BooleanField(default=False)
-    is_wip = models.BooleanField(default=False)  # is work in progress
 
     class Meta:
         db_table = "user_integration"
