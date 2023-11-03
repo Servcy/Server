@@ -124,6 +124,12 @@ def slack(request):
         ).apps_event_authorizations_list(event_context=body["event_context"])
         if event_authorizations["ok"] != True:
             return HttpResponse(status=400)
+        if (
+            "event" in body
+            and "user_id" in body["event"]
+            and body["event"]["user_id"] == "USLACKBOT"
+        ):
+            return HttpResponse(status=200)
         uid = body["event_id"]
         user_integrations = IntegrationRepository.get_user_integrations(
             {
