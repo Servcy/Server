@@ -1,12 +1,14 @@
 import json
 import logging
 import traceback
+import uuid
 
 from django.db import transaction
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
+from inbox.repository import InboxRepository
 from integration.repository import IntegrationRepository
 from integration.services.asana import AsanaService
 from project.repository import ProjectRepository
@@ -37,6 +39,7 @@ def asana(request, user_integration_id):
             projects_to_undelete = []
             asana_service = None
             tasks_to_update = []
+            inbox_items = []
             projects_to_update = []
             for event in events:
                 if user_integration is None and event["user"]["gid"] is not None:
@@ -59,23 +62,51 @@ def asana(request, user_integration_id):
                     )
                 if event["resource"]["resource_type"] == "project":
                     action = event["action"]
+                    project_uid = event["resource"]["gid"]
+                    project = asana_service.get_project(project_uid)
+                    inbox_items.append(
+                        {
+                            "uid": str(uuid.uuid4()),
+                            "title": f"Project {project['name']} {action}",
+                            "body": json.dumps(
+                                {
+                                    "project": project,
+                                    **event,
+                                }
+                            ),
+                            "cause": f"{event['user']['name']}'",
+                            "user_integration_id": user_integration_id,
+                            "category": "project",
+                        }
+                    )
                     if action == "added":
-                        asana_service.create_task_monitoring_webhook(
-                            event["resource"]["gid"]
-                        )
-                        projects_to_create.append(
-                            asana_service.get_project(event["resource"]["gid"])
-                        )
+                        asana_service.create_task_monitoring_webhook(project_uid)
+                        projects_to_create.append(project)
                     if action == "changed":
-                        projects_to_update.append(task)
+                        projects_to_update.append(project)
                     if action in ["removed", "deleted"]:
-                        projects_to_delete.append(task)
+                        projects_to_delete.append(project)
                     if action == "undeleted":
-                        projects_to_undelete.append(task)
+                        projects_to_undelete.append(project)
                 elif event["resource"]["resource_type"] == "task":
                     action = event["action"]
-                    task_id = event["resource"]["gid"]
-                    task = asana_service.get_task(task_id)
+                    task_uid = event["resource"]["gid"]
+                    task = asana_service.get_task(task_uid)
+                    inbox_items.append(
+                        {
+                            "uid": str(uuid.uuid4()),
+                            "title": f"Task {task['name']} {action}",
+                            "body": json.dumps(
+                                {
+                                    "task": task,
+                                    **event,
+                                }
+                            ),
+                            "cause": f"{event['user']['name']}'",
+                            "user_integration_id": user_integration_id,
+                            "category": "task",
+                        }
+                    )
                     if action == "changed":
                         tasks_to_update.append(task)
                     elif action == "added":
@@ -164,6 +195,7 @@ def asana(request, user_integration_id):
                         user_id=user_integration.user.id,
                         meta_data=task,
                     )
+                InboxRepository.add_items(inbox_items)
             logger.info("Asana webhook received.", extra={"body": request.body})
             return HttpResponse(
                 status=200, content="OK", content_type="application/json"
