@@ -1,3 +1,5 @@
+import uuid
+
 from inbox.services.google import GoogleMailService
 
 REQUIRED_LABELS = {"UNREAD", "CATEGORY_PERSONAL", "INBOX"}
@@ -36,7 +38,7 @@ class GoogleMailRepository:
                     "body": GoogleMailService._get_mail_body(mail["payload"]),
                     "is_body_html": True,
                     "user_integration_id": user_integration_id,
-                    "uid": f"{mail['id']}-{user_integration_id}",
+                    "uid": f"{mail['id']}-{user_integration_id}-{uuid.uuid4()}",
                     "category": "message",
                 }
             )
