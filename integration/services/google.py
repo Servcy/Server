@@ -1,8 +1,10 @@
 import logging
+import time
 import traceback
 
 import requests
 from django.conf import settings
+from google.api_core.exceptions import Aborted
 from google.auth.exceptions import RefreshError
 from google.cloud import pubsub_v1
 from google.oauth2.credentials import Credentials
@@ -183,33 +185,66 @@ class GoogleService(BaseService):
     def _add_publisher_for_user(self) -> "GoogleService":
         """Add publisher for user"""
         pubsub_v1_client = pubsub_v1.PublisherClient()
-        policy = pubsub_v1_client.get_iam_policy(
-            request={"resource": GOOGLE_PUB_SUB_TOPIC}
-        )
-        policy.bindings.add(
-            role="roles/pubsub.publisher",
-            members=[f"user:{self._user_info['email']}"],
-        )
-        pubsub_v1_client.set_iam_policy(
-            request={"resource": GOOGLE_PUB_SUB_TOPIC, "policy": policy}
-        )
-        return self
+        max_retries = 5
+        base_delay = 1  # Initial delay is 1 second
+
+        for attempt in range(max_retries):
+            try:
+                policy = pubsub_v1_client.get_iam_policy(
+                    request={"resource": GOOGLE_PUB_SUB_TOPIC}
+                )
+                policy.bindings.add(
+                    role="roles/pubsub.publisher",
+                    members=[f"user:{self._user_info['email']}"],
+                )
+                pubsub_v1_client.set_iam_policy(
+                    request={"resource": GOOGLE_PUB_SUB_TOPIC, "policy": policy}
+                )
+                return self
+            except Aborted as e:
+                # Exponential backoff
+                sleep_time = base_delay * (2**attempt)
+                logger.warning(
+                    f"Failed to add publisher for user {self._user_info['email']}. Retrying in {sleep_time} seconds.",
+                    extra={"traceback": traceback.format_exc()},
+                )
+                time.sleep(sleep_time)
+        # If all retries failed, raise an exception
+        raise Exception("Failed to add publisher for user after several retries.")
 
     @staticmethod
     def remove_publisher_for_user(email: str):
         """Remove publisher for user"""
         pubsub_v1_client = pubsub_v1.PublisherClient()
-        policy = pubsub_v1_client.get_iam_policy(
-            request={"resource": GOOGLE_PUB_SUB_TOPIC}
-        )
-        policy.bindings.add(
-            role="roles/pubsub.publisher",
-            members=[f"user:{email}"],
-        )
-        pubsub_v1_client.set_iam_policy(
-            request={"resource": GOOGLE_PUB_SUB_TOPIC, "policy": policy}
-        )
-        return True
+        max_retries = 5
+        base_delay = 1  # Initial delay is 1 second
+        for attempt in range(max_retries):
+            try:
+                policy = pubsub_v1_client.get_iam_policy(
+                    request={"resource": GOOGLE_PUB_SUB_TOPIC}
+                )
+                # Remove the user from the bindings instead of adding
+                for binding in policy.bindings:
+                    if (
+                        binding.role == "roles/pubsub.publisher"
+                        and f"user:{email}" in binding.members
+                    ):
+                        binding.members.remove(f"user:{email}")
+
+                pubsub_v1_client.set_iam_policy(
+                    request={"resource": GOOGLE_PUB_SUB_TOPIC, "policy": policy}
+                )
+                return True
+            except Aborted as e:
+                # Exponential backoff
+                sleep_time = base_delay * (2**attempt)
+                logger.warning(
+                    f"Failed to remove publisher for user {email}. Retrying in {sleep_time} seconds.",
+                    extra={"traceback": traceback.format_exc(), "email": email},
+                )
+                time.sleep(sleep_time)
+        # If all retries failed, raise an exception
+        raise Exception("Failed to remove publisher for user after several retries.")
 
     def get_latest_unread_primary_inbox(self, last_history_id: int) -> list[str]:
         """Get latest unread primary inbox messages"""
