@@ -120,9 +120,10 @@ class GoogleService(BaseService):
             return method(**kwargs).execute()
         except RefreshError:
             logger.exception(
-                f"Error in refreshing token for google",
+                "Error in refreshing token for google",
                 extra={
                     "user_info": self._user_info,
+                    "traceback": traceback.format_exc(),
                     "token": self._token,
                 },
             )
