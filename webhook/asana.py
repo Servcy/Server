@@ -104,7 +104,7 @@ def asana(request, user_integration_id):
                             ),
                             "cause": f"{event['user']['name']}'",
                             "user_integration_id": user_integration_id,
-                            "category": "task",
+                            "category": "project",
                         }
                     )
                     if action == "changed":
