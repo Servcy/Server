@@ -38,6 +38,7 @@ class UserIntegration(TimeStampedModel):
         default=None, null=True, blank=False
     )  # comma separated installation ids
     is_revoked = models.BooleanField(default=False)
+    is_wip = models.BooleanField(default=False)  # is work in progress
 
     class Meta:
         db_table = "user_integration"
