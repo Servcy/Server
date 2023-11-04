@@ -38,7 +38,7 @@ def is_from_trello(header, request_body, user_integration_id):
     hashed_header = base64Digest(header)
     hashed_body = base64Digest(
         base64Digest(
-            request_body
+            request_body.decode()
             + f"{settings.BACKEND_URL}/webhook/trello/{user_integration_id}"
         )
     )
