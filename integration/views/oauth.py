@@ -14,6 +14,7 @@ from integration.services.google import GOOGLE_SCOPES, GoogleService
 from integration.services.microsoft import MicrosoftService
 from integration.services.notion import NotionService
 from integration.services.slack import SlackService
+from integration.services.trello import TrelloService
 
 logger = logging.getLogger(__name__)
 
@@ -100,3 +101,7 @@ class OauthViewset(viewsets.ViewSet):
     @action(detail=False, methods=["put"], url_path="asana")
     def asana(self, request):
         return self._handle_oauth_code(request, AsanaService, "Asana")
+
+    @action(detail=False, methods=["put"], url_path="trello")
+    def trello(self, request):
+        return self._handle_oauth_code(request, TrelloService, "Trello")
