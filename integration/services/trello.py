@@ -66,3 +66,7 @@ class TrelloService(BaseService):
         self._token = meta_data["token"]
         self._fetch_user_info()
         return True
+
+    def _fetch_token(self, code: str):
+        """Abstract method implementation"""
+        return super()._fetch_token(code)
