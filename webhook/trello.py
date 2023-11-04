@@ -51,9 +51,23 @@ def trello(request, user_integration_id):
     """
     try:
         headers = request.headers
+        logger.info(
+            f"Received a request from Trello.",
+            extra={
+                "body": request.body,
+                "headers": headers,
+            },
+        )
         if not is_from_trello(
             headers.get("x-trello-webhook", ""), request.body, user_integration_id
         ):
+            logger.warning(
+                f"Received a request from an unknown source.",
+                extra={
+                    "body": request.body,
+                    "headers": headers,
+                },
+            )
             return HttpResponse(status=403)
         body = json.loads(request.body)
     except Exception:
