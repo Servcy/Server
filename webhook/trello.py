@@ -25,7 +25,9 @@ def base64Digest(secret):
     """
     Returns a base64 encoded string of the hmac digest of the secret.
     """
-    mac = hmac.new(settings.TRELLO_APP_CLIENT_SECRET, secret, hashlib.sha1)
+    secret_bytes = secret.encode() if isinstance(secret, str) else secret
+    client_secret_bytes = settings.TRELLO_APP_CLIENT_SECRET.encode()
+    mac = hmac.new(client_secret_bytes, secret_bytes, hashlib.sha1)
     return base64.b64encode(mac.digest())
 
 
@@ -41,6 +43,19 @@ def is_from_trello(header, request_body, user_integration_id):
         )
     )
     return hmac.compare_digest(hashed_header, hashed_body)
+
+
+{
+    "Host": "server.servcy.com",
+    "X-Real-Ip": "104.192.142.244",
+    "X-Forwarded-For": "104.192.142.244",
+    "X-Forwarded-Proto": "https",
+    "Connection": "close",
+    "Content-Length": "3151",
+    "X-Trello-Webhook": "RXPjOTQURDgAgLmgMIo64fhHN4I=",
+    "Content-Type": "application/json",
+    "User-Agent": "Trello",
+}
 
 
 @csrf_exempt
