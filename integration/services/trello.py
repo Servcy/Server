@@ -4,6 +4,7 @@ from django.conf import settings
 from common.exceptions import ServcyOauthCodeException
 from integration.models import UserIntegration
 from integration.repository import IntegrationRepository
+from project.repository import ProjectRepository
 
 from .base import BaseService
 
@@ -50,7 +51,8 @@ class TrelloService(BaseService):
             meta_data={"token": self._token, "user_info": self._user_info},
             account_display_name=self._user_info["username"],
         )
-        self._establish_webhooks(user_id)
+        # https://developer.atlassian.com/cloud/trello/guides/rest-api/webhooks/#webhook-actions-and-types
+        self._create_webhook(self._user_info["id"])
         return self.user_integration
 
     def is_active(self, meta_data: dict, **kwargs) -> bool:
@@ -75,3 +77,38 @@ class TrelloService(BaseService):
         """
         Establishes webhooks for Trello integration.
         """
+        boards = requests.get(
+            f"https://api.trello.com/1/members/me/boards?key={self._trello_key}&token={self._token}"
+        )
+        if boards.status_code != 200:
+            raise ServcyOauthCodeException(
+                f"An error occurred while obtaining boards from Trello.\n{str(boards.json())}"
+            )
+        boards = boards.json()
+        for board in boards:
+            ProjectRepository.create(
+                user_id=user_id,
+                name=board["name"],
+                description=board["desc"],
+                user_integration_id=self.user_integration.id,
+                uid=board["id"],
+                meta_data=board,
+            )
+            # Create webhook for each board so that we can get notifications for new cards.
+            self._create_webhook(board["id"])
+
+    def _create_webhook(self, model_id: str) -> None:
+        """
+        Creates webhook for Trello integration.
+        """
+        response = requests.post(
+            f"https://api.trello.com/1/tokens/{self._token}/webhooks/?key={self._trello_key}&token={self._token}",
+            data={
+                "callbackURL": f"{settings.BACKEND_URL}/webhook/trello/{self.user_integration.id}",
+                "idModel": model_id,
+            },
+        )
+        if response.status_code != 200:
+            raise ServcyOauthCodeException(
+                f"An error occurred while creating webhook for Trello.\n{str(response.json())}"
+            )
