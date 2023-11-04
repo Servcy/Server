@@ -10,7 +10,7 @@ from django.conf import settings
 from django.db import transaction
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_http_methods
 
 from inbox.repository import InboxRepository
 from integration.repository import IntegrationRepository
@@ -44,7 +44,7 @@ def is_from_trello(header, request_body, user_integration_id):
 
 
 @csrf_exempt
-@require_POST
+@require_http_methods(["POST", "HEAD"])
 def trello(request, user_integration_id):
     """
     Trello webhook.
@@ -58,6 +58,8 @@ def trello(request, user_integration_id):
                 "headers": headers,
             },
         )
+        if request.method == "HEAD":
+            return HttpResponse(status=200)
         if not is_from_trello(
             headers.get("x-trello-webhook", ""), request.body, user_integration_id
         ):
@@ -74,7 +76,7 @@ def trello(request, user_integration_id):
         logger.exception(
             f"An error occurred while processing trello webhook.",
             extra={
-                "body": body,
+                "body": request.body if "body" in locals() else None,
                 "headers": headers,
                 "traceback": traceback.format_exc(),
             },
