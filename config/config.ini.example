@@ -74,3 +74,8 @@ redirect_uri=
 client_id=
 client_secret=
 redirect_uri=integrations/asana/oauth
+
+[trello]
+api_key=
+client_secret=
+redirect_uri=
