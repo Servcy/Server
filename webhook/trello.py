@@ -76,7 +76,7 @@ def trello(request, user_integration_id):
         logger.exception(
             f"An error occurred while processing trello webhook.",
             extra={
-                "body": request.body if "body" in locals() else None,
+                "body": request.body,
                 "headers": headers,
                 "traceback": traceback.format_exc(),
             },
