@@ -298,6 +298,10 @@ FIGMA_APP_REDIRECT_URI = f"{FRONTEND_URL}/{config.get('figma', 'redirect_uri')}"
 ASANA_APP_CLIENT_ID = config.get("asana", "client_id")
 ASANA_APP_CLIENT_SECRET = config.get("asana", "client_secret")
 ASANA_APP_REDIRECT_URI = f"{FRONTEND_URL}/{config.get('asana', 'redirect_uri')}"
+# Trello
+TRELLO_APP_KEY = config.get("trello", "app_key")
+TRELLO_APP_CLIENT_SECRET = config.get("trello", "client_secret")
+TRELLO_APP_REDIRECT_URI = f"{FRONTEND_URL}/{config.get('trello', 'redirect_uri')}"
 
 # Cron Jobs
 CRONJOBS = [
