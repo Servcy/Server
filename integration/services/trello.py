@@ -70,3 +70,8 @@ class TrelloService(BaseService):
     def _fetch_token(self, code: str):
         """Abstract method implementation"""
         return super()._fetch_token(code)
+
+    def _establish_webhooks(self, user_id: int) -> None:
+        """
+        Establishes webhooks for Trello integration.
+        """
