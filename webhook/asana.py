@@ -74,7 +74,7 @@ def asana(request, user_integration_id):
                                     **event,
                                 }
                             ),
-                            "cause": f"{event['user']['name']}'",
+                            "cause": event["user"]["name"],
                             "user_integration_id": user_integration_id,
                             "category": "project",
                         }
@@ -102,7 +102,7 @@ def asana(request, user_integration_id):
                                     **event,
                                 }
                             ),
-                            "cause": f"{event['user']['name']}'",
+                            "cause": event["user"]["name"],
                             "user_integration_id": user_integration_id,
                             "category": "project",
                         }
@@ -115,10 +115,27 @@ def asana(request, user_integration_id):
                         tasks_to_delete.append(task)
                     elif action == "undeleted":
                         tasks_to_undelete.append(task)
+                elif (
+                    event["resource"]["resource_type"] == "story"
+                    and event["resource"]["resource_subtype"] == "comment_added"
+                ):
+                    inbox_items.append(
+                        {
+                            "uid": str(uuid.uuid4()),
+                            "title": f"Comment added to task {event['resource']['name']}",
+                            "body": json.dumps(event),
+                            "cause": event["user"]["name"],
+                            "user_integration_id": user_integration_id,
+                            "category": "comment",
+                        }
+                    )
                 else:
                     logger.warning(
                         f"Received an unknown event from Asana webhook.",
-                        extra={"event": event},
+                        extra={
+                            "event": event,
+                            "user_integration_id": user_integration_id,
+                        },
                     )
             with transaction.atomic():
                 if tasks_to_delete:
@@ -196,14 +213,24 @@ def asana(request, user_integration_id):
                         meta_data=task,
                     )
                 InboxRepository.add_items(inbox_items)
-            logger.info("Asana webhook received.", extra={"body": request.body})
+            logger.info(
+                "Asana webhook received.",
+                extra={
+                    "body": request.body,
+                    "user_integration_id": user_integration_id,
+                },
+            )
             return HttpResponse(
                 status=200, content="OK", content_type="application/json"
             )
         else:
             logger.warning(
                 f"Received an unknown request from Asana webhook.",
-                extra={"body": body, "headers": headers},
+                extra={
+                    "body": body,
+                    "headers": headers,
+                    "user_integration_id": user_integration_id,
+                },
             )
             return HttpResponse(status=400, content="Bad Request")
     except Exception:
@@ -213,6 +240,7 @@ def asana(request, user_integration_id):
                 "body": body,
                 "headers": headers,
                 "traceback": traceback.format_exc(),
+                "user_integration_id": user_integration_id,
             },
         )
         return HttpResponse(status=500, content="Internal Server Error")
