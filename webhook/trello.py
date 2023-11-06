@@ -25,7 +25,6 @@ EVENT_MAP = {
     "addChecklistToCard": "Added a checklist to a card",
     "addMemberToBoard": "Added a member to a board",
     "addMemberToCard": "Added a member to a card",
-    "addToOrganizationBoard": "Added to an organization's board",
     "commentCard": "Commented on a card",
     "convertToCardFromCheckItem": "Converted a check item to a card",
     "createBoard": "Created a board",
@@ -36,7 +35,6 @@ EVENT_MAP = {
     "moveListFromBoard": "Moved a list from one board to another",
     "moveListToBoard": "Moved a list to a different board",
     "removeChecklistFromCard": "Removed a checklist from a card",
-    "removeFromOrganizationBoard": "Removed from an organization's board",
     "updateBoard": "Updated board details",
     "updateCard": "Updated card details",
     "updateCheckItemStateOnCard": "Updated check item state on a card",
@@ -52,8 +50,6 @@ EVENT_MAP = {
     "removeLabelFromCard": "Removed a label from a card",
     "updateCheckItem": "Updated check item details",
     "updateComment": "Updated comment details",
-    "updateLabel": "Updated label details",
-    "voteOnCard": "Voted on a card",
 }
 
 
