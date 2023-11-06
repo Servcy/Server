@@ -5,9 +5,10 @@ from iam.models import User
 
 
 class Document(TimeStampedModel):
-    file = models.FileField(upload_to="Documents", null=False, blank=False)
+    file = models.FileField(upload_to="Documents", null=True, blank=False)
     name = models.CharField(max_length=100, null=False, blank=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=False, blank=False)
+    link = models.CharField(max_length=1000, null=True, blank=False)
 
     class Meta:
         db_table = "document"
