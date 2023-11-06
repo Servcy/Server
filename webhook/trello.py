@@ -21,7 +21,7 @@ from task.repository import TaskRepository
 logger = logging.getLogger(__name__)
 
 EVENT_MAP = {
-    "addAttachmentToCard": "Added an attachment to a card",
+    "addAttachmentToCard": "Added an attachment to a card",  # TODO: handle during document module creation
     "addChecklistToCard": "Added a checklist to a card",
     "addMemberToBoard": "Added a member to a board",
     "addMemberToCard": "Added a member to a card",
@@ -43,7 +43,7 @@ EVENT_MAP = {
     "addLabelToCard": "Added a label to a card",
     "createCheckItem": "Created a check item",
     "createLabel": "Created a label",
-    "deleteAttachmentFromCard": "Deleted an attachment from a card",
+    "deleteAttachmentFromCard": "Deleted an attachment from a card",  # TODO: handle during document module creation
     "deleteCheckItem": "Deleted a check item",
     "deleteComment": "Deleted a comment",
     "deleteLabel": "Deleted a label",
