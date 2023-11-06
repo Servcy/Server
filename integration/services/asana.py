@@ -204,8 +204,17 @@ class AsanaService(BaseService):
         Returns:
         - bool: True if integration is active, False otherwise.
         """
-        self._token = meta_data["token"]
-        self._fetch_user_info()
+        self._token = AsanaService._refresh_tokens(meta_data["token"]["refresh_token"])
+        IntegrationRepository.update_integraion_meta_data(
+            user_integration_id=kwargs["user_integration_id"],
+            meta_data={
+                **meta_data,
+                "token": {
+                    **meta_data["token"],
+                    **self._token,
+                },
+            },
+        )
         return True
 
     def get_project(self, project_gid: str) -> dict:
