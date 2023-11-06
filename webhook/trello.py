@@ -85,13 +85,6 @@ def trello(request, user_integration_id):
     """
     try:
         headers = request.headers
-        logger.info(
-            f"Received a request from Trello.",
-            extra={
-                "body": request.body,
-                "headers": headers,
-            },
-        )
         if request.method == "HEAD":
             return HttpResponse(status=200)
         if not is_from_trello(
@@ -107,6 +100,13 @@ def trello(request, user_integration_id):
             return HttpResponse(status=403)
         body = json.loads(request.body.decode())
         action = body["action"]
+        logger.info(
+            f"Received a request from Trello.",
+            extra={
+                "action": action,
+                "headers": headers,
+            },
+        )
         if action["type"] not in EVENT_MAP.keys():
             return HttpResponse(status=200)
     except Exception:
