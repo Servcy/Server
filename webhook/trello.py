@@ -168,7 +168,10 @@ def trello(request, user_integration_id):
                 },
             )
         if action["type"] == "deleteCard":
-            TaskRepository.delete_bulk([action["data"]["card"]["id"]])
+            TaskRepository.delete_bulk(
+                user_integration.user_id,
+                [action["data"]["card"]["id"]],
+            )
         return HttpResponse(status=200)
     except Exception:
         logger.exception(

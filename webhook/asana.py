@@ -140,11 +140,12 @@ def asana(request, user_integration_id):
             with transaction.atomic():
                 if tasks_to_delete:
                     TaskRepository.delete_bulk(
+                        user_integration.user.id,
                         [
                             task["gid"]
                             for task in tasks_to_delete
                             if task["gid"] is not None
-                        ]
+                        ],
                     )
                 if tasks_to_update:
                     TaskRepository.update_bulk(

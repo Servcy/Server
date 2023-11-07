@@ -25,8 +25,10 @@ class TaskRepository:
 
     @staticmethod
     @transaction.atomic
-    def delete_bulk(task_uids: list):
-        Task.objects.filter(uid__in=task_uids, is_deleted=False).update(is_deleted=True)
+    def delete_bulk(task_uids: list, user_id: int):
+        Task.objects.filter(
+            uid__in=task_uids, is_deleted=False, user_id=user_id
+        ).update(is_deleted=True)
 
     @staticmethod
     def undelete(task_uid: str):
