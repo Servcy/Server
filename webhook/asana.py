@@ -43,6 +43,8 @@ def asana(request, user_integration_id):
             inbox_items = []
             projects_to_update = []
             for event in events:
+                if event.get("action", "") == "sync_error":
+                    continue
                 if user_integration is None and event["user"]["gid"] is not None:
                     user_integration = IntegrationRepository.get_user_integration(
                         {
