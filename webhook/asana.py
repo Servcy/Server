@@ -125,11 +125,19 @@ def asana(request, user_integration_id):
                     event["resource"]["resource_type"] == "story"
                     and event["resource"]["resource_subtype"] == "comment_added"
                 ):
+                    task = asana_service.get_task(event["resource"]["parent"]["gid"])
+                    comment = asana_service.get_story(event["resource"]["gid"])
                     inbox_items.append(
                         {
                             "uid": str(uuid.uuid4()),
-                            "title": f"Comment added to task {event['resource']['name']}",
-                            "body": json.dumps(event),
+                            "title": f"Comment added to task: {task['name']}",
+                            "body": json.dumps(
+                                {
+                                    "task": task,
+                                    "comment": comment,
+                                    **event,
+                                }
+                            ),
                             "cause": json.dumps(causing_user),
                             "user_integration_id": user_integration_id,
                             "category": "comment",
