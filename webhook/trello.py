@@ -21,11 +21,11 @@ from task.repository import TaskRepository
 logger = logging.getLogger(__name__)
 
 EVENT_MAP = {
-    "addAttachmentToCard": "Added an attachment to a card",  # TODO: handle during document module creation
-    "addChecklistToCard": "Added a checklist to a card",
-    "addMemberToBoard": "Added a member to a board",
-    "addMemberToCard": "Added a member to a card",
-    "commentCard": "Commented on a card",
+    "addAttachmentToCard": "An attachment was added to a card",  # TODO: handle during document module creation
+    "addChecklistToCard": "A checklist was added to a card",
+    "addMemberToBoard": "A member was added to a board",
+    "addMemberToCard": "A member was added to a card",
+    "commentCard": "Someone commented on a card",  # TODO: handle during inbox module integration
     "convertToCardFromCheckItem": "Converted a check item to a card",
     "createBoard": "Created a board",
     "createCard": "Created a card",
@@ -40,16 +40,14 @@ EVENT_MAP = {
     "updateCheckItemStateOnCard": "Updated check item state on a card",
     "updateChecklist": "Updated checklist details",
     "updateList": "Updated list details",
-    "addLabelToCard": "Added a label to a card",
+    "addLabelToCard": "A label was added to a card",
     "createCheckItem": "Created a check item",
-    "createLabel": "Created a label",
     "deleteAttachmentFromCard": "Deleted an attachment from a card",  # TODO: handle during document module creation
     "deleteCheckItem": "Deleted a check item",
-    "deleteComment": "Deleted a comment",
-    "deleteLabel": "Deleted a label",
+    "deleteComment": "Someone deleted their comment on a card",  # TODO: handle during inbox module integration
     "removeLabelFromCard": "Removed a label from a card",
     "updateCheckItem": "Updated check item details",
-    "updateComment": "Updated comment details",
+    "updateComment": "Someone updated their comment on a card",  # TODO: handle during inbox module integration
 }
 
 
@@ -109,6 +107,15 @@ def trello(request, user_integration_id):
         )
         if action["type"] not in EVENT_MAP.keys():
             return HttpResponse(status=200)
+        inbox_item = {
+            "uid": str(uuid.uuid4()),
+            "title": EVENT_MAP[action["type"]],
+            "body": json.dumps(action),
+            "cause": json.dumps(body["action"]["memberCreator"]),
+            "user_integration_id": user_integration_id,
+            "category": "project",
+        }
+        InboxRepository.add_items([inbox_item])
     except Exception:
         logger.exception(
             f"An error occurred while processing trello webhook.",
