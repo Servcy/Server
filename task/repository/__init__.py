@@ -19,6 +19,11 @@ class TaskRepository:
         return task
 
     @staticmethod
+    def update(filters: dict, updates: dict):
+        """Updates a task."""
+        Task.objects.filter(**filters).update(**updates)
+
+    @staticmethod
     @transaction.atomic
     def delete_bulk(task_uids: list):
         Task.objects.filter(uid__in=task_uids, is_deleted=False).update(is_deleted=True)
