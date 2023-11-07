@@ -1,3 +1,4 @@
+import datetime
 import json
 from base64 import b64decode, b64encode
 
@@ -91,13 +92,14 @@ class IntegrationRepository:
     @staticmethod
     def update_integraion_meta_data(user_integration_id: int, meta_data: dict):
         UserIntegration.objects.filter(id=user_integration_id, is_revoked=False).update(
-            meta_data=IntegrationRepository.encrypt_meta_data(meta_data=meta_data)
+            meta_data=IntegrationRepository.encrypt_meta_data(meta_data=meta_data),
+            updated_at=datetime.datetime.now(),
         )
 
     @staticmethod
     def update_integraion_configuration(user_integration_id: int, configuration: dict):
         UserIntegration.objects.filter(id=user_integration_id, is_revoked=False).update(
-            configuration=configuration
+            updated_at=datetime.datetime.now(), configuration=configuration
         )
 
     @staticmethod
@@ -114,7 +116,10 @@ class IntegrationRepository:
         """
         if isinstance(user_integrations, list):
             UserIntegration.objects.filter(id__in=user_integrations).update(
-                is_revoked=True
+                updated_at=datetime.datetime.now(), is_revoked=True
             )
         elif isinstance(user_integrations, int):
-            UserIntegration.objects.filter(id=user_integrations).update(is_revoked=True)
+            UserIntegration.objects.filter(id=user_integrations).update(
+                is_revoked=True,
+                updated_at=datetime.datetime.now(),
+            )

@@ -1,3 +1,5 @@
+import datetime
+
 from django.db import transaction
 
 from task.models import Task
@@ -21,24 +23,33 @@ class TaskRepository:
     @staticmethod
     def update(filters: dict, updates: dict):
         """Updates a task."""
-        Task.objects.filter(**filters).update(**updates)
+        Task.objects.filter(**filters).update(
+            **updates, updated_at=datetime.datetime.now()
+        )
 
     @staticmethod
     @transaction.atomic
     def delete_bulk(task_uids: list, user_id: int):
         Task.objects.filter(
             uid__in=task_uids, is_deleted=False, user_id=user_id
-        ).update(is_deleted=True)
+        ).update(is_deleted=True, updated_at=datetime.datetime.now())
 
     @staticmethod
     def undelete(task_uid: str):
-        Task.objects.filter(uid=task_uid, is_deleted=True).update(is_deleted=False)
+        Task.objects.filter(uid=task_uid, is_deleted=True).update(
+            is_deleted=False, updated_at=datetime.datetime.now()
+        )
 
     @staticmethod
     @transaction.atomic
     def update_bulk(task_data: list):
         task_uids = [task["uid"] for task in task_data]
-        tasks_to_update = list(Task.objects.filter(uid__in=task_uids))
+        tasks_to_update = list(
+            Task.objects.filter(
+                uid__in=task_uids,
+            )
+        )
+
         uid_to_data = {task["uid"]: task for task in task_data}
 
         # Update the task objects based on the dictionaries
@@ -47,7 +58,8 @@ class TaskRepository:
             task.name = data["name"]
             task.description = data["description"]
             task.meta_data = data["meta_data"]
+            task.updated_at = datetime.datetime.now()
 
         # Now use bulk_update
-        fields = ["name", "description", "meta_data"]
+        fields = ["name", "description", "meta_data", "updated_at"]
         Task.objects.bulk_update(tasks_to_update, fields)

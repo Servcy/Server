@@ -1,3 +1,5 @@
+import datetime
+
 from django.db import transaction
 
 from project.models import Project
@@ -21,7 +23,9 @@ class ProjectRepository:
     @staticmethod
     def update(filters: dict, updates: dict):
         """Updates a project."""
-        Project.objects.filter(**filters).update(**updates)
+        Project.objects.filter(**filters).update(
+            **updates, updated_at=datetime.datetime.now()
+        )
 
     @staticmethod
     def create_bulk(projects: list) -> list:
@@ -32,20 +36,24 @@ class ProjectRepository:
     @transaction.atomic
     def delete_bulk(project_uids: list):
         Project.objects.filter(uid__in=project_uids, is_deleted=False).update(
-            is_deleted=True
+            is_deleted=True, updated_at=datetime.datetime.now()
         )
 
     @staticmethod
     def undelete(project_uid: str):
         Project.objects.filter(uid=project_uid, is_deleted=True).update(
-            is_deleted=False
+            is_deleted=False, updated_at=datetime.datetime.now()
         )
 
     @staticmethod
     @transaction.atomic
     def update_bulk(project_data: list):
         project_uids = [project["uid"] for project in project_data]
-        projects_to_update = list(Project.objects.filter(uid__in=project_uids))
+        projects_to_update = list(
+            Project.objects.filter(
+                uid__in=project_uids,
+            )
+        )
         uid_to_data = {project["uid"]: project for project in project_data}
 
         # Update the project objects based on the dictionaries
@@ -54,7 +62,8 @@ class ProjectRepository:
             project.name = data["name"]
             project.description = data["description"]
             project.meta_data = data["meta_data"]
+            project.updated_at = datetime.datetime.now()
 
         # Now use bulk_update
-        fields = ["name", "description", "meta_data"]
+        fields = ["name", "description", "meta_data", "updated_at"]
         Project.objects.bulk_update(projects_to_update, fields)

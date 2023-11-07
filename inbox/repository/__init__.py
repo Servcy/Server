@@ -1,3 +1,5 @@
+import datetime
+
 from inbox.models import Inbox
 
 
@@ -24,4 +26,6 @@ class InboxRepository:
         """
         Archive an item in the inbox.
         """
-        return Inbox.objects.filter(id__in=item_ids).update(is_archived=True)
+        return Inbox.objects.filter(id__in=item_ids).update(
+            is_archived=True, updated_at=datetime.datetime.now()
+        )
