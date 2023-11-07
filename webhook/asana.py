@@ -3,6 +3,7 @@ import logging
 import traceback
 import uuid
 
+import asana
 from django.db import transaction
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -234,6 +235,17 @@ def asana(request, user_integration_id):
                 },
             )
             return HttpResponse(status=400, content="Bad Request")
+    except asana.error.NotFoundError as err:
+        logger.exception(
+            f"Not found error occurred while processing asana webhook.",
+            extra={
+                "body": body,
+                "headers": headers,
+                "user_integration_id": user_integration_id,
+                "traceback": traceback.format_exc(),
+            },
+        )
+        return HttpResponse(status=200, content="OK")
     except Exception:
         logger.exception(
             f"An error occurred while processing asana webhook.",
