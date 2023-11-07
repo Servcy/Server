@@ -113,7 +113,9 @@ def trello(request, user_integration_id):
             "body": json.dumps(action),
             "cause": json.dumps(body["action"]["memberCreator"]),
             "user_integration_id": user_integration_id,
-            "category": "project",
+            "category": "notification"
+            if "comment" not in action["type"]
+            else "comment",
         }
         InboxRepository.add_items([inbox_item])
         user_integration = IntegrationRepository.get_user_integration(

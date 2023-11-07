@@ -81,7 +81,7 @@ def asana(request, user_integration_id):
                             ),
                             "cause": json.dumps(causing_user),
                             "user_integration_id": user_integration_id,
-                            "category": "project",
+                            "category": "notification",
                         }
                     )
                     if action == "added":
@@ -114,7 +114,7 @@ def asana(request, user_integration_id):
                             ),
                             "cause": json.dumps(causing_user),
                             "user_integration_id": user_integration_id,
-                            "category": "project",
+                            "category": "notification",
                         }
                     )
                     if action == "changed":
