@@ -123,7 +123,7 @@ def asana(request, user_integration_id):
                     event["resource"]["resource_type"] == "story"
                     and event["resource"]["resource_subtype"] == "comment_added"
                 ):
-                    task = asana_service.get_task(event["resource"]["parent"]["gid"])
+                    task = asana_service.get_task(event["parent"]["gid"])
                     comment = asana_service.get_story(event["resource"]["gid"])
                     inbox_items.append(
                         {
