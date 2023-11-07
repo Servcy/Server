@@ -9,6 +9,7 @@ from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
+from common.exceptions import ExternalIntegrationException
 from inbox.repository import InboxRepository
 from integration.repository import IntegrationRepository
 from integration.services.asana import AsanaService
@@ -97,7 +98,10 @@ def asana(request, user_integration_id):
                 elif event["resource"]["resource_type"] == "task":
                     action = event["action"]
                     task_uid = event["resource"]["gid"]
-                    task = asana_service.get_task(task_uid)
+                    try:
+                        task = asana_service.get_task(task_uid)
+                    except ExternalIntegrationException:
+                        continue
                     inbox_items.append(
                         {
                             "uid": str(uuid.uuid4()),
@@ -125,7 +129,10 @@ def asana(request, user_integration_id):
                     event["resource"]["resource_type"] == "story"
                     and event["resource"]["resource_subtype"] == "comment_added"
                 ):
-                    task = asana_service.get_task(event["parent"]["gid"])
+                    try:
+                        task = asana_service.get_task(event["parent"]["gid"])
+                    except ExternalIntegrationException:
+                        continue
                     comment = asana_service.get_story(event["resource"]["gid"])
                     inbox_items.append(
                         {
@@ -248,10 +255,7 @@ def asana(request, user_integration_id):
                 },
             )
             return HttpResponse(status=200, content="OK")
-    except Exception as err:
-        error_class = err.__class__.__name__
-        if error_class == "asana.error:NotFoundError":
-            return HttpResponse(status=200, content="OK")
+    except Exception:
         logger.exception(
             f"An error occurred while processing asana webhook.",
             extra={

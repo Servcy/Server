@@ -2,7 +2,7 @@ import asana
 import requests
 from django.conf import settings
 
-from common.exceptions import ServcyOauthCodeException
+from common.exceptions import ExternalIntegrationException, ServcyOauthCodeException
 from integration.models import UserIntegration
 from integration.repository import IntegrationRepository
 from project.repository import ProjectRepository
@@ -228,10 +228,15 @@ class AsanaService(BaseService):
 
     def get_task(self, task_gid: str) -> dict:
         """Get task details."""
-        if not self.client:
-            self.client = asana.Client.access_token(self._token["access_token"])
-        task = self.client.tasks.get_task(task_gid, opt_pretty=True)
-        return task
+        try:
+            if not self.client:
+                self.client = asana.Client.access_token(self._token["access_token"])
+            task = self.client.tasks.get_task(task_gid, opt_pretty=True)
+            return task
+        except Exception as err:
+            error_class = err.__class__.__name__
+            if error_class == "asana.error:NotFoundError":
+                raise ExternalIntegrationException("Asana task not found.")
 
     def get_user(self, user_gid: str) -> dict:
         """Get user details."""
