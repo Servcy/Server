@@ -61,6 +61,7 @@ def asana(request, user_integration_id):
                         f"Received an event with no user gid from Asana webhook.",
                         extra={"event": event},
                     )
+                causing_user = asana_service.get_user(event["user"]["gid"])
                 if event["resource"]["resource_type"] == "project":
                     action = event["action"]
                     project_uid = event["resource"]["gid"]
@@ -75,7 +76,7 @@ def asana(request, user_integration_id):
                                     **event,
                                 }
                             ),
-                            "cause": event["user"]["name"],
+                            "cause": json.dumps(causing_user),
                             "user_integration_id": user_integration_id,
                             "category": "project",
                         }
@@ -103,7 +104,7 @@ def asana(request, user_integration_id):
                                     **event,
                                 }
                             ),
-                            "cause": event["user"]["name"],
+                            "cause": json.dumps(causing_user),
                             "user_integration_id": user_integration_id,
                             "category": "project",
                         }
@@ -125,7 +126,7 @@ def asana(request, user_integration_id):
                             "uid": str(uuid.uuid4()),
                             "title": f"Comment added to task {event['resource']['name']}",
                             "body": json.dumps(event),
-                            "cause": event["user"]["name"],
+                            "cause": json.dumps(causing_user),
                             "user_integration_id": user_integration_id,
                             "category": "comment",
                         }
@@ -235,7 +236,7 @@ def asana(request, user_integration_id):
                 },
             )
             return HttpResponse(status=400, content="Bad Request")
-    except asana.error.NotFoundError as err:
+    except asana.error.NotFoundError:
         logger.exception(
             f"Not found error occurred while processing asana webhook.",
             extra={
