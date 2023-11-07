@@ -237,6 +237,7 @@ class AsanaService(BaseService):
             error_class = err.__class__.__name__
             if error_class == "asana.error:NotFoundError":
                 raise ExternalIntegrationException("Asana task not found.")
+            raise err
 
     def get_user(self, user_gid: str) -> dict:
         """Get user details."""
