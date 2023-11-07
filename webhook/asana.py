@@ -82,7 +82,9 @@ def asana(request, user_integration_id):
                         }
                     )
                     if action == "added":
-                        asana_service.create_task_monitoring_webhook(project_uid)
+                        asana_service.create_task_monitoring_webhook(
+                            project_uid, user_integration_id
+                        )
                         projects_to_create.append(project)
                     if action == "changed":
                         projects_to_update.append(project)

@@ -98,7 +98,9 @@ class AsanaService(BaseService):
                     uid=project["gid"],
                     meta_data=project,
                 )
-                self.create_task_monitoring_webhook(project["gid"])
+                self.create_task_monitoring_webhook(
+                    project["gid"], user_integration_id=self.user_integration.id
+                )
 
     def create_integration(self, user_id: int) -> UserIntegration:
         """Creates integration for user."""
@@ -114,13 +116,13 @@ class AsanaService(BaseService):
         self._establish_webhooks(user_id)
         return self.user_integration
 
-    def create_task_monitoring_webhook(self, project_id):
+    def create_task_monitoring_webhook(self, project_id, user_integration_id):
         if not self.client:
             self.client = asana.Client.access_token(self._token["access_token"])
         try:
             self.client.webhooks.create_webhook(
                 resource=project_id,
-                target=f"{settings.BACKEND_URL}/webhook/asana/{self.user_integration.id}",
+                target=f"{settings.BACKEND_URL}/webhook/asana/{user_integration_id}",
                 opt_pretty=True,
                 filters=[
                     {
