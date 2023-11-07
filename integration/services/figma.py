@@ -147,6 +147,13 @@ class FigmaService(BaseService):
         self._refresh_token(meta_data["token"]["refresh_token"])
         IntegrationRepository.update_integraion_meta_data(
             user_integration_id=kwargs["user_integration_id"],
-            meta_data={**meta_data, "token": self._token},
+            meta_data={
+                **meta_data,
+                "token": {
+                    **meta_data["token"],
+                    "access_token": self._token["access_token"],
+                    "expires_in": self._token["expires_in"],
+                },
+            },
         )
         return True

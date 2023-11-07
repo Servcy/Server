@@ -19,6 +19,11 @@ class ProjectRepository:
         )
 
     @staticmethod
+    def update(filters: dict, updates: dict):
+        """Updates a project."""
+        Project.objects.filter(**filters).update(**updates)
+
+    @staticmethod
     def create_bulk(projects: list) -> list:
         """Creates bulk projects."""
         return Project.objects.bulk_create(projects)
