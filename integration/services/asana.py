@@ -239,3 +239,10 @@ class AsanaService(BaseService):
             self.client = asana.Client.access_token(self._token["access_token"])
         user = self.client.users.get_user(user_gid, opt_pretty=True)
         return user
+
+    def get_story(self, story_gid: str) -> dict:
+        """Get story details."""
+        if not self.client:
+            self.client = asana.Client.access_token(self._token["access_token"])
+        story = self.client.stories.get_story(story_gid, opt_pretty=True)
+        return story
