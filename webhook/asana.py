@@ -3,7 +3,6 @@ import logging
 import traceback
 import uuid
 
-import asana
 from django.db import transaction
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
