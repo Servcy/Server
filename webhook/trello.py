@@ -7,47 +7,47 @@ import traceback
 import uuid
 
 from django.conf import settings
-from django.db import transaction
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
 from inbox.repository import InboxRepository
 from integration.repository import IntegrationRepository
-from integration.services.trello import TrelloService
 from project.repository import ProjectRepository
 from task.repository import TaskRepository
 
 logger = logging.getLogger(__name__)
 
 EVENT_MAP = {
-    "addAttachmentToCard": "An attachment was added to a card",  # TODO: handle during document module creation
-    "addChecklistToCard": "A checklist was added to a card",
-    "addMemberToBoard": "A member was added to a board",
-    "addMemberToCard": "A member was added to a card",
-    "commentCard": "Someone commented on a card",  # TODO: handle during inbox module integration
-    "convertToCardFromCheckItem": "Converted a check item to a card",
     "createBoard": "Created a board",
+    "updateBoard": "Updated board details",
+    "convertToCardFromCheckItem": "Converted a check item to a card",
     "createCard": "Created a card",
     "deleteCard": "Deleted a card",
-    "moveCardFromBoard": "Moved a card from one board to another",
-    "moveCardToBoard": "Moved a card to a different board",
-    "moveListFromBoard": "Moved a list from one board to another",
-    "moveListToBoard": "Moved a list to a different board",
-    "removeChecklistFromCard": "Removed a checklist from a card",
-    "updateBoard": "Updated board details",
     "updateCard": "Updated card details",
+    # TODO: handle during inbox module integration
+    "removeChecklistFromCard": "Removed a checklist from a card",
     "updateCheckItemStateOnCard": "Updated check item state on a card",
     "updateChecklist": "Updated checklist details",
     "updateList": "Updated list details",
     "addLabelToCard": "A label was added to a card",
     "createCheckItem": "Created a check item",
-    "deleteAttachmentFromCard": "Deleted an attachment from a card",  # TODO: handle during document module creation
     "deleteCheckItem": "Deleted a check item",
-    "deleteComment": "Someone deleted their comment on a card",  # TODO: handle during inbox module integration
     "removeLabelFromCard": "Removed a label from a card",
     "updateCheckItem": "Updated check item details",
-    "updateComment": "Someone updated their comment on a card",  # TODO: handle during inbox module integration
+    "addChecklistToCard": "A checklist was added to a card",
+    "addMemberToCard": "A member was added to a card",
+    "addMemberToBoard": "A member was added to a board",
+    "moveCardFromBoard": "Moved a card from one board to another",
+    "moveCardToBoard": "Moved a card to a different board",
+    "moveListFromBoard": "Moved a list from one board to another",
+    "moveListToBoard": "Moved a list to a different board",
+    "deleteComment": "Someone deleted their comment on a card",
+    "updateComment": "Someone updated their comment on a card",
+    "commentCard": "Someone commented on a card",
+    # TODO: handle during document module creation
+    "deleteAttachmentFromCard": "Deleted an attachment from a card",
+    "addAttachmentToCard": "An attachment was added to a card",
 }
 
 
@@ -116,6 +116,60 @@ def trello(request, user_integration_id):
             "category": "project",
         }
         InboxRepository.add_items([inbox_item])
+        user_integration = IntegrationRepository.get_user_integration(
+            {
+                "id": user_integration_id,
+                "integration__name": "Trello",
+            }
+        )
+        if action["type"] == "createBoard":
+            ProjectRepository.create(
+                uid=action["data"]["board"]["id"],
+                user_integration_id=user_integration.id,
+                user_id=user_integration.user.id,
+                name=action["data"]["board"]["name"],
+                description=action["data"]["board"]["desc"],
+                meta_data=action["data"]["board"],
+            )
+        if action["type"] == "updateBoard":
+            ProjectRepository.update(
+                filters={
+                    "uid": action["data"]["board"]["id"],
+                    "user_integration_id": user_integration_id,
+                },
+                updates={
+                    "name": action["data"]["board"]["name"],
+                    "description": action["data"]["board"]["desc"],
+                    "meta_data": action["data"]["board"],
+                },
+            )
+        if action["type"] in [
+            "createCard",
+            "convertToCardFromCheckItem",
+        ]:
+            TaskRepository.create(
+                uid=action["data"]["card"]["id"],
+                user_id=user_integration.user_id,
+                name=action["data"]["card"]["name"],
+                description=action["data"]["card"]["desc"],
+                meta_data=action["data"]["card"],
+                project_uid=action["data"]["board"]["id"],
+            )
+        if action["type"] == "updateCard":
+            TaskRepository.update(
+                filters={
+                    "uid": action["data"]["card"]["id"],
+                    "user_id": user_integration.user_id,
+                },
+                updates={
+                    "name": action["data"]["card"]["name"],
+                    "description": action["data"]["card"]["desc"],
+                    "meta_data": action["data"]["card"],
+                },
+            )
+        if action["type"] == "deleteCard":
+            TaskRepository.delete_bulk([action["data"]["card"]["id"]])
+        return HttpResponse(status=200)
     except Exception:
         logger.exception(
             f"An error occurred while processing trello webhook.",
