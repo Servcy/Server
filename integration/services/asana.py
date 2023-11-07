@@ -233,11 +233,8 @@ class AsanaService(BaseService):
                 self.client = asana.Client.access_token(self._token["access_token"])
             task = self.client.tasks.get_task(task_gid, opt_pretty=True)
             return task
-        except Exception as err:
-            error_class = err.__class__.__name__
-            if error_class == "asana.error:NotFoundError":
-                raise ExternalIntegrationException("Asana task not found.")
-            raise err
+        except asana.error.NotFoundError as err:
+            raise ExternalIntegrationException("Asana task not found.")
 
     def get_user(self, user_gid: str) -> dict:
         """Get user details."""
