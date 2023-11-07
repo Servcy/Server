@@ -248,7 +248,10 @@ def asana(request, user_integration_id):
                 },
             )
             return HttpResponse(status=200, content="OK")
-    except Exception:
+    except Exception as err:
+        error_class = err.__class__.__name__
+        if error_class == "asana.error:NotFoundError":
+            return HttpResponse(status=200, content="OK")
         logger.exception(
             f"An error occurred while processing asana webhook.",
             extra={
