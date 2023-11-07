@@ -24,6 +24,8 @@ def asana(request, user_integration_id):
     try:
         body = json.loads(request.body)
         headers = request.headers
+        if body == {}:
+            return HttpResponse(status=200, content="OK")
         if "X-Hook-Secret" in headers:
             return HttpResponse(
                 status=200, headers={"X-Hook-Secret": headers["X-Hook-Secret"]}
