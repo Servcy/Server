@@ -145,7 +145,6 @@ def asana(request, user_integration_id):
                             "title": title,
                             "body": json.dumps(
                                 {
-                                    "task": task,
                                     "comment": comment,
                                     **event,
                                 }
