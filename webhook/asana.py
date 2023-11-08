@@ -128,15 +128,21 @@ def asana(request, user_integration_id):
                     event["resource"]["resource_type"] == "story"
                     and event["resource"]["resource_subtype"] == "comment_added"
                 ):
-                    try:
-                        task = asana_service.get_task(event["parent"]["gid"])
-                    except ExternalIntegrationException:
-                        continue
+                    action = event.get("action", "")
                     comment = asana_service.get_story(event["resource"]["gid"])
+                    task = None
+                    if action == "added":
+                        try:
+                            task = asana_service.get_task(event["parent"]["gid"])
+                        except ExternalIntegrationException:
+                            continue
+                        title = f"Comment added to task: {task['name']}"
+                    elif action == "changed":
+                        title = "A comment on the task was updated"
                     inbox_items.append(
                         {
                             "uid": str(uuid.uuid4()),
-                            "title": f"Comment added to task: {task['name']}",
+                            "title": title,
                             "body": json.dumps(
                                 {
                                     "task": task,
