@@ -20,4 +20,3 @@ env/
 .autogen/
 static/
 servcy-gcp-service-account-key.json
-tokens
