@@ -31,6 +31,11 @@ class AuthenticationView(APIView):
     def get(self, request):
         """Send OTP code to email or phone number."""
         try:
+            if settings.DEBUG:
+                return success_response(
+                    success_message="Verification code has been faked for debug environment!",
+                    status=status.HTTP_201_CREATED,
+                )
             payload = request.query_params
             input = payload.get("input")
             input_type = payload.get("input_type")
@@ -48,7 +53,7 @@ class AuthenticationView(APIView):
                 success_message="Verification code has been sent!",
                 status=status.HTTP_201_CREATED,
             )
-        except Exception as err:
+        except Exception:
             return error_response(
                 logger=logger,
                 logger_message="An error occurred while sending verification code.",
@@ -62,14 +67,19 @@ class AuthenticationView(APIView):
             otp = payload.get("otp", None)
             input = payload.get("input", None)
             input_type = payload.get("input_type", None)
+            code_verified = False
             if not otp or not input_type or not input:
                 return error_response(
                     error_message="otp, input and input_type are required!",
                     status=status.HTTP_406_NOT_ACCEPTABLE,
                 )
-            client = self._initialize_twilio_client()
-            verification_check = self._verify_code(client, otp, input, input_type)
-            if verification_check.status == "approved":
+            if not settings.DEBUG:
+                client = self._initialize_twilio_client()
+                verification_check = self._verify_code(client, otp, input, input_type)
+                code_verified = verification_check.status == "approved"
+            else:
+                code_verified = True
+            if code_verified:
                 account_service = AccountsService(input, input_type)
                 user = account_service.create_user_account()
                 refresh_token = JWTTokenSerializer.get_token(user)
@@ -89,7 +99,7 @@ class AuthenticationView(APIView):
                 logger_message="An error occurred while verifying verification code.",
                 status=status.HTTP_401_UNAUTHORIZED,
             )
-        except Exception as err:
+        except Exception:
             return error_response(
                 logger=logger,
                 logger_message="An error occurred while verifying verification code.",

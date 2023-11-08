@@ -365,7 +365,7 @@ def process_user_integration(
                 inbox_items,
                 configuration_map,
             )
-        except Exception as err:
+        except Exception:
             logger.exception(
                 f"An error occurred while fetching notion comments for page {page['page_id']}",
                 extra={

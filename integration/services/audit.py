@@ -34,7 +34,7 @@ def check_integration_status(service_class: BaseService, user_integration):
         return service_class().is_active(
             meta_data, user_integration_id=user_integration.id
         )
-    except Exception as err:
+    except Exception:
         return False
 
 

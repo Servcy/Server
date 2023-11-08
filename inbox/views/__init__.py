@@ -34,7 +34,7 @@ class InboxViewSet(ViewSet):
                 success_message="Inbox fetched successfully",
                 status=status.HTTP_200_OK,
             )
-        except Exception as err:
+        except Exception:
             return error_response(
                 logger=logger,
                 logger_message="Error while fetching inbox",
@@ -57,7 +57,7 @@ class InboxViewSet(ViewSet):
                 success_message="Inbox items archived successfully",
                 status=status.HTTP_200_OK,
             )
-        except Exception as err:
+        except Exception:
             return error_response(
                 logger=logger,
                 logger_message="Error while archiving inbox items",

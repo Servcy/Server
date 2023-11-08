@@ -68,7 +68,7 @@ def microsoft(request):
             },
         )
         return HttpResponse(status=200)
-    except Exception as err:
+    except Exception:
         logger.exception(
             f"An error occurred while processing notification.",
             exc_info=True,

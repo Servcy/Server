@@ -17,7 +17,7 @@ class LogoutView(APIView):
             token = RefreshToken(refresh_token)
             token.blacklist()
             return success_response(status=status.HTTP_205_RESET_CONTENT)
-        except Exception as err:
+        except Exception:
             return error_response(
                 logger=logger,
                 logger_message=f"An error occurred while logging out.",
