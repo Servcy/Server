@@ -239,13 +239,6 @@ def asana(request, user_integration_id):
                         meta_data=task,
                     )
                 InboxRepository.add_items(inbox_items)
-            logger.info(
-                "Asana webhook received.",
-                extra={
-                    "body": request.body,
-                    "user_integration_id": user_integration_id,
-                },
-            )
             return HttpResponse(
                 status=200, content="OK", content_type="application/json"
             )

@@ -98,13 +98,6 @@ def trello(request, user_integration_id):
             return HttpResponse(status=403)
         body = json.loads(request.body.decode())
         action = body["action"]
-        logger.info(
-            f"Received a request from Trello.",
-            extra={
-                "action": action,
-                "headers": headers,
-            },
-        )
         if action["type"] not in EVENT_MAP.keys():
             return HttpResponse(status=200)
         inbox_item = {

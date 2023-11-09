@@ -38,7 +38,7 @@ def github(request):
             GithubService.manage_github_repositories(payload)
             return HttpResponse(status=200)
         if event not in VALID_EVENTS:
-            logger.info(f"Received invalid github event: {event} - {payload}")
+            logger.warning(f"Received invalid github event: {event} - {payload}")
             return HttpResponse(status=200)
         installation_id = payload["installation"]["id"]
         user_integration = IntegrationRepository.get_user_integration(
