@@ -44,11 +44,12 @@ class AuthenticationView(APIView):
                     error_message="input and input_type are required!",
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            client = self._initialize_twilio_client()
-            if input_type == "email":
-                send_authentication_code_email(client, input)
-            else:
-                send_authentication_code_phone(client, f"+{input}", True)
+            if not settings.DEBUG:
+                client = self._initialize_twilio_client()
+                if input_type == "email":
+                    send_authentication_code_email(client, input)
+                else:
+                    send_authentication_code_phone(client, f"+{input}", True)
             return success_response(
                 success_message="Verification code has been sent!",
                 status=status.HTTP_201_CREATED,
