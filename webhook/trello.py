@@ -128,7 +128,7 @@ def trello(request, user_integration_id):
                 user_integration_id=user_integration.id,
                 user_id=user_integration.user.id,
                 name=action["data"]["board"]["name"],
-                description=action["data"]["board"]["desc"],
+                description=action["data"]["board"].get("desc", ""),
                 meta_data=action["data"]["board"],
             )
         if action["type"] == "updateBoard":
@@ -139,7 +139,7 @@ def trello(request, user_integration_id):
                 },
                 updates={
                     "name": action["data"]["board"]["name"],
-                    "description": action["data"]["board"]["desc"],
+                    "description": action["data"]["board"].get("desc", ""),
                     "meta_data": action["data"]["board"],
                 },
             )
