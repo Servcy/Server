@@ -4,7 +4,6 @@ import hmac
 import json
 import logging
 import traceback
-import uuid
 
 from django.conf import settings
 from django.http import HttpResponse
@@ -101,7 +100,7 @@ def trello(request, user_integration_id):
         if action["type"] not in EVENT_MAP.keys():
             return HttpResponse(status=200)
         inbox_item = {
-            "uid": str(uuid.uuid4()),
+            "uid": f"trello-{action['id']}",
             "title": EVENT_MAP[action["type"]],
             "body": json.dumps(action),
             "cause": json.dumps(body["action"]["memberCreator"]),
@@ -110,7 +109,13 @@ def trello(request, user_integration_id):
             if "comment" not in action["type"]
             else "comment",
         }
-        InboxRepository.add_items([inbox_item])
+        try:
+            InboxRepository.add_items([inbox_item])
+        except Exception as err:
+            if "duplicate key value violates unique constraint" in str(err):
+                return HttpResponse(status=200)
+            raise err
+
         user_integration = IntegrationRepository.get_user_integration(
             {
                 "id": user_integration_id,
