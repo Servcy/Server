@@ -151,7 +151,7 @@ def trello(request, user_integration_id):
                 uid=action["data"]["card"]["id"],
                 user_id=user_integration.user_id,
                 name=action["data"]["card"]["name"],
-                description=action["data"]["card"]["desc"],
+                description=action["data"]["card"].get("desc", ""),
                 meta_data=action["data"]["card"],
                 project_uid=action["data"]["board"]["id"],
             )
@@ -163,7 +163,7 @@ def trello(request, user_integration_id):
                 },
                 updates={
                     "name": action["data"]["card"]["name"],
-                    "description": action["data"]["card"]["desc"],
+                    "description": action["data"]["card"].get("desc", ""),
                     "meta_data": action["data"]["card"],
                 },
             )
