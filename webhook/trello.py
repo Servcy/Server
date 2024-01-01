@@ -24,7 +24,6 @@ EVENT_MAP = {
     "createCard": "Created a card",
     "deleteCard": "Deleted a card",
     "updateCard": "Updated card details",
-    # TODO: handle during inbox module integration
     "removeChecklistFromCard": "Removed a checklist from a card",
     "updateCheckItemStateOnCard": "Updated check item state on a card",
     "updateChecklist": "Updated checklist details",
