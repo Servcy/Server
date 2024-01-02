@@ -15,7 +15,6 @@ class IntegrationSerializer(ServcyReadSerializer):
             "name",
             "description",
             "logo",
-            "account_display_name",
             "account_id",
             "is_wip",
             "configure_at",
