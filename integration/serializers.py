@@ -6,7 +6,7 @@ from integration.models import Integration, UserIntegration
 
 
 class IntegrationSerializer(ServcyReadSerializer):
-    account_display_names = MethodField()
+    is_connected = MethodField()
 
     class Meta:
         model = Integration
@@ -21,12 +21,8 @@ class IntegrationSerializer(ServcyReadSerializer):
             "configure_at",
         )
 
-    def get_account_display_names(self, obj):
-        user_integrations = obj.user_integrations.filter(is_revoked=False).all()
-        return [
-            user_integration.account_display_name
-            for user_integration in user_integrations
-        ]
+    def get_is_connected(self, obj):
+        return obj.user_integrations.filter(is_revoked=False).exists()
 
 
 class UserIntegrationSerializer(ModelSerializer):
