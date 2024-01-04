@@ -1,15 +1,15 @@
 import logging
 
 from rest_framework import status
-from rest_framework.viewsets import GenericViewSet, mixins, ViewSet
+from rest_framework.decorators import action
+from rest_framework.viewsets import GenericViewSet, ViewSet, mixins
 
 from common.exceptions import ExternalIntegrationException
 from common.responses import error_response, success_response
+from integration.models import DisabledUserIntegrationEvent, IntegrationEvent
 from integration.repository import IntegrationRepository
-from rest_framework.decorators import action
 from integration.serializers import IntegrationSerializer, UserIntegrationSerializer
 from integration.services.figma import FigmaService
-from integration.models import DisabledUserIntegrationEvent, IntegrationEvent
 
 logger = logging.getLogger(__name__)
 
