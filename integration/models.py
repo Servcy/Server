@@ -58,6 +58,7 @@ class IntegrationEvent(TimeStampedModel):
         related_name="integration_events",
     )
     event_type = models.CharField(max_length=250, null=False, blank=False)
+    description = models.TextField(default=None, null=True, blank=False)
 
     class Meta:
         db_table = "integration_event"
