@@ -2,9 +2,9 @@ from django.urls import include, path
 from rest_framework import routers
 
 from integration.views import (
+    IntegrationEventViewSet,
     IntegrationViewSet,
     UserIntegrationViewSet,
-    IntegrationEventViewSet,
 )
 from integration.views.oauth import OauthViewset
 

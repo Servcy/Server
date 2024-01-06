@@ -100,15 +100,15 @@ class IntegrationEventViewSet(ViewSet):
                     logger_message="Integration id is required",
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            event_type = request.data.get("event_type")
-            if not event_type:
+            event_id = int(request.data.get("event_id", 0))
+            if not event_id:
                 return error_response(
                     logger=logger,
-                    logger_message="Event type is required",
+                    logger_message="Event id is required",
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             integration_event = IntegrationEvent.objects.filter(
-                integration_id=integration_id, event_type=event_type
+                id=event_id, integration_id=integration_id
             ).first()
             if not integration_event:
                 return error_response(
@@ -156,15 +156,15 @@ class IntegrationEventViewSet(ViewSet):
                     logger_message="Integration id is required",
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            event_type = request.data.get("event_type")
-            if not event_type:
+            event_id = int(request.data.get("event_id", 0))
+            if not event_id:
                 return error_response(
                     logger=logger,
-                    logger_message="Event type is required",
+                    logger_message="Event id is required",
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             integration_event = IntegrationEvent.objects.filter(
-                integration_id=integration_id, event_type=event_type
+                integration_id=integration_id, id=event_id
             ).first()
             if not integration_event:
                 return error_response(
@@ -216,7 +216,8 @@ class IntegrationEventViewSet(ViewSet):
             integration_events = [
                 {
                     "id": integration_event.id,
-                    "event_type": integration_event.event_type,
+                    "description": integration_event.description,
+                    "name": integration_event.name,
                     "is_disabled": integration_event.id
                     in disabled_user_integration_events,
                 }
