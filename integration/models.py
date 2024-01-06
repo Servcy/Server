@@ -57,14 +57,14 @@ class IntegrationEvent(TimeStampedModel):
         blank=False,
         related_name="integration_events",
     )
-    event_type = models.CharField(max_length=250, null=False, blank=False)
+    name = models.CharField(max_length=250, null=False, blank=False)
     description = models.TextField(default=None, null=True, blank=False)
 
     class Meta:
         db_table = "integration_event"
         verbose_name = "Integration Event"
         verbose_name_plural = "Integration Event"
-        unique_together = ("integration", "event_type")
+        unique_together = ("integration", "name")
 
 
 class DisabledUserIntegrationEvent(TimeStampedModel):
