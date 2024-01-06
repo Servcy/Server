@@ -10,9 +10,9 @@ from integration.views.oauth import OauthViewset
 
 router = routers.DefaultRouter(trailing_slash=False)
 router.register("oauth", OauthViewset, basename="oauth")
-router.register("user_integration", UserIntegrationViewSet, basename="user_integration")
+router.register("user-integration", UserIntegrationViewSet, basename="user_integration")
 router.register(
-    "integration_event", IntegrationEventViewSet, basename="integration_event"
+    "integration-event", IntegrationEventViewSet, basename="integration_event"
 )
 router.register("", IntegrationViewSet, basename="integration")
 
