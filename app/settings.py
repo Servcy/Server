@@ -318,7 +318,7 @@ CRONJOBS = [
         "integration.services.slack.update_members",
     ),
     (
-        "0 0 * * *",
+        "0 0 * * *",  # special case for notion, because notion doesn't have webhooks
         "integration.services.notion.poll_new_comments",
     ),
     (
