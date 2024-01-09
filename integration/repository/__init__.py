@@ -5,7 +5,11 @@ from base64 import b64decode, b64encode
 from cryptography.fernet import Fernet
 from django.conf import settings
 
-from integration.models import Integration, UserIntegration
+from integration.models import (
+    Integration,
+    UserIntegration,
+    DisabledUserIntegrationEvent,
+)
 
 
 class IntegrationRepository:
@@ -123,3 +127,14 @@ class IntegrationRepository:
                 is_revoked=True,
                 updated_at=datetime.datetime.now(),
             )
+
+    @staticmethod
+    def get_disabled_user_integration_events(
+        user_integration_id: int,
+    ) -> list[str]:
+        """
+        Fetch all disabled user integration events.
+        """
+        return DisabledUserIntegrationEvent.objects.filter(
+            user_integration_id=user_integration_id
+        ).values_list("integration_event__name", flat=True)
