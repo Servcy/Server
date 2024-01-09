@@ -42,6 +42,11 @@ def asana(request, user_integration_id):
             tasks_to_update = []
             inbox_items = []
             projects_to_update = []
+            disabled_events = (
+                IntegrationRepository.get_disabled_user_integration_events(
+                    user_integration_id=user_integration_id
+                )
+            )
             for event in events:
                 if event.get("action", "") == "sync_error":
                     continue
@@ -68,21 +73,22 @@ def asana(request, user_integration_id):
                     action = event["action"]
                     project_uid = event["resource"]["gid"]
                     project = asana_service.get_project(project_uid)
-                    inbox_items.append(
-                        {
-                            "uid": str(uuid.uuid4()),
-                            "title": f"Project {project['name']} {action}",
-                            "body": json.dumps(
-                                {
-                                    "project": project,
-                                    **event,
-                                }
-                            ),
-                            "cause": json.dumps(causing_user),
-                            "user_integration_id": user_integration_id,
-                            "category": "notification",
-                        }
-                    )
+                    if event["resource"]["resource_type"] not in disabled_events:
+                        inbox_items.append(
+                            {
+                                "uid": str(uuid.uuid4()),
+                                "title": f"Project {project['name']} {action}",
+                                "body": json.dumps(
+                                    {
+                                        "project": project,
+                                        **event,
+                                    }
+                                ),
+                                "cause": json.dumps(causing_user),
+                                "user_integration_id": user_integration_id,
+                                "category": "notification",
+                            }
+                        )
                     if action == "added":
                         asana_service.create_task_monitoring_webhook(
                             project_uid, user_integration_id
@@ -101,21 +107,22 @@ def asana(request, user_integration_id):
                         task = asana_service.get_task(task_uid)
                     except ExternalIntegrationException:
                         continue
-                    inbox_items.append(
-                        {
-                            "uid": str(uuid.uuid4()),
-                            "title": f"Task {task['name']} {action}",
-                            "body": json.dumps(
-                                {
-                                    "task": task,
-                                    **event,
-                                }
-                            ),
-                            "cause": json.dumps(causing_user),
-                            "user_integration_id": user_integration_id,
-                            "category": "notification",
-                        }
-                    )
+                    if event["resource"]["resource_type"] not in disabled_events:
+                        inbox_items.append(
+                            {
+                                "uid": str(uuid.uuid4()),
+                                "title": f"Task {task['name']} {action}",
+                                "body": json.dumps(
+                                    {
+                                        "task": task,
+                                        **event,
+                                    }
+                                ),
+                                "cause": json.dumps(causing_user),
+                                "user_integration_id": user_integration_id,
+                                "category": "notification",
+                            }
+                        )
                     if action == "changed":
                         tasks_to_update.append(task)
                     elif action == "added":
@@ -139,21 +146,22 @@ def asana(request, user_integration_id):
                         title = f"Comment added to task: {task['name']}"
                     elif action == "changed":
                         title = "A comment on the task was updated"
-                    inbox_items.append(
-                        {
-                            "uid": str(uuid.uuid4()),
-                            "title": title,
-                            "body": json.dumps(
-                                {
-                                    "comment": comment,
-                                    **event,
-                                }
-                            ),
-                            "cause": json.dumps(causing_user),
-                            "user_integration_id": user_integration_id,
-                            "category": "comment",
-                        }
-                    )
+                    if event["resource"]["resource_type"] not in disabled_events:
+                        inbox_items.append(
+                            {
+                                "uid": str(uuid.uuid4()),
+                                "title": title,
+                                "body": json.dumps(
+                                    {
+                                        "comment": comment,
+                                        **event,
+                                    }
+                                ),
+                                "cause": json.dumps(causing_user),
+                                "user_integration_id": user_integration_id,
+                                "category": "comment",
+                            }
+                        )
                 else:
                     logger.warning(
                         f"Received an unknown event from Asana webhook.",

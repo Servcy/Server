@@ -42,6 +42,11 @@ def figma(request):
             },
             first=True,
         )
+        disabled_events = IntegrationRepository.get_disabled_user_integration_events(
+            user_integration_id=user_integration.id
+        )
+        if body["event_type"] in disabled_events:
+            return HttpResponse(status=200)
         InboxRepository.add_items(
             [
                 {

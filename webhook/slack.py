@@ -149,6 +149,13 @@ def slack(request):
         for user_integration in user_integrations:
             workspace_members = user_integration["configuration"] or []
             event_body = body["event"]
+            disabled_events = (
+                IntegrationRepository.get_disabled_user_integration_events(
+                    user_integration_id=user_integration["id"]
+                )
+            )
+            if body["event"]["type"] in disabled_events:
+                continue
             try:
                 mentions = [
                     mention[2:-1]

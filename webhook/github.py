@@ -47,6 +47,11 @@ def github(request):
                 "configuration__contains": [installation_id],
             },
         )
+        disabled_events = IntegrationRepository.get_disabled_user_integration_events(
+            user_integration_id=user_integration.id
+        )
+        if event in disabled_events:
+            return HttpResponse(status=200)
         title = f"{' '.join(event.split('_'))} {' '.join(payload.get('action', '').split('_'))}"
         title = title[0].upper() + title[1:]
         payload["event"] = event

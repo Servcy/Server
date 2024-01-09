@@ -98,22 +98,26 @@ def trello(request, user_integration_id):
         action = body["action"]
         if action["type"] not in EVENT_MAP.keys():
             return HttpResponse(status=200)
-        inbox_item = {
-            "uid": f"trello-{action['id']}",
-            "title": EVENT_MAP[action["type"]],
-            "body": json.dumps(action),
-            "cause": json.dumps(body["action"]["memberCreator"]),
-            "user_integration_id": user_integration_id,
-            "category": "notification"
-            if "comment" not in action["type"]
-            else "comment",
-        }
-        try:
-            InboxRepository.add_items([inbox_item])
-        except Exception as err:
-            if "duplicate key value violates unique constraint" in str(err):
-                return HttpResponse(status=200)
-            raise err
+        disabled_events = IntegrationRepository.get_disabled_user_integration_events(
+            user_integration_id=user_integration_id
+        )
+        if action["type"] not in disabled_events:
+            inbox_item = {
+                "uid": f"trello-{action['id']}",
+                "title": EVENT_MAP[action["type"]],
+                "body": json.dumps(action),
+                "cause": json.dumps(body["action"]["memberCreator"]),
+                "user_integration_id": user_integration_id,
+                "category": "notification"
+                if "comment" not in action["type"]
+                else "comment",
+            }
+            try:
+                InboxRepository.add_items([inbox_item])
+            except Exception as err:
+                if "duplicate key value violates unique constraint" in str(err):
+                    return HttpResponse(status=200)
+                raise err
 
         user_integration = IntegrationRepository.get_user_integration(
             {
