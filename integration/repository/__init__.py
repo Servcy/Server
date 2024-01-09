@@ -6,9 +6,9 @@ from cryptography.fernet import Fernet
 from django.conf import settings
 
 from integration.models import (
+    DisabledUserIntegrationEvent,
     Integration,
     UserIntegration,
-    DisabledUserIntegrationEvent,
 )
 
 
