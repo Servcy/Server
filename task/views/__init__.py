@@ -8,7 +8,7 @@ from rest_framework.decorators import action
 from rest_framework.viewsets import ModelViewSet
 
 from common.responses import error_response, success_response
-from document.models import Document
+from document.repository.document import DocumentRepository
 from task.serializers import TaskSerializer
 
 logger = logging.getLogger(__name__)
@@ -35,7 +35,7 @@ class TaskViewSet(ModelViewSet):
             for file in files:
                 file_name = file.name
                 file.name = f"{user_id}_{file.name}_{int(time())}"
-                task_document = Document.objects.create(
+                task_document = DocumentRepository.create(
                     file=file,
                     user_id=user_id,
                     name=file_name,

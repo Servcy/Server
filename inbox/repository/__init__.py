@@ -1,5 +1,7 @@
 import datetime
 
+from django.db.models import Q
+
 from inbox.models import Inbox
 
 
@@ -29,3 +31,10 @@ class InboxRepository:
         return Inbox.objects.filter(id__in=item_ids).update(
             is_archived=True, updated_at=datetime.datetime.now()
         )
+
+    @staticmethod
+    def filter(query: Q) -> list[Inbox]:
+        """
+        Filter inbox items.
+        """
+        return Inbox.objects.filter(query)

@@ -6,10 +6,10 @@ from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.viewsets import ModelViewSet
 
-from client.models import Avatar
+from client.repository.avatar import AvatarRepository
 from client.serializers import ClientSerializer
 from common.responses import error_response, success_response
-from document.models import Document
+from document.repository.document import DocumentRepository
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +38,7 @@ class ClientViewSet(ModelViewSet):
             for file in files:
                 file_name = file.name
                 file.name = f"{user_id}_{file.name}_{int(time())}"
-                client_document = Document.objects.create(
+                client_document = DocumentRepository.create(
                     file=file,
                     user_id=user_id,
                     name=file_name,
@@ -68,7 +68,7 @@ class ClientViewSet(ModelViewSet):
             user_id = request.user.id
             for file in files:
                 file.name = f"{user_id}_{file.name}_{int(time())}"
-                avatar = Avatar.objects.create(
+                avatar = AvatarRepository.create(
                     file=file,
                     user_id=user_id,
                 )
