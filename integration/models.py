@@ -59,9 +59,6 @@ class IntegrationEvent(TimeStampedModel):
     )
     name = models.CharField(max_length=250, null=False, blank=False)
     description = models.TextField(default=None, null=True, blank=False)
-    actions = models.JSONField(
-        default=[], null=False, blank=False
-    )  # list of actions like "create", "update", "delete" etc.
 
     class Meta:
         db_table = "integration_event"
@@ -89,6 +86,7 @@ class DisabledUserIntegrationEvent(TimeStampedModel):
         blank=False,
         related_name="disabled_user_integration_events",
     )
+    actions = models.JSONField(default=[], null=False, blank=False)
 
     class Meta:
         db_table = "disabled_user_integration_event"
