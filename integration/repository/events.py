@@ -19,3 +19,7 @@ class DisabledUserIntegrationEventRepository:
     @staticmethod
     def filter(**kwargs):
         return DisabledUserIntegrationEvent.objects.filter(**kwargs)
+
+    @staticmethod
+    def create(**kwargs):
+        return DisabledUserIntegrationEvent.objects.create(**kwargs)
