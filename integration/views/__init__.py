@@ -1,3 +1,4 @@
+import json
 import logging
 
 from rest_framework import status
@@ -6,10 +7,14 @@ from rest_framework.viewsets import GenericViewSet, ViewSet, mixins
 
 from common.exceptions import ExternalIntegrationException
 from common.responses import error_response, success_response
-from integration.models import DisabledUserIntegrationEvent, IntegrationEvent
 from integration.repository import IntegrationRepository
+from integration.repository.events import (
+    DisabledUserIntegrationEventRepository,
+    IntegrationEventRepository,
+)
 from integration.serializers import IntegrationSerializer, UserIntegrationSerializer
 from integration.services.figma import FigmaService
+from integration.utils.events import determine_integration_event
 
 logger = logging.getLogger(__name__)
 
@@ -107,7 +112,7 @@ class IntegrationEventViewSet(ViewSet):
                     logger_message="Event id is required",
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            integration_event = IntegrationEvent.objects.filter(
+            integration_event = IntegrationEventRepository.filter(
                 id=event_id, integration_id=integration_id
             ).first()
             if not integration_event:
@@ -126,18 +131,15 @@ class IntegrationEventViewSet(ViewSet):
                     logger_message="User integration not found",
                     status=status.HTTP_404_NOT_FOUND,
                 )
-            DisabledUserIntegrationEvent.objects.create(
+            DisabledUserIntegrationEventRepository.get_or_create(
                 user_integration_id=user_integration["id"],
                 integration_event_id=integration_event.id,
+                defaults={
+                    "actions": request.data.get("actions", []),
+                },
             )
             return success_response(
                 success_message="Integration event disabled successfully",
-            )
-        except DisabledUserIntegrationEvent.DoesNotExist:
-            return error_response(
-                logger=logger,
-                logger_message="Integration event already disabled",
-                status=status.HTTP_400_BAD_REQUEST,
             )
         except Exception:
             return error_response(
@@ -163,7 +165,7 @@ class IntegrationEventViewSet(ViewSet):
                     logger_message="Event id is required",
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            integration_event = IntegrationEvent.objects.filter(
+            integration_event = IntegrationEventRepository.filter(
                 integration_id=integration_id, id=event_id
             ).first()
             if not integration_event:
@@ -182,7 +184,7 @@ class IntegrationEventViewSet(ViewSet):
                     logger_message="User integration not found",
                     status=status.HTTP_404_NOT_FOUND,
                 )
-            DisabledUserIntegrationEvent.objects.filter(
+            DisabledUserIntegrationEventRepository.filter(
                 user_integration_id=user_integration["id"],
                 integration_event_id=integration_event.id,
             ).delete()
@@ -205,11 +207,11 @@ class IntegrationEventViewSet(ViewSet):
                     logger_message="Integration id is required",
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            integration_events = IntegrationEvent.objects.filter(
+            integration_events = IntegrationEventRepository.filter(
                 integration_id=integration_id
             ).all()
             disabled_user_integration_events = (
-                DisabledUserIntegrationEvent.objects.filter(
+                DisabledUserIntegrationEventRepository.filter(
                     user_integration__integration_id=integration_id
                 ).values_list("integration_event_id", flat=True)
             )
@@ -231,4 +233,67 @@ class IntegrationEventViewSet(ViewSet):
             return error_response(
                 logger=logger,
                 logger_message="Error while fetching integration events",
+            )
+
+    @action(detail=False, methods=["post"], url_path="disable-such-notifications")
+    def disable_user_integration_event(self, request):
+        try:
+            user_id = request.user.id
+            user_integration_id = int(request.data.get("user_integration_id", 0))
+            event = json.loads(request.data.get("event", "{}"))
+            if not user_integration_id or not event:
+                return error_response(
+                    logger=logger,
+                    logger_message="User integration id and event are required fields",
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            user_integration = IntegrationRepository.get_user_integrations(
+                filters={
+                    "user_id": user_id,
+                    "id": user_integration_id,
+                },
+                first=True,
+            )
+            if not user_integration:
+                return error_response(
+                    logger=logger,
+                    logger_message="User integration not found",
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+            event_name, action = determine_integration_event(
+                user_integration,
+                event,
+            )
+            integration_event = IntegrationEventRepository.filter(
+                name=event_name,
+                integration_id=user_integration["integration_id"],
+            ).first()
+            if not integration_event:
+                return error_response(
+                    logger=logger,
+                    logger_message="Integration event not found",
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+            disabled_user_integration_event = (
+                DisabledUserIntegrationEventRepository.filter(
+                    user_integration_id=user_integration["id"],
+                    integration_event_id=integration_event.id,
+                ).first()
+            )
+            if not disabled_user_integration_event:
+                DisabledUserIntegrationEventRepository.create(
+                    user_integration_id=user_integration["id"],
+                    integration_event_id=integration_event.id,
+                    actions=[action],
+                )
+            elif action not in disabled_user_integration_event.actions:
+                disabled_user_integration_event.actions.append(action)
+                disabled_user_integration_event.save()
+            return success_response(
+                success_message="Integration event disabled successfully",
+            )
+        except Exception:
+            return error_response(
+                logger=logger,
+                logger_message="Error while disabling integration event",
             )
