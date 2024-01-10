@@ -8,9 +8,8 @@ from django.views.decorators.http import require_POST
 
 from inbox.repository import InboxRepository
 from integration.repository import IntegrationRepository
-from integration.services.github import GithubService
-
 from integration.repository.events import DisabledUserIntegrationEventRepository
+from integration.services.github import GithubService
 from integration.utils.events import is_event_and_action_disabled
 
 logger = logging.getLogger(__name__)

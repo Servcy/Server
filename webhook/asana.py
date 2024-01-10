@@ -12,8 +12,8 @@ from common.exceptions import ExternalIntegrationException
 from inbox.repository import InboxRepository
 from integration.repository import IntegrationRepository
 from integration.repository.events import DisabledUserIntegrationEventRepository
-from integration.utils.events import is_event_and_action_disabled
 from integration.services.asana import AsanaService
+from integration.utils.events import is_event_and_action_disabled
 from project.repository import ProjectRepository
 from task.repository import TaskRepository
 

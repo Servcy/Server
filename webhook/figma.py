@@ -5,10 +5,11 @@ import traceback
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-from integration.repository.events import DisabledUserIntegrationEventRepository
-from integration.utils.events import is_event_and_action_disabled
+
 from inbox.repository import InboxRepository
 from integration.repository import IntegrationRepository
+from integration.repository.events import DisabledUserIntegrationEventRepository
+from integration.utils.events import is_event_and_action_disabled
 
 logger = logging.getLogger(__name__)
 

@@ -13,7 +13,6 @@ from integration.repository import IntegrationRepository
 from integration.repository.events import DisabledUserIntegrationEventRepository
 from integration.utils.events import is_event_and_action_disabled
 
-
 logger = logging.getLogger(__name__)
 
 EVENT_MAP = {
