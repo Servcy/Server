@@ -11,6 +11,8 @@ from django.views.decorators.http import require_POST
 from common.exceptions import ExternalIntegrationException
 from inbox.repository import InboxRepository
 from integration.repository import IntegrationRepository
+from integration.repository.events import DisabledUserIntegrationEventRepository
+from integration.utils.events import is_event_and_action_disabled
 from integration.services.asana import AsanaService
 from project.repository import ProjectRepository
 from task.repository import TaskRepository
@@ -42,10 +44,8 @@ def asana(request, user_integration_id):
             tasks_to_update = []
             inbox_items = []
             projects_to_update = []
-            disabled_events = (
-                IntegrationRepository.get_disabled_user_integration_events(
-                    user_integration_id=user_integration_id
-                )
+            disabled_events = DisabledUserIntegrationEventRepository.get_disabled_user_integration_events(
+                user_integration_id=user_integration_id
             )
             for event in events:
                 if event.get("action", "") == "sync_error":
@@ -73,7 +73,9 @@ def asana(request, user_integration_id):
                     action = event["action"]
                     project_uid = event["resource"]["gid"]
                     project = asana_service.get_project(project_uid)
-                    if event["resource"]["resource_type"] not in disabled_events:
+                    if not is_event_and_action_disabled(
+                        disabled_events, event["resource"]["resource_type"], action
+                    ):
                         inbox_items.append(
                             {
                                 "uid": str(uuid.uuid4()),
@@ -107,7 +109,9 @@ def asana(request, user_integration_id):
                         task = asana_service.get_task(task_uid)
                     except ExternalIntegrationException:
                         continue
-                    if event["resource"]["resource_type"] not in disabled_events:
+                    if not is_event_and_action_disabled(
+                        disabled_events, event["resource"]["resource_type"], action
+                    ):
                         inbox_items.append(
                             {
                                 "uid": str(uuid.uuid4()),
@@ -146,7 +150,9 @@ def asana(request, user_integration_id):
                         title = f"Comment added to task: {task['name']}"
                     elif action == "changed":
                         title = "A comment on the task was updated"
-                    if event["resource"]["resource_type"] not in disabled_events:
+                    if not is_event_and_action_disabled(
+                        disabled_events, event["resource"]["resource_type"], action
+                    ):
                         inbox_items.append(
                             {
                                 "uid": str(uuid.uuid4()),

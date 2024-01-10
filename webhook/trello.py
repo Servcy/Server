@@ -12,6 +12,8 @@ from django.views.decorators.http import require_http_methods
 
 from inbox.repository import InboxRepository
 from integration.repository import IntegrationRepository
+from integration.repository.events import DisabledUserIntegrationEventRepository
+from integration.utils.events import is_event_and_action_disabled
 from project.repository import ProjectRepository
 from task.repository import TaskRepository
 
@@ -98,10 +100,12 @@ def trello(request, user_integration_id):
         action = body["action"]
         if action["type"] not in EVENT_MAP.keys():
             return HttpResponse(status=200)
-        disabled_events = IntegrationRepository.get_disabled_user_integration_events(
-            user_integration_id=user_integration_id
+        disabled_events = (
+            DisabledUserIntegrationEventRepository.get_disabled_user_integration_events(
+                user_integration_id=user_integration_id
+            )
         )
-        if action["type"] not in disabled_events:
+        if not is_event_and_action_disabled(disabled_events, action["type"], None):
             inbox_item = {
                 "uid": f"trello-{action['id']}",
                 "title": EVENT_MAP[action["type"]],

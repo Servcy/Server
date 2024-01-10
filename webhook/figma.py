@@ -5,7 +5,8 @@ import traceback
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-
+from integration.repository.events import DisabledUserIntegrationEventRepository
+from integration.utils.events import is_event_and_action_disabled
 from inbox.repository import InboxRepository
 from integration.repository import IntegrationRepository
 
@@ -42,10 +43,12 @@ def figma(request):
             },
             first=True,
         )
-        disabled_events = IntegrationRepository.get_disabled_user_integration_events(
-            user_integration_id=user_integration.id
+        disabled_events = (
+            DisabledUserIntegrationEventRepository.get_disabled_user_integration_events(
+                user_integration_id=user_integration.id
+            )
         )
-        if body["event_type"] in disabled_events:
+        if is_event_and_action_disabled(disabled_events, body["event_type"], None):
             return HttpResponse(status=200)
         InboxRepository.add_items(
             [

@@ -10,6 +10,9 @@ from slack_sdk import WebClient
 
 from inbox.repository import InboxRepository
 from integration.repository import IntegrationRepository
+from integration.repository.events import DisabledUserIntegrationEventRepository
+from integration.utils.events import is_event_and_action_disabled
+
 
 logger = logging.getLogger(__name__)
 
@@ -149,12 +152,13 @@ def slack(request):
         for user_integration in user_integrations:
             workspace_members = user_integration["configuration"] or []
             event_body = body["event"]
-            disabled_events = (
-                IntegrationRepository.get_disabled_user_integration_events(
-                    user_integration_id=user_integration["id"]
-                )
+            disabled_events = DisabledUserIntegrationEventRepository.get_disabled_user_integration_events(
+                user_integration_id=user_integration["id"]
             )
-            if body["event"]["type"] in disabled_events:
+            if is_event_and_action_disabled(
+                disabled_events, body["event"]["type"], None
+            ):
+                # this event is disabled by the user
                 continue
             try:
                 mentions = [

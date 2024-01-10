@@ -23,3 +23,17 @@ class DisabledUserIntegrationEventRepository:
     @staticmethod
     def create(**kwargs):
         return DisabledUserIntegrationEvent.objects.create(**kwargs)
+
+    @staticmethod
+    def get_disabled_user_integration_events(
+        user_integration_id: int,
+    ) -> dict[str, list[str]]:
+        """
+        Fetch all disabled user integration events.
+        """
+        return {
+            event["integration_event__name"]: event["actions"]
+            for event in DisabledUserIntegrationEvent.objects.filter(
+                user_integration_id=user_integration_id
+            ).values("integration_event__name", "actions")
+        }

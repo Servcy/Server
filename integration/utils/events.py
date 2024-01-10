@@ -17,3 +17,16 @@ def determine_integration_event(user_integration: dict, event: dict) -> tuple:
         event_name = event["resource"]["resource_type"]
         action = event["action"]
     return event_name, action
+
+
+def is_event_and_action_disabled(
+    disabled_events: dict, event_name: str, action: str
+) -> bool:
+    if event_name not in disabled_events:
+        return False
+    elif disabled_events[event_name] == []:
+        # All actions are disabled
+        return True
+    elif action in disabled_events[event_name]:
+        return True
+    return False
