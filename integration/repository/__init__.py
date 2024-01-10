@@ -59,6 +59,7 @@ class IntegrationRepository:
             "meta_data",
             "account_id",
             "integration_id",
+            "integration__name",
             "user_id",
             "configuration",
         )
