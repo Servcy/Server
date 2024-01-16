@@ -86,7 +86,7 @@ class DisabledUserIntegrationEvent(TimeStampedModel):
         blank=False,
         related_name="disabled_user_integration_events",
     )
-    actions = models.JSONField(default=[], null=False, blank=False)
+    actions = models.JSONField(default=list, null=False, blank=False)
 
     class Meta:
         db_table = "disabled_user_integration_event"
