@@ -15,6 +15,7 @@ class Inbox(TimeStampedModel):
         UserIntegration, on_delete=models.CASCADE, related_name="inbox_items"
     )
     category = models.CharField(max_length=255, null=True, blank=False, default=None)
+    i_am_mentioned = models.BooleanField(default=False)
 
     class Meta:
         db_table = "inbox"
