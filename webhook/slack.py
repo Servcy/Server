@@ -172,6 +172,12 @@ def slack(request):
                 for member in workspace_members
                 if member.get("id", None) in mentions
             ]
+            i_am_mentioned = False
+            if (
+                body["event"].get("type", "").startswith("message")
+                and f"<@{user_integration['account_id']}>" in event_body.get("text", "")
+            ) or body["event"].get("type", "") == "message.im":
+                i_am_mentioned = True
             inbox_items.append(
                 {
                     "title": EVENT_MAP[body["event"]["type"]],
@@ -183,6 +189,7 @@ def slack(request):
                     "category": "message"
                     if body["event"].get("type", "").startswith("message")
                     else "notification",
+                    "i_am_mentioned": i_am_mentioned,
                 }
             )
         InboxRepository.add_items(inbox_items)
