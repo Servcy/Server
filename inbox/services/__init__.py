@@ -31,6 +31,9 @@ class InboxService(DataTableBase):
             return Q(category=category)
         return Q()
 
+    def i_am_mentioned_filter(self, i_am_mentioned: bool):
+        return Q(i_am_mentioned=i_am_mentioned)
+
     def get_queryset(self) -> "InboxService":
         q = Q(user_integration__user=self.user, is_archived=False)
         for key, val in self.filters.items():
