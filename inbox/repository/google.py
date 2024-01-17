@@ -40,6 +40,7 @@ class GoogleMailRepository:
                     "user_integration_id": user_integration_id,
                     "uid": f"{mail['id']}-{user_integration_id}-{uuid.uuid4()}",
                     "category": "message",
+                    "i_am_mentioned": True,
                 }
             )
         return inbox_items

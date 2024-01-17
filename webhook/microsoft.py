@@ -54,6 +54,7 @@ def microsoft(request):
                         "user_integration_id": integration["id"],
                         "uid": f"{mail['id']}-{integration['id']}",
                         "category": "message",
+                        "i_am_mentioned": True,
                     }
                 ]
             )
