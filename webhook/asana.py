@@ -159,6 +159,20 @@ def asana(request, user_integration_id):
                     if not is_event_and_action_disabled(
                         disabled_events, event["resource"]["resource_type"], action
                     ):
+                        i_am_mentioned = False
+                        for text in comment["text"].split(" "):
+                            # is text a mention? i.e. https://app.asana.com/0/1205704174798989/list
+                            if text.startswith(
+                                "https://app.asana.com/0/"
+                            ) and text.endswith("/list"):
+                                project_id = text.split("/")[-2]
+                                project = asana_service.get_project(project_id)
+                                if (
+                                    project["owner"]["gid"]
+                                    == user_integration.account_id
+                                ):
+                                    i_am_mentioned = True
+                                    break
                         inbox_items.append(
                             {
                                 "uid": str(uuid.uuid4()),
@@ -172,6 +186,7 @@ def asana(request, user_integration_id):
                                 "cause": json.dumps(causing_user),
                                 "user_integration_id": user_integration_id,
                                 "category": "comment",
+                                "i_am_mentioned": i_am_mentioned,
                             }
                         )
                 else:
