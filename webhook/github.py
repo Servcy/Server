@@ -61,6 +61,13 @@ def github(request):
         title = f"{' '.join(event.split('_'))} {' '.join(payload.get('action', '').split('_'))}"
         title = title[0].upper() + title[1:]
         payload["event"] = event
+        i_am_mentioned = False
+        if (
+            "comment" in event
+            and f"@{user_integration.account_display_name}"
+            in payload.get("comment", {}).get("body", "")
+        ):
+            i_am_mentioned = True
         InboxRepository.add_items(
             [
                 {
@@ -71,6 +78,7 @@ def github(request):
                     "user_integration_id": user_integration.id,
                     "uid": f"{guid}-{user_integration.id}",
                     "category": "comment" if "comment" in event else "notification",
+                    "i_am_mentioned": i_am_mentioned,
                 }
             ]
         )
