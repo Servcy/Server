@@ -391,8 +391,17 @@ def process_page(
     )
     if comments:
         comment_from = user_map.get(comments[0]["created_by"]["id"])
-        inbox_items.extend(
-            [
+        for comment in comments:
+            i_am_mentioned = False
+            for block in comment:
+                if (
+                    block["type"] == "mention"
+                    and block["mention"]["type"] == "user"
+                    and block["mention"]["user"]["id"] == user_integration["account_id"]
+                ):
+                    i_am_mentioned = True
+                    break
+            inbox_items.append(
                 {
                     "title": f"New comment on {page['page_name']}",
                     "cause": json.dumps(comment_from),
@@ -401,10 +410,9 @@ def process_page(
                     "user_integration_id": user_integration["id"],
                     "uid": f"{comment['id']}-{user_integration['id']}",
                     "category": "comment",
+                    "i_am_mentioned": i_am_mentioned,
                 }
-                for comment in comments
-            ]
-        )
+            )
         configuration_map[user_integration["id"]]["pages"][i]["last_cursor"] = comments[
             -1
         ]["id"]
