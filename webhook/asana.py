@@ -112,6 +112,11 @@ def asana(request, user_integration_id):
                     if not is_event_and_action_disabled(
                         disabled_events, event["resource"]["resource_type"], action
                     ):
+                        i_am_following = False
+                        for follower in task["followers"]:
+                            if follower["gid"] == user_integration.account_id:
+                                i_am_following = True
+                                break
                         inbox_items.append(
                             {
                                 "uid": str(uuid.uuid4()),
@@ -125,6 +130,7 @@ def asana(request, user_integration_id):
                                 "cause": json.dumps(causing_user),
                                 "user_integration_id": user_integration_id,
                                 "category": "notification",
+                                "i_am_mentioned": i_am_following,
                             }
                         )
                     if action == "changed":
