@@ -105,7 +105,22 @@ def trello(request, user_integration_id):
                 user_integration_id=user_integration_id
             )
         )
+        user_integration = IntegrationRepository.get_user_integration(
+            {
+                "id": user_integration_id,
+                "integration__name": "Trello",
+            }
+        )
         if not is_event_and_action_disabled(disabled_events, action["type"], None):
+            i_am_mentioned = False
+            if (
+                action["type"] == "commentCard"
+                and user_integration.account_display_name in action["data"]["text"]
+            ) or (
+                action["type"] in ["addMemberToCard", "addMemberToBoard"]
+                and user_integration.account_id == action["data"].get("idMember", "")
+            ):
+                i_am_mentioned = True
             inbox_item = {
                 "uid": f"trello-{action['id']}",
                 "title": EVENT_MAP[action["type"]],
@@ -115,6 +130,7 @@ def trello(request, user_integration_id):
                 "category": "notification"
                 if "comment" not in action["type"]
                 else "comment",
+                "i_am_mentioned": i_am_mentioned,
             }
             try:
                 InboxRepository.add_items([inbox_item])
@@ -122,13 +138,6 @@ def trello(request, user_integration_id):
                 if "duplicate key value violates unique constraint" in str(err):
                     return HttpResponse(status=200)
                 raise err
-
-        user_integration = IntegrationRepository.get_user_integration(
-            {
-                "id": user_integration_id,
-                "integration__name": "Trello",
-            }
-        )
         if action["type"] == "createBoard":
             ProjectRepository.create(
                 uid=action["data"]["board"]["id"],
