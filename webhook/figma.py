@@ -51,6 +51,13 @@ def figma(request):
         )
         if is_event_and_action_disabled(disabled_events, body["event_type"], None):
             return HttpResponse(status=200)
+        i_am_mentioned = False
+        if body["event_type"] == "FILE_COMMENT":
+            for comment in body["comments"]:
+                for mention in comment["mentions"]:
+                    if mention["id"] == user_integration.account_id:
+                        i_am_mentioned = True
+                        break
         InboxRepository.add_items(
             [
                 {
@@ -63,6 +70,7 @@ def figma(request):
                     "category": "comment"
                     if "FILE_COMMENT" == body["event_type"]
                     else "notification",
+                    "i_am_mentioned": i_am_mentioned,
                 }
             ]
         )
