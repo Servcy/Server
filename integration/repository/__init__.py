@@ -4,12 +4,9 @@ from base64 import b64decode, b64encode
 
 from cryptography.fernet import Fernet
 from django.conf import settings
+from django.db.models import Q
 
-from integration.models import (
-    DisabledUserIntegrationEvent,
-    Integration,
-    UserIntegration,
-)
+from integration.models import Integration, UserIntegration
 
 
 class IntegrationRepository:
@@ -50,11 +47,11 @@ class IntegrationRepository:
 
     @classmethod
     def get_user_integrations(
-        self, filters: dict, first=False
-    ) -> list[UserIntegration] | UserIntegration:
-        integrations = UserIntegration.objects.filter(
-            **filters, is_revoked=False
-        ).values(
+        self,
+        filters: dict,
+        first=False,
+        decrypt_meta_data=True,
+        values={
             "id",
             "meta_data",
             "account_id",
@@ -62,11 +59,19 @@ class IntegrationRepository:
             "integration__name",
             "user_id",
             "configuration",
-        )
-        for integration in integrations:
-            integration["meta_data"] = self.decrypt_meta_data(
-                meta_data=integration["meta_data"]
-            )
+        },
+    ) -> list[UserIntegration] | UserIntegration:
+        """
+        Given a mapping of filters, and a boolean indicating whether to return the first or all
+        integrations, return the integrations that match the filters.
+        """
+        integrations = UserIntegration.objects.filter(**filters, is_revoked=False)
+        integrations = integrations.values(*values)
+        if decrypt_meta_data:
+            for integration in integrations:
+                integration["meta_data"] = self.decrypt_meta_data(
+                    meta_data=integration["meta_data"]
+                )
         if not first:
             return integrations
         return integrations[0] if integrations else None
@@ -108,11 +113,18 @@ class IntegrationRepository:
         )
 
     @staticmethod
-    def fetch_all_user_integrations() -> list[UserIntegration]:
+    def fetch_all_user_integrations() -> Q:
         """
         Fetch all user integrations.
         """
         return UserIntegration.objects.filter(is_revoked=False).all()
+
+    @staticmethod
+    def fetch_all_integrations() -> Q:
+        """
+        Fetch all integrations.
+        """
+        return Integration.objects.all()
 
     @staticmethod
     def revoke_user_integrations(user_integrations: list[int] | int):

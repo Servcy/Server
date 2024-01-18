@@ -12,23 +12,52 @@ from integration.repository.events import (
     DisabledUserIntegrationEventRepository,
     IntegrationEventRepository,
 )
-from integration.serializers import IntegrationSerializer, UserIntegrationSerializer
+from integration.serializers import UserIntegrationSerializer
 from integration.services.figma import FigmaService
 from integration.utils.events import determine_integration_event
 
 logger = logging.getLogger(__name__)
 
 
-class IntegrationViewSet(
-    mixins.ListModelMixin,
-    GenericViewSet,
-):
-    serializer_class = IntegrationSerializer
-    queryset = IntegrationSerializer.Meta.model.objects.all()
-    ordering_fields = ["name"]
-
-    def get_queryset(self):
-        return super().get_queryset().prefetch_related("user_integrations")
+class IntegrationViewSet(GenericViewSet):
+    @action(detail=False, methods=["get"], url_path="fetch-integrations")
+    def fetch_integrations(self, request):
+        try:
+            requesting_user = request.user
+            user_integrations = IntegrationRepository.get_user_integrations(
+                {
+                    "user_id": requesting_user.id,
+                },
+                first=False,
+                values={
+                    "id",
+                    "integration_id",
+                },
+                decrypt_meta_data=False,
+            )
+            connected_integrations = set()
+            for user_integration in user_integrations:
+                connected_integrations.add(user_integration["integration_id"])
+            integrations = IntegrationRepository.fetch_all_integrations().values(
+                "id", "name", "description", "logo", "is_wip", "configure_at"
+            )
+            integrations = [
+                {
+                    **integration,
+                    "is_connected": integration["id"] in connected_integrations,
+                }
+                for integration in integrations
+            ]
+            return success_response(
+                success_message="Integrations fetched successfully",
+                results=integrations,
+            )
+        except Exception as err:
+            print(err)
+            return error_response(
+                logger=logger,
+                logger_message="Error while fetching integrations",
+            )
 
 
 class UserIntegrationViewSet(
