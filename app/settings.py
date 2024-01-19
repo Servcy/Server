@@ -243,6 +243,11 @@ TWILIO_AUTH_TOKEN = config.get("twilio", "auth_token")
 TWILLIO_VERIFY_SERVICE_ID = config.get("twilio", "verify_service_id")
 TWILIO_NUMBER = config.get("twilio", "from_number")
 
+# OpenAI
+OPENAI_API_KEY = config.get("openai", "api_key")
+OPENAI_MODEL_ID = config.get("openai", "model_id")
+OPENAI_ORGANIZATION_ID = config.get("openai", "organization_id")
+
 # URLs
 FRONTEND_URL = config.get("main", "frontend_url")
 BACKEND_URL = config.get("main", "backend_url")

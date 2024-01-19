@@ -21,6 +21,7 @@ region =
 key = 
 endpoint = 
 verification_template_id = 
+new_signup_template_id =
 from_email = 
 
 [twilio]
@@ -79,3 +80,8 @@ redirect_uri=integrations/asana/oauth
 api_key=
 client_secret=
 redirect_uri=
+
+[openai]
+api_key = 
+model_id = 
+organization_id = 
