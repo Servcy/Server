@@ -247,6 +247,7 @@ TWILIO_NUMBER = config.get("twilio", "from_number")
 OPENAI_API_KEY = config.get("openai", "api_key")
 OPENAI_MODEL_ID = config.get("openai", "model_id")
 OPENAI_ORGANIZATION_ID = config.get("openai", "organization_id")
+OPENAI_MAX_TOKENS = int(config.get("openai", "max_tokens"))
 
 # URLs
 FRONTEND_URL = config.get("main", "frontend_url")
