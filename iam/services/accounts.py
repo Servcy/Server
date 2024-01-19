@@ -1,4 +1,5 @@
 from iam.repositories.accounts import AccountsRepository
+from mails import SendGridEmail
 
 
 class AccountsService:
@@ -11,4 +12,11 @@ class AccountsService:
         user = self.account_repository.get()
         if not user:
             user = self.account_repository.create()
+            sendgrid_email = SendGridEmail("megham@servcy.com")
+            sendgrid_email.send_new_signup_notification(
+                {
+                    "user_email": user.email,
+                    "user_phone_number": user.phone_number,
+                }
+            )
         return user
