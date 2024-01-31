@@ -304,6 +304,54 @@ class NotionService(BaseService):
         )
         return response.json().get("results", [])
 
+    def add_comment(
+        self,
+        page_id: str,
+        comment: str,
+        discussion_id: str,
+    ):
+        data = {
+            "discussion_id": discussion_id,
+            "rich_text": [
+                {
+                    "text": {
+                        "content": comment,
+                    },
+                },
+            ],
+        }
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {self._token['access_token']}",
+            "Notion-Version": "2022-02-22",
+        }
+        response = requests.post(url=self._NOTION_COMMENTS, json=data, headers=headers)
+        response_json = response.json()
+        return response_json
+
+    @staticmethod
+    def send_reply(
+        meta_data: dict,
+        body: str,
+        reply: str,
+        **kwargs,
+    ):
+        """
+        Send reply to notion.
+
+        Args:
+        - meta_data: The user integration meta data.
+        - body: The event body.
+        - reply: The reply to send.
+        """
+        body = json.loads(body)
+        notion_service = NotionService(token=meta_data["token"])
+        notion_service.add_comment(
+            page_id=body.get("parent", {}).get("page_id", ""),
+            comment=reply,
+            discussion_id=body["discussion_id"],
+        )
+
 
 # CRON job to poll new comments from Notion.
 def poll_new_comments():
