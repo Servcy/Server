@@ -358,18 +358,25 @@ class GoogleService(BaseService):
                 cc=GoogleMailService._get_mail_header("Cc", mail["payload"]["headers"]),
                 subject=f'Re: {GoogleMailService._get_mail_header("Subject", mail["payload"]["headers"])}',
                 body=reply,
+                threadId=thread["id"],
             ),
         )
         return response
 
     @staticmethod
     def create_html_message(
-        sender: str, recipient: str, cc: str, subject: str, body: str
+        sender: str,
+        recipient: str,
+        cc: str,
+        subject: str,
+        body: str,
+        threadId: str = None,
     ) -> dict:
         """Creates a message for an email."""
         message = MIMEText(body, "html")
         message["to"] = recipient
         message["cc"] = cc
+        message["threadId"] = threadId
         message["from"] = sender
         message["subject"] = subject
         return {"raw": base64.urlsafe_b64encode(message.as_bytes()).decode()}
