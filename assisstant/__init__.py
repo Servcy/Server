@@ -54,7 +54,7 @@ def validate_token_limit(messages: dict, maximum_tokens_for_reply: int) -> list:
 
 def generate_text_stream(messages: list, user_id: int):
     response = openai.chat.completions.create(
-        messages=messages,
+        messages=validate_token_limit(messages, 500),
         model=settings.OPENAI_MODEL_ID,
         n=1,
         stream=True,
