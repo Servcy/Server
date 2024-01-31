@@ -358,8 +358,8 @@ class GoogleService(BaseService):
                 cc=GoogleMailService._get_mail_header("Cc", mail["payload"]["headers"]),
                 subject=f'Re: {GoogleMailService._get_mail_header("Subject", mail["payload"]["headers"])}',
                 body=reply,
+                threadId=thread["id"],
             ),
-            threadId=thread["id"],
         )
         return response
 
