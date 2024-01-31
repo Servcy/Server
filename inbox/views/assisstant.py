@@ -72,6 +72,13 @@ class AssisstantViewSet(viewsets.ViewSet):
                 first=True,
                 decrypt_meta_data=True,
             )
+            if not user_integration:
+                return error_response(
+                    error_message="No user integration found, please make sure that integration hasn't been revoked.",
+                    status=400,
+                    logger=logger,
+                    logger_message="No user integration found for given id",
+                )
             service_class = integration_service_map.get(
                 user_integration["integration__name"]
             )
