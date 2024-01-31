@@ -1,3 +1,5 @@
+import json
+
 import requests
 from django.conf import settings
 
@@ -157,3 +159,49 @@ class FigmaService(BaseService):
             },
         )
         return True
+
+    def add_comment(self, file_key: str, comment_id: str, message: str):
+        """
+        Add comment to Figma file.
+
+        Args:
+        - file_key: The file key.
+        - comment_id: The comment id.
+        - message: The comment message.
+        """
+        headers = {
+            "Authorization": f"Bearer {self._token['access_token']}",
+        }
+        data = {
+            "message": message,
+            "comment_id": comment_id,
+        }
+        self._make_request(
+            "POST",
+            f"v1/files/{file_key}/comments",
+            headers=headers,
+            json=data,
+        )
+
+    @staticmethod
+    def send_reply(
+        meta_data: dict,
+        body: str,
+        reply: str,
+        **kwargs,
+    ):
+        """
+        Send reply to Asana task.
+
+        Args:
+        - meta_data: The user integration meta data.
+        - body: The event body.
+        - reply: The reply to the message.
+        """
+        body = json.loads(body)
+        figma_service = FigmaService(refresh_token=meta_data["token"]["refresh_token"])
+        figma_service.add_comment(
+            file_key=body["file_key"],
+            comment_id=body["comment_id"],
+            message=reply,
+        )
