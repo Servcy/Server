@@ -1,3 +1,4 @@
+import json
 import requests
 from django.conf import settings
 
@@ -112,3 +113,30 @@ class TrelloService(BaseService):
             raise ServcyOauthCodeException(
                 f"An error occurred while creating webhook for Trello.\n{str(response.json())}"
             )
+
+    @staticmethod
+    def send_reply(
+        meta_data: dict,
+        body: str,
+        reply: str,
+        **kwargs,
+    ):
+        """
+        Send a reply to a message.
+
+        Args:
+        - meta_data: The user integration meta data.
+        - body: The event body.
+        - reply: The reply message.
+        """
+        token = meta_data["token"]
+        body = json.loads(body)
+        url = f"https://api.trello.com/1/cards/{body['data']['card']['id']}/actions/comments"
+        headers = {"Accept": "application/json"}
+        query = {"text": reply, "key": TrelloService._trello_key, "token": token}
+        response = requests.request("POST", url, headers=headers, params=query)
+        if response.status_code != 200:
+            raise ServcyOauthCodeException(
+                f"An error occurred while obtaining user info from Trello.\n{str(response.json())}"
+            )
+        return response.json()
