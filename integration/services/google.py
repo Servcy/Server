@@ -377,7 +377,11 @@ class GoogleService(BaseService):
         """Creates a message for an email."""
         message = MIMEText(body, "html")
         message["to"] = recipient
-        message["cc"] = cc
+        if cc:
+            message["cc"] = cc
+        if threadId:
+            message["In-Reply-To"] = threadId
+            message["References"] = threadId
         message["from"] = sender
         message["subject"] = subject
         return {
