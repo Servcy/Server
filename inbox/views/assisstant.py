@@ -3,10 +3,10 @@ import logging
 from django.http import StreamingHttpResponse
 from rest_framework import viewsets
 from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny
 
 from assisstant import generate_text_stream
-from common.responses import error_response
-from rest_framework.permissions import AllowAny
+from common.responses import error_response, success_response
 
 logger = logging.getLogger(__name__)
 
@@ -48,5 +48,25 @@ class AssisstantViewSet(viewsets.ViewSet):
             response["Cache-Control"] = "no-cache"
             return response
         except Exception as e:
-            logger.error(e)
-            return error_response("Error while generating reply")
+            return error_response(
+                "Error while generating reply", logger=logger, logger_message=str(e)
+            )
+
+    @action(methods=["post"], detail=False, url_path="send-reply")
+    def send_reply(self, request):
+        try:
+            requesting_user = request.user
+            body = request.data.get("body", "")
+            reply = request.data.get("reply", "")
+            integration_name = request.data.get("integration_name", "")
+            is_body_html = request.data.get("is_body_html", False)
+            if not body or not reply or not integration_name:
+                return error_response(
+                    error_message="body, reply and integration_name are required to send reply",
+                    status=400,
+                )
+            return success_response()
+        except Exception as e:
+            return error_response(
+                "Error while sending reply", logger=logger, logger_message=str(e)
+            )
