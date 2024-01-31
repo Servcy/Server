@@ -191,7 +191,7 @@ class FigmaService(BaseService):
         **kwargs,
     ):
         """
-        Send reply to Asana task.
+        Send reply to figma.
 
         Args:
         - meta_data: The user integration meta data.
