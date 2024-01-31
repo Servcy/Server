@@ -2,15 +2,7 @@ import logging
 import traceback
 
 from integration.repository import IntegrationRepository
-from integration.services import (
-    AsanaService,
-    FigmaService,
-    GithubService,
-    GoogleService,
-    MicrosoftService,
-    NotionService,
-    SlackService,
-)
+from integration.utils.maps import integration_service_map
 from integration.services.base import BaseService
 
 logger = logging.getLogger(__name__)
@@ -44,21 +36,12 @@ def main():
         revoked_integrations = []
         for user_integration in user_integrations:
             try:
-                service_class = None
-                if user_integration.integration.name == "Gmail":
-                    service_class = GoogleService
-                elif user_integration.integration.name == "GitHub":
-                    service_class = GithubService
-                elif user_integration.integration.name == "Slack":
-                    service_class = SlackService
-                elif user_integration.integration.name == "Notion":
-                    service_class = NotionService
-                elif user_integration.integration.name == "Figma":
-                    service_class = FigmaService
-                elif user_integration.integration.name == "Outlook":
-                    service_class = MicrosoftService
-                elif user_integration.integration.name == "Asana":
-                    service_class = AsanaService
+                integration_name = user_integration.integration.name
+                service_class = integration_service_map.get(integration_name)
+                if service_class is None:
+                    raise ValueError(
+                        f"Integration '{integration_name}' is not supported."
+                    )
                 if service_class:
                     is_active = check_integration_status(
                         service_class, user_integration
