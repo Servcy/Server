@@ -1,4 +1,5 @@
 import requests
+import json
 from django.conf import settings
 
 from common.exceptions import ServcyOauthCodeException
@@ -27,7 +28,8 @@ class GithubService(BaseService):
         self._user_info = self._fetch_user_info()
         return self
 
-    def _make_request(self, method: str, endpoint: str, **kwargs) -> dict:
+    @staticmethod
+    def _make_request(method: str, endpoint: str, **kwargs) -> dict:
         """Helper function to make requests to Github API."""
         url = (
             f"{GITHUB_API_BASE_URL}/{endpoint}"
@@ -73,7 +75,7 @@ class GithubService(BaseService):
 
     def _fetch_user_info(self) -> dict:
         """Fetches user info from Github."""
-        return self._make_request(
+        return GithubService._make_request(
             "GET",
             "user",
             headers={
@@ -137,3 +139,43 @@ class GithubService(BaseService):
         self._token = meta_data["token"]
         self._fetch_user_info()
         return True
+
+    @staticmethod
+    def send_reply(
+        meta_data: dict,
+        body: str,
+        reply: str,
+        **kwargs,
+    ):
+        """
+        Send reply to github.
+
+        Args:
+        - meta_data: The user integration meta data.
+        - body: The event body.
+        - reply: The reply to send.
+        """
+        user_info = meta_data["user_info"]
+        tokens = meta_data["token"]
+        body = json.loads(body)
+        event = body["event"]
+        if event == "issue_comment":
+            GithubService._make_request(
+                "POST",
+                f"repos/{user_info['login']}/{body['repository']['name']}/issues/{body['issue']['number']}/comments",
+                headers={
+                    "Authorization": f"Bearer {tokens['access_token']}",
+                    "Accept": "application/vnd.github+json",
+                },
+                json={"body": reply},
+            )
+        elif event == "pull_request_review_comment":
+            GithubService._make_request(
+                "POST",
+                f"repos/{user_info['login']}/{body['repository']['name']}/pulls/{body['pull_request']['number']}/comments/{body['comment']['id']}/replies",
+                headers={
+                    "Authorization": f"Bearer {tokens['access_token']}",
+                    "Accept": "application/vnd.github+json",
+                },
+                json={"body": reply},
+            )

@@ -11,7 +11,7 @@ from integration.services import (
 
 integration_service_map = {
     "Gmail": GoogleService,
-    "GitHub": GithubService,
+    "Github": GithubService,
     "Slack": SlackService,
     "Notion": NotionService,
     "Figma": FigmaService,
