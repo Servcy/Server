@@ -1,5 +1,5 @@
-from django.conf import settings
 import openai
+from django.conf import settings
 from tiktoken import encoding_for_model
 
 openai.api_key = settings.OPENAI_API_KEY
