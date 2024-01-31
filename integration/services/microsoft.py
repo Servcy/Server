@@ -1,4 +1,3 @@
-import json
 import logging
 
 import msal
@@ -197,3 +196,39 @@ class MicrosoftService:
         self._token = meta_data["token"]
         response = self.list_subscriptions()
         return "error" not in response
+
+    @staticmethod
+    def send_reply(
+        meta_data: dict,
+        body: str,
+        reply: str,
+        **kwargs,
+    ):
+        """
+        Send a reply to a message.
+
+        Args:
+        - meta_data: The user integration meta data.
+        - body: The incoming message id.
+        - reply: The reply message.
+        """
+        client = MicrosoftService(refresh_token=meta_data["token"]["refresh_token"])
+        message_id = "-".join(body.split("-")[:-1])
+        response = requests.post(
+            f"{MICROSOFT_READ_MAIL_URI}{message_id}/reply",
+            headers={
+                "Authorization": f"Bearer {client._token['access_token']}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "message": {
+                    "body": {
+                        "contentType": "text",
+                        "content": reply,
+                    }
+                },
+            },
+        )
+        if response.status_code != 202:
+            raise Exception(response.json())
+        return response
