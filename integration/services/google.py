@@ -361,6 +361,9 @@ class GoogleService(BaseService):
                 ),
                 body=reply,
                 threadId=thread["id"],
+                in_reply_to=GoogleMailService._get_mail_header(
+                    "Message-ID", mail["payload"]["headers"]
+                ),
             ),
         )
         return response
@@ -373,15 +376,16 @@ class GoogleService(BaseService):
         subject: str,
         body: str,
         threadId: str = None,
+        in_reply_to: str = None,
     ) -> dict:
         """Creates a message for an email."""
         message = MIMEText(body, "html")
         message["to"] = recipient
         if cc:
             message["cc"] = cc
-        if threadId:
-            message["In-Reply-To"] = threadId
-            message["References"] = threadId
+        if in_reply_to:
+            message["In-Reply-To"] = in_reply_to
+            message["References"] = in_reply_to
         message["from"] = sender
         message["subject"] = subject
         return {
