@@ -1,3 +1,4 @@
+import json
 import logging
 import time
 import traceback
@@ -94,6 +95,30 @@ class SlackService(BaseService):
             },
         ).json()
         return response.get("ok") is True
+
+    @staticmethod
+    def send_reply(
+        meta_data: dict,
+        body: str,
+        reply: str,
+        **kwargs,
+    ):
+        """
+        Send a reply to a message.
+
+        Args:
+        - meta_data: The user integration meta data.
+        - body: The complete event body.
+        - reply: The reply message.
+        """
+        client = WebClient(meta_data["token"]["authed_user"]["access_token"])
+        body = json.loads(body)
+        result = client.chat_postMessage(
+            channel=body["channel"],
+            thread_ts=body["ts"],
+            text=reply,
+        )
+        return result
 
     def fetch_team_members(self) -> list:
         client = WebClient(self._token["authed_user"]["access_token"])
