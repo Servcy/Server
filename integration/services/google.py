@@ -4,11 +4,14 @@ import traceback
 
 import requests
 from django.conf import settings
+from email.mime.text import MIMEText
+import base64
 from google.api_core.exceptions import Aborted
 from google.auth.exceptions import RefreshError
 from google.cloud import pubsub_v1
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
+from inbox.services.google import GoogleMailService
 from googleapiclient.errors import HttpError
 
 from common.exceptions import IntegrationAccessRevokedException
@@ -314,6 +317,63 @@ class GoogleService(BaseService):
         self._token = meta_data["token"]
         self._initialize_google_service()
         return True
+
+    @staticmethod
+    def send_reply(
+        meta_data: dict,
+        body: str,
+        reply: str,
+        **kwargs,
+    ):
+        """
+        Send a reply to a message.
+
+        Args:
+        - meta_data: The user integration meta data.
+        - body: The incoming message id.
+        - reply: The reply message.
+        """
+        service = GoogleService(
+            refresh_token=meta_data["token"]["refresh_token"],
+            access_token=meta_data["token"]["access_token"],
+        )
+        user_integration = kwargs.get("user_integration")
+        message_id = body.split(f"-{user_integration['id']}-")[0]
+        mail = service.get_message(message_id)
+        thread = service._make_google_request(
+            service._google_service.users().threads().get,
+            userId="me",
+            id=mail["threadId"],
+        )
+        response = service._make_google_request(
+            service._google_service.users().messages().send,
+            userId="me",
+            body=service.create_html_message(
+                sender=GoogleMailService._get_mail_header(
+                    "Reply-To", mail["payload"]["headers"]
+                ),
+                recipient=GoogleMailService._get_mail_header(
+                    "From", mail["payload"]["headers"]
+                ),
+                cc=GoogleMailService._get_mail_header("Cc", mail["payload"]["headers"]),
+                subject=f'Re: {GoogleMailService._get_mail_header("Subject", mail["payload"]["headers"])}',
+                body=reply,
+            ),
+            threadId=thread["id"],
+        )
+        return response
+
+    @staticmethod
+    def create_html_message(
+        sender: str, recipient: str, cc: str, subject: str, body: str
+    ) -> dict:
+        """Creates a message for an email."""
+        message = MIMEText(body, "html")
+        message["to"] = recipient
+        message["cc"] = cc
+        message["from"] = sender
+        message["subject"] = subject
+        return {"raw": base64.urlsafe_b64encode(message.as_bytes()).decode()}
 
 
 def refresh_google_watchers_and_tokens():
