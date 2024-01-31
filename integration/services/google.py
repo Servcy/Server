@@ -356,7 +356,9 @@ class GoogleService(BaseService):
                     "From", mail["payload"]["headers"]
                 ),
                 cc=GoogleMailService._get_mail_header("Cc", mail["payload"]["headers"]),
-                subject=f'Re: {GoogleMailService._get_mail_header("Subject", mail["payload"]["headers"])}',
+                subject=GoogleMailService._get_mail_header(
+                    "Subject", mail["payload"]["headers"]
+                ),
                 body=reply,
                 threadId=thread["id"],
             ),
