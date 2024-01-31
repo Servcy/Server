@@ -1,3 +1,5 @@
+import json
+
 import asana
 import requests
 from django.conf import settings
@@ -249,3 +251,27 @@ class AsanaService(BaseService):
             self.client = asana.Client.access_token(self._token["access_token"])
         story = self.client.stories.get_story(story_gid, opt_pretty=True)
         return story
+
+    @staticmethod
+    def send_reply(
+        meta_data: dict,
+        body: str,
+        reply: str,
+        **kwargs,
+    ):
+        """
+        Send reply to Asana task.
+
+        Args:
+        - meta_data: The user integration meta data.
+        - body: The event body.
+        - reply: The reply to the message.
+        """
+        body = json.loads(body)
+        task_gid = body["parent"]["gid"]  # str | The task to operate on.
+        refreshed_tokens = AsanaService._refresh_tokens(
+            meta_data["token"]["refresh_token"]
+        )
+        client = asana.Client.access_token(refreshed_tokens["access_token"])
+        response = client.tasks.add_comment(task_gid, {"text": reply}, opt_pretty=True)
+        return response

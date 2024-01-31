@@ -5,3 +5,4 @@ from .google import GoogleService
 from .microsoft import MicrosoftService
 from .notion import NotionService
 from .slack import SlackService
+from .trello import TrelloService

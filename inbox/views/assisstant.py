@@ -7,6 +7,8 @@ from rest_framework.permissions import AllowAny
 
 from assisstant import generate_text_stream
 from common.responses import error_response, success_response
+from integration.repository import IntegrationRepository
+from integration.utils.maps import integration_service_map
 
 logger = logging.getLogger(__name__)
 
@@ -58,13 +60,32 @@ class AssisstantViewSet(viewsets.ViewSet):
             requesting_user = request.user
             body = request.data.get("body", "")
             reply = request.data.get("reply", "")
-            integration_name = request.data.get("integration_name", "")
+            user_integration_id = request.data.get("user_integration_id", None)
             is_body_html = request.data.get("is_body_html", False)
-            if not body or not reply or not integration_name:
+            if not body or not reply or not user_integration_id:
                 return error_response(
-                    error_message="body, reply and integration_name are required to send reply",
+                    error_message="body, reply and user_integration_id are required to send reply",
                     status=400,
                 )
+            user_integration = IntegrationRepository.get_user_integrations(
+                filters={"id": user_integration_id, "user_id": requesting_user.id},
+                first=True,
+                decrypt_meta_data=True,
+            )
+            service_class = integration_service_map.get(
+                user_integration["integration__name"]
+            )
+            if service_class is None:
+                raise ValueError(
+                    f"Integration '{user_integration['integration__name']}' is not supported."
+                )
+            service_class.send_reply(
+                meta_data=user_integration["meta_data"],
+                user_integration=user_integration,
+                body=body,
+                reply=reply,
+                is_body_html=is_body_html,
+            )
             return success_response()
         except Exception as e:
             return error_response(

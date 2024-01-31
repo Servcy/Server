@@ -2,8 +2,8 @@ import logging
 import traceback
 
 from integration.repository import IntegrationRepository
-from integration.utils.maps import integration_service_map
 from integration.services.base import BaseService
+from integration.utils.maps import integration_service_map
 
 logger = logging.getLogger(__name__)
 
@@ -39,15 +39,10 @@ def main():
                 integration_name = user_integration.integration.name
                 service_class = integration_service_map.get(integration_name)
                 if service_class is None:
-                    raise ValueError(
-                        f"Integration '{integration_name}' is not supported."
-                    )
-                if service_class:
-                    is_active = check_integration_status(
-                        service_class, user_integration
-                    )
-                    if not is_active:
-                        revoked_integrations.append(user_integration.id)
+                    continue
+                is_active = check_integration_status(service_class, user_integration)
+                if not is_active:
+                    revoked_integrations.append(user_integration.id)
             except Exception:
                 logger.exception(
                     f"An error occurred while checking integration status for user {user_integration.user.email}.",
