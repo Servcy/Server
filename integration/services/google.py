@@ -378,12 +378,12 @@ class GoogleService(BaseService):
         message = MIMEText(body, "html")
         message["to"] = recipient
         message["cc"] = cc
-        message["threadId"] = threadId
         message["from"] = sender
-        message["In-Reply-To"] = "<" + threadId + ">"
-        message["References"] = "<" + threadId + ">"
         message["subject"] = subject
-        return {"raw": base64.urlsafe_b64encode(message.as_bytes()).decode()}
+        return {
+            "raw": base64.urlsafe_b64encode(message.as_bytes()).decode(),
+            "threadId": threadId,
+        }
 
 
 def refresh_google_watchers_and_tokens():
