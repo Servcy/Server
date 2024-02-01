@@ -33,6 +33,8 @@ from_number =
 [google]
 client_id=
 client_secret=
+sso_client_id=
+sso_client_secret=
 project_id=servcy
 redirect_uri=
 pub_sub_topic=

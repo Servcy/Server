@@ -62,25 +62,33 @@ class AuthenticationView(APIView):
             )
 
     def post(self, request):
-        """Verify OTP code."""
+        """Verify OTP code and SSO flow"""
         try:
             payload = request.data
-            otp = payload.get("otp", None)
-            input = payload.get("input", None)
-            input_type = payload.get("input_type", None)
-            code_verified = False
-            if not otp or not input_type or not input:
-                return error_response(
-                    error_message="otp, input and input_type are required!",
-                    status=status.HTTP_406_NOT_ACCEPTABLE,
-                )
-            if not settings.DEBUG:
-                client = self._initialize_twilio_client()
-                verification_check = self._verify_code(client, otp, input, input_type)
-                code_verified = verification_check.status == "approved"
+            type = payload.get("type", None)
+            login_success = False
+            if type == "google":
+                input_type = "email"
+                input = payload.get("email", None)
+                login_success = True
             else:
-                code_verified = True
-            if code_verified:
+                otp = payload.get("otp", None)
+                input = payload.get("input", None)
+                input_type = payload.get("input_type", None)
+                if not otp or not input_type or not input:
+                    return error_response(
+                        error_message="otp, input and input_type are required!",
+                        status=status.HTTP_406_NOT_ACCEPTABLE,
+                    )
+                if not settings.DEBUG:
+                    client = self._initialize_twilio_client()
+                    verification_check = self._verify_code(
+                        client, otp, input, input_type
+                    )
+                    login_success = verification_check.status == "approved"
+                else:
+                    login_success = True
+            if login_success:
                 account_service = AccountsService(input, input_type)
                 user = account_service.create_user_account()
                 refresh_token = JWTTokenSerializer.get_token(user)
@@ -91,7 +99,7 @@ class AuthenticationView(APIView):
                 return Response(tokens, status.HTTP_200_OK)
             else:
                 return error_response(
-                    error_message="Verification code is invalid!",
+                    error_message="Invalid input!",
                     status=status.HTTP_401_UNAUTHORIZED,
                 )
         except TwilioRestException:

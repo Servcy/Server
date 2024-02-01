@@ -260,6 +260,8 @@ AUTH_USER_MODEL = "iam.User"
 # google
 GOOGLE_OAUTH2_CLIENT_ID = config.get("google", "client_id")
 GOOGLE_OAUTH2_CLIENT_SECRET = config.get("google", "client_secret")
+GOOGLE_OAUTH2_SSO_CLIENT_ID = config.get("google", "sso_client_id")
+GOOGLE_OAUTH2_SSO_CLIENT_SECRET = config.get("google", "sso_client_secret")
 GOOGLE_OAUTH2_REDIRECT_URI = f"{FRONTEND_URL}/{config.get('google', 'redirect_uri')}"
 GOOGLE_PROJECT_ID = config.get("google", "project_id")
 GOOGLE_OAUTH2_SCOPES = [
