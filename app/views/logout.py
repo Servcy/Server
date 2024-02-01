@@ -13,7 +13,7 @@ class LogoutView(APIView):
     def post(self, request):
         try:
             payload = request.data
-            refresh_token = payload["refresh"]
+            refresh_token = payload["refresh_token"]
             token = RefreshToken(refresh_token)
             token.blacklist()
             return success_response(status=status.HTTP_205_RESET_CONTENT)
