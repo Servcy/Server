@@ -1,6 +1,3 @@
-import base64
-
-
 class GoogleMailService:
     @staticmethod
     def _get_mail_header(field: str, headers: list):
