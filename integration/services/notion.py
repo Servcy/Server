@@ -150,9 +150,11 @@ class NotionService(BaseService):
                     url = page_icon[icon_type]["url"]
                     icon = {
                         "type": "url",
-                        "url": url
-                        if url.startswith("http")
-                        else f"https://www.notion.so{url}",
+                        "url": (
+                            url
+                            if url.startswith("http")
+                            else f"https://www.notion.so{url}"
+                        ),
                     }
                 else:
                     icon = {"type": "emoji", "emoji": page_icon[icon_type]}
@@ -189,9 +191,11 @@ class NotionService(BaseService):
                     url = page_icon[icon_type]["url"]
                     icon = {
                         "type": "url",
-                        "url": url
-                        if url.startswith("http")
-                        else f"https://www.notion.so{url}",
+                        "url": (
+                            url
+                            if url.startswith("http")
+                            else f"https://www.notion.so{url}"
+                        ),
                     }
                 else:
                     icon = {"type": icon_type, icon_type: page_icon[icon_type]}
@@ -278,9 +282,11 @@ class NotionService(BaseService):
         """
         response = requests.request(
             "GET",
-            f"{self._NOTION_COMMENTS}?block_id={page_id}&start_cursor={last_cursor}"
-            if last_cursor
-            else f"{self._NOTION_COMMENTS}?block_id={page_id}",
+            (
+                f"{self._NOTION_COMMENTS}?block_id={page_id}&start_cursor={last_cursor}"
+                if last_cursor
+                else f"{self._NOTION_COMMENTS}?block_id={page_id}"
+            ),
             headers={
                 "Notion-Version": "2022-02-22",
                 "Authorization": f"Bearer {self._token['access_token']}",
@@ -441,7 +447,7 @@ def process_page(
         comment_from = user_map.get(comments[0]["created_by"]["id"])
         for comment in comments:
             i_am_mentioned = False
-            for block in comment:
+            for block in comment.get("rich_text", []):
                 if (
                     block["type"] == "mention"
                     and block["mention"]["type"] == "user"
