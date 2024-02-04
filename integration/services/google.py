@@ -1,20 +1,20 @@
+import base64
 import logging
 import time
 import traceback
+from email.mime.text import MIMEText
 
 import requests
 from django.conf import settings
-from email.mime.text import MIMEText
-import base64
 from google.api_core.exceptions import Aborted
 from google.auth.exceptions import RefreshError
 from google.cloud import pubsub_v1
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
-from inbox.services.google import GoogleMailService
 from googleapiclient.errors import HttpError
 
 from common.exceptions import IntegrationAccessRevokedException
+from inbox.services.google import GoogleMailService
 from integration.repository import IntegrationRepository
 
 from .base import BaseService
