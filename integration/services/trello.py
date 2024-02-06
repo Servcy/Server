@@ -110,6 +110,11 @@ class TrelloService(BaseService):
                 "idModel": model_id,
             },
         )
+        if (
+            "A webhook with that callback, model, and token already exists"
+            in response.text
+        ):
+            return
         if response.status_code != 200:
             raise ServcyOauthCodeException(
                 f"An error occurred while creating webhook for Trello.\n{response.text}"
