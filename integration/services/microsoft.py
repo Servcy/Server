@@ -230,5 +230,5 @@ class MicrosoftService:
             },
         )
         if response.status_code != 202:
-            raise Exception(response.json())
+            raise Exception(response.text)
         return response

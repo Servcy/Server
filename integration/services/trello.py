@@ -138,6 +138,6 @@ class TrelloService(BaseService):
         response = requests.request("POST", url, headers=headers, params=query)
         if response.status_code != 200:
             raise ServcyOauthCodeException(
-                f"An error occurred while obtaining user info from Trello.\n{str(response.json())}"
+                f"An error occurred while obtaining user info from Trello.\n{str(response.text)}"
             )
         return response.json()
