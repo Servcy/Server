@@ -112,7 +112,7 @@ class TrelloService(BaseService):
         )
         if response.status_code != 200:
             raise ServcyOauthCodeException(
-                f"An error occurred while creating webhook for Trello.\n{str(response.json())}"
+                f"An error occurred while creating webhook for Trello.\n{response.text}"
             )
 
     @staticmethod
