@@ -5,8 +5,6 @@ from inbox.services.google import GoogleMailService
 REQUIRED_LABELS = {"UNREAD", "CATEGORY_PERSONAL", "INBOX"}
 EXCLUDED_LABELS = {
     "SPAM",
-    "CATEGORY_SOCIAL",
-    "CATEGORY_PROMOTIONS",
     "TRASH",
 }
 
