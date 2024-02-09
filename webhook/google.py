@@ -54,22 +54,7 @@ def google(request):
         )
         message_ids = service.get_latest_unread_primary_inbox(last_history_id)
         if not message_ids:
-            logger.warn(
-                f"GOOGLE WEBHOOK DEBUGGER :: No new messages found for google request. {email} {history_id}",
-                extra={
-                    "payload": payload,
-                    "headers": request.headers,
-                },
-            )
             return HttpResponse(status=200)
-        logger.info(
-            f"GOOGLE WEBHOOK DEBUGGER :: Found new messages for google request. {email} {history_id}",
-            extra={
-                "payload": payload,
-                "headers": request.headers,
-                "message_ids": message_ids,
-            },
-        )
         mails = service.get_messages(
             message_ids=message_ids,
         )

@@ -1,9 +1,6 @@
-import logging
 import uuid
 
 from inbox.services.google import GoogleMailService
-
-logger = logging.getLogger(__name__)
 
 REQUIRED_LABELS = {"UNREAD", "CATEGORY_PERSONAL", "INBOX"}
 EXCLUDED_LABELS = {
@@ -27,13 +24,6 @@ class GoogleMailRepository:
         inbox_items = []
         for mail in mails:
             if not GoogleMailRepository._has_valid_labels(mail):
-                logger.warn(
-                    f"GOOGLE WEBHOOK DEBUGGER :: Mail does not have valid labels. Skipping. {mail}",
-                    extra={
-                        "mail": mail,
-                        "user_integration_id": user_integration_id,
-                    },
-                )
                 continue
             inbox_items.append(
                 {
