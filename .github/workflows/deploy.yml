@@ -25,4 +25,4 @@ jobs:
 
             - name: Deploy
               run: |
-                  ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.SERVER_IP }} "cd ~/server && sudo git pull && poetry install && poetry run python manage.py migrate && sudo systemctl restart gunicorn && sudo systemctl restart nginx"
+                  ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.SERVER_IP }} "cd /home/ubuntu/server && sudo git pull && /home/ubuntu/.local/bin/poetry install && /home/ubuntu/.local/bin/poetry run python manage.py migrate && sudo systemctl restart gunicorn && sudo systemctl restart nginx"
