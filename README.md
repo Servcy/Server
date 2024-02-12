@@ -2,11 +2,6 @@
 
 - Save your hours, and effort. Manage all your clients from the same platform.
 
-## Features
-
-1. Passwordless authentication using Twilio & SendGrid RESTful APIs
-   - Supports Whatsapp, Email & Phone number as OTP channel
-
 ## Getting started
 
 ### Setup Prerequisites
@@ -28,4 +23,4 @@ poetry install
 poetry shell && python manange.py runserver
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:8000](http://localhost:8000) with your browser to see the result.
