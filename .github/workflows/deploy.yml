@@ -1,0 +1,28 @@
+name: Deploy
+
+on:
+    push:
+        branches:
+            - main
+
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v2
+
+            - name: Install dependencies
+              run: |
+                  poetry shell
+                  poetry install
+
+            - name: Apply migrations
+              run: |
+                  poetry shell
+                  python manage.py migrate
+
+            - name: Restart server
+              run: |
+                  sudo systemctl restart nginx gunicorn
