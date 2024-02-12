@@ -17,6 +17,12 @@ jobs:
               with:
                   ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
+            - name: Install poetry
+              run: |
+                  curl -sSL https://install.python-poetry.org | python3 -
+                  echo "export PATH=$HOME/.local/bin:$PATH" >> $HOME/.bashrc
+                  source $HOME/.bashrc
+
             - name: Deploy
               run: |
                   ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.SERVER_IP }} "cd ~/server && sudo git pull && poetry install && poetry run python manage.py migrate && sudo systemctl restart gunicorn && sudo systemctl restart nginx"
