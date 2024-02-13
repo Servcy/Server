@@ -2,7 +2,11 @@ import base64
 import logging
 import time
 import traceback
+from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email import encoders
+import mimetypes
 
 import requests
 from django.conf import settings
@@ -375,8 +379,8 @@ class GoogleService(BaseService):
                 in_reply_to=GoogleMailService._get_mail_header(
                     "Message-ID", mail["payload"]["headers"]
                 ),
+                attachments=attachment_data,
             ),
-            attachments=attachment_data,
         )
         return response
 
@@ -389,9 +393,10 @@ class GoogleService(BaseService):
         body: str,
         threadId: str = None,
         in_reply_to: str = None,
+        attachments: list[dict] = None,
     ) -> dict:
         """Creates a message for an email."""
-        message = MIMEText(body, "html")
+        message = MIMEMultipart()
         message["to"] = recipient
         if cc:
             message["cc"] = cc
@@ -400,10 +405,28 @@ class GoogleService(BaseService):
             message["References"] = in_reply_to
         message["from"] = sender
         message["subject"] = subject
+        message.attach(MIMEText(body, "html"))
+        if attachments:
+            for attachment in attachments:
+                message.attach(GoogleService._create_attachment(attachment))
         return {
             "raw": base64.urlsafe_b64encode(message.as_bytes()).decode(),
             "threadId": threadId,
         }
+
+    @staticmethod
+    def _create_attachment(attachment: dict) -> dict:
+        """Create attachment"""
+        content_type, _ = mimetypes.guess_type(attachment["filename"])
+        main_type, sub_type = content_type.split("/", 1)
+        my_file = MIMEBase(main_type, sub_type)
+        my_file.set_payload(attachment["data"])
+        my_file.add_header(
+            "Content-Disposition",
+            f"attachment; filename={attachment['filename']}",
+        )
+        encoders.encode_base64(my_file)
+        return my_file
 
     def get_attachments(self, attachments) -> list[dict]:
         """Get attachments"""
