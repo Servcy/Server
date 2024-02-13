@@ -1,6 +1,7 @@
 import json
 import logging
 import traceback
+import uuid
 from base64 import decodebytes
 from tempfile import NamedTemporaryFile
 
@@ -11,7 +12,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from common.exceptions import IntegrationAccessRevokedException
-from document.repository.document import DocumentRepository
+from document.repository import DocumentRepository
 from inbox.repository import InboxRepository
 from inbox.repository.google import GoogleMailRepository
 from integration.repository import IntegrationRepository
@@ -83,6 +84,8 @@ def google(request):
                     "link": None,
                     "file": content_file,
                     "user_integration_id": integration["id"],
+                    "inbox_uid": attachment["inbox_uid"],
+                    "uid": uuid.uuid4().hex,
                 }
             )
             temp_file.close()

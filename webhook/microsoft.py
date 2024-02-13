@@ -1,6 +1,7 @@
 import json
 import logging
 import traceback
+import uuid
 from tempfile import NamedTemporaryFile
 
 from django.core.files.base import ContentFile
@@ -11,7 +12,7 @@ from django.views.decorators.http import require_POST
 from rest_framework import status
 
 from common.responses import error_response
-from document.repository.document import DocumentRepository
+from document.repository import DocumentRepository
 from inbox.repository import InboxRepository
 from integration.repository import IntegrationRepository
 from integration.services.microsoft import MicrosoftService
@@ -68,6 +69,7 @@ def microsoft(request):
                         "file": content_file,
                         "user_integration_id": integration["id"],
                         "inbox_uid": inbox_uid,
+                        "uid": uuid.uuid4().hex,
                     }
                 )
                 temp_file.close()

@@ -1,6 +1,7 @@
 import json
 import logging
 import traceback
+import uuid
 
 from django.conf import settings
 from django.db import transaction
@@ -9,7 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from slack_sdk import WebClient
 
-from document.repository.document import DocumentRepository
+from document.repository import DocumentRepository
 from inbox.repository import InboxRepository
 from integration.repository import IntegrationRepository
 from integration.repository.events import DisabledUserIntegrationEventRepository
@@ -197,6 +198,7 @@ def slack(request):
                         "link": file["url_private"],
                         "file": None,
                         "user_integration_id": user_integration["id"],
+                        "uid": uuid.uuid4().hex,
                         "inbox_uid": inbox_uid,
                     }
                 )

@@ -14,6 +14,7 @@ class Document(TimeStampedModel):
         UserIntegration, null=True, blank=False, on_delete=models.CASCADE, default=None
     )
     inbox_uid = models.CharField(max_length=1000, null=True, blank=False, default=None)
+    uid = models.CharField(max_length=255, unique=True, db_index=True)
 
     class Meta:
         db_table = "document"

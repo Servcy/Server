@@ -8,7 +8,7 @@ from rest_framework.decorators import action
 from rest_framework.viewsets import ModelViewSet
 
 from common.responses import error_response, success_response
-from document.repository.document import DocumentRepository
+from document.repository import DocumentRepository
 from project.serializers import ProjectSerializer
 
 logger = logging.getLogger(__name__)
