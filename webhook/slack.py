@@ -146,7 +146,7 @@ def slack(request):
         members = user_integrations[0]["configuration"] or []
         cause = "-"
         for member in members:
-            if member.get("id", None) == body["event"]["user"]:
+            if member.get("id", None) == body["event"].get("user"):
                 cause = member["profile"]
         for user_integration in user_integrations:
             workspace_members = user_integration["configuration"] or []
