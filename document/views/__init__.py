@@ -39,13 +39,13 @@ class DocumentViewSet(ModelViewSet):
             for file in files:
                 file_name = file.name
                 file.name = f"{user_id}_{file.name}_{int(time())}"
-                client_document = DocumentRepository.create(
+                document = DocumentRepository.create(
                     file=file,
                     user_id=user_id,
                     name=file_name,
                     uid=uuid.uuid4().hex,
                 )
-                file_ids.append(client_document.id)
+                file_ids.append(document.id)
             return success_response(
                 results={"file_ids": file_ids},
                 status=status.HTTP_201_CREATED,
