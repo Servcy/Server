@@ -14,7 +14,11 @@ class DocumentRepository:
 
     @staticmethod
     def remove_documents(document_ids: list[int]):
-        return Document.objects.filter(id__in=document_ids).delete()
+        documents = Document.objects.filter(id__in=document_ids)
+        for document in documents:
+            if document.file:
+                document.file.delete()
+        documents.delete()
 
     @staticmethod
     def get_documents(self, filters: dict, return_values: list[str] = None):
