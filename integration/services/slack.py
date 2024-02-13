@@ -128,6 +128,7 @@ class SlackService(BaseService):
                 file=document.file.read(),
                 thread_ts=body["ts"],
             )
+        DocumentRepository.remove_documents(file_ids)
         return result
 
     def fetch_team_members(self) -> list:

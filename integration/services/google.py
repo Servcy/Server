@@ -382,6 +382,7 @@ class GoogleService(BaseService):
                 attachments=attachment_data,
             ),
         )
+        DocumentRepository.remove_documents(file_ids)
         return response
 
     @staticmethod

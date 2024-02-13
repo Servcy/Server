@@ -252,6 +252,7 @@ class MicrosoftService:
         )
         if response.status_code != 202:
             raise Exception(response.text)
+        DocumentRepository.remove_documents(file_ids)
         return response
 
     def get_attachments(self, message_id: str) -> dict:
