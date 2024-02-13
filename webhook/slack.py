@@ -3,14 +3,17 @@ import logging
 import traceback
 
 from django.conf import settings
+from django.db import transaction
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from slack_sdk import WebClient
 
+from document.repository.document import DocumentRepository
 from inbox.repository import InboxRepository
 from integration.repository import IntegrationRepository
 from integration.repository.events import DisabledUserIntegrationEventRepository
+from integration.services.slack import SlackService
 from integration.utils.events import is_event_and_action_disabled
 
 logger = logging.getLogger(__name__)
@@ -145,10 +148,16 @@ def slack(request):
         inbox_items = []
         members = user_integrations[0]["configuration"] or []
         cause = "-"
+        attachments = []
+        service_map = {}
         for member in members:
             if member.get("id", None) == body["event"]["user"]:
                 cause = member["profile"]
         for user_integration in user_integrations:
+            if user_integration["account_id"] not in service_map:
+                service_map[user_integration["account_id"]] = SlackService(
+                    token=user_integration["meta_data"]["token"]
+                )
             workspace_members = user_integration["configuration"] or []
             event_body = body["event"]
             disabled_events = DisabledUserIntegrationEventRepository.get_disabled_user_integration_events(
@@ -178,6 +187,17 @@ def slack(request):
                 and f"<@{user_integration['account_id']}>" in event_body.get("text", "")
             ) or body["event"].get("type", "") == "message.im":
                 i_am_mentioned = True
+            files = event_body.get("files", [])
+            for file in files:
+                attachments.append(
+                    {
+                        "name": file["name"],
+                        "user_id": user_integration["user_id"],
+                        "link": file["url_private"],
+                        "file": None,
+                        "user_integration_id": user_integration["id"],
+                    }
+                )
             inbox_items.append(
                 {
                     "title": EVENT_MAP[body["event"]["type"]],
@@ -186,13 +206,17 @@ def slack(request):
                     "is_body_html": False,
                     "user_integration_id": user_integration["id"],
                     "uid": f"{uid}-{user_integration['id']}",
-                    "category": "message"
-                    if body["event"].get("type", "").startswith("message")
-                    else "notification",
+                    "category": (
+                        "message"
+                        if body["event"].get("type", "").startswith("message")
+                        else "notification"
+                    ),
                     "i_am_mentioned": i_am_mentioned,
                 }
             )
-        InboxRepository.add_items(inbox_items)
+        with transaction.atomic():
+            InboxRepository.add_items(inbox_items)
+            DocumentRepository.add_documents(attachments)
         return HttpResponse(status=200)
     except Exception:
         logger.exception(
