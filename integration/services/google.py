@@ -1,12 +1,12 @@
 import base64
 import logging
+import mimetypes
 import time
 import traceback
+from email import encoders
+from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from email.mime.base import MIMEBase
-from email import encoders
-import mimetypes
 
 import requests
 from django.conf import settings

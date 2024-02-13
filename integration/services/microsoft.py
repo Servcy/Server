@@ -1,5 +1,6 @@
 import base64
 import logging
+import mimetypes
 
 import msal
 import requests
@@ -219,12 +220,15 @@ class MicrosoftService:
         client = MicrosoftService(refresh_token=meta_data["token"]["refresh_token"])
         attachments = []
         for document in documents:
+            content_type, _ = mimetypes.guess_type(document.name)
             attachments.append(
                 {
                     "name": document.name,
                     "contentBytes": base64.b64encode(document.file.read()).decode(
                         "utf-8"
                     ),
+                    "@odata.type": f"#microsoft.graph.fileAttachment",
+                    "contentType": content_type,
                 }
             )
         message_id = "-".join(body.split("-")[:-1])
