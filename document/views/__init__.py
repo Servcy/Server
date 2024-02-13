@@ -18,10 +18,7 @@ class DocumentViewSet(ModelViewSet):
 
     def get_queryset(self):
         serach = self.request.query_params.get("search", None)
-        inbox_uid = self.request.query_params.get("inbox_uid", None)
         queryset = self.queryset.filter(user=self.request.user)
         if serach:
             queryset = queryset.filter(name__icontains=serach)
-        if inbox_uid:
-            queryset = queryset.filter(inbox_uid=inbox_uid)
         return queryset

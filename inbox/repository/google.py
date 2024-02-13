@@ -18,15 +18,15 @@ class GoogleMailRepository:
         )
 
     @staticmethod
-    def create_mails(mails: list, user_integration_id: int) -> tuple[list, list]:
+    def create_mails(mails: list, user_integration_id: int) -> tuple[list, list, bool]:
         inbox_items = []
+        attachments = {}
+        has_attachments = False
         for mail in mails:
             if not GoogleMailRepository._has_valid_labels(mail):
                 continue
             uid = f"{mail['id']}-{user_integration_id}-{uuid.uuid4()}"
-            body, attachments = GoogleMailService._get_mail_body(
-                mail["payload"], mail["id"], uid
-            )
+            body, files = GoogleMailService._get_mail_body(mail["payload"], mail["id"])
             inbox_items.append(
                 {
                     "title": GoogleMailService._get_mail_header(
@@ -43,4 +43,6 @@ class GoogleMailRepository:
                     "i_am_mentioned": True,
                 }
             )
-        return inbox_items, attachments
+            attachments[uid] = files
+            has_attachments = has_attachments or bool(files)
+        return inbox_items, attachments, has_attachments

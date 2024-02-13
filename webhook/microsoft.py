@@ -1,10 +1,7 @@
 import json
 import logging
 import traceback
-import uuid
-from tempfile import NamedTemporaryFile
 
-from django.core.files.base import ContentFile
 from django.db import IntegrityError, transaction
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -12,7 +9,6 @@ from django.views.decorators.http import require_POST
 from rest_framework import status
 
 from common.responses import error_response
-from document.repository import DocumentRepository
 from inbox.repository import InboxRepository
 from integration.repository import IntegrationRepository
 from integration.services.microsoft import MicrosoftService
@@ -48,31 +44,18 @@ def microsoft(request):
         )
         mail = service.get_message(message_id)
         mail_has_attachments = mail.get("hasAttachments", False)
-        inbox_uid = f"{mail['id']}-{integration['id']}"
         if mail_has_attachments:
             attachments_response = service.get_attachments(message_id)
             attachments_encoded = attachments_response.get("value", [])
             attachments = []
             for attachment in attachments_encoded:
                 content_bytes = attachment.get("contentBytes")
-                if isinstance(content_bytes, str):
-                    content_bytes = content_bytes.encode("utf-8")
-                temp_file = NamedTemporaryFile(delete=True)
-                temp_file.write(content_bytes)
-                temp_file.flush()
-                content_file = ContentFile(content_bytes, name=attachment.get("name"))
                 attachments.append(
                     {
                         "name": attachment["name"],
-                        "user_id": integration["user_id"],
-                        "link": None,
-                        "file": content_file,
-                        "user_integration_id": integration["id"],
-                        "inbox_uid": inbox_uid,
-                        "uid": uuid.uuid4().hex,
+                        "data": content_bytes,
                     }
                 )
-                temp_file.close()
         with transaction.atomic():
             InboxRepository.add_items(
                 [
@@ -82,14 +65,13 @@ def microsoft(request):
                         "body": mail["body"]["content"],
                         "is_body_html": mail["body"]["contentType"] == "html",
                         "user_integration_id": integration["id"],
-                        "uid": inbox_uid,
+                        "uid": f"{mail['id']}-{integration['id']}",
                         "category": "message",
                         "i_am_mentioned": True,
+                        "attachments": attachments if mail_has_attachments else [],
                     }
                 ]
             )
-            if len(attachments) > 0:
-                DocumentRepository.add_documents(attachments)
         return HttpResponse(status=200)
     except IntegrityError:
         return HttpResponse(status=200)

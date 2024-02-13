@@ -7,9 +7,7 @@ class GoogleMailService:
         return None
 
     @staticmethod
-    def _get_mail_body(
-        payload: dict, message_id: str, uid: str
-    ) -> tuple[str, list[dict]]:
+    def _get_mail_body(payload: dict, message_id: str) -> tuple[str, list[dict]]:
         if "parts" not in payload:
             return payload.get("body", {}).get("data", "-")
         html_part = None
@@ -29,7 +27,6 @@ class GoogleMailService:
                         "filename": part["filename"],
                         "attachment_id": part["body"]["attachmentId"],
                         "message_id": message_id,
-                        "inbox_uid": uid,
                     }
                 )
         if html_part:
@@ -38,7 +35,7 @@ class GoogleMailService:
             return text_part, attachments
         if alternate_part:
             return (
-                GoogleMailService._get_mail_body(alternate_part, message_id, uid),
+                GoogleMailService._get_mail_body(alternate_part, message_id),
                 attachments,
             )
         return "Could not find message body."
