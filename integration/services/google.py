@@ -393,6 +393,20 @@ class GoogleService(BaseService):
             "threadId": threadId,
         }
 
+    def get_attachments(self, attachments: list[dict]) -> list[dict]:
+        """Get attachments"""
+        attachment_data = []
+        for attachment in attachments:
+            attachment_data.append(
+                self._make_google_request(
+                    self._google_service.users().messages().attachments().get,
+                    userId="me",
+                    messageId=attachment["message_id"],
+                    id=attachment["attachment_id"],
+                )
+            )
+        return attachment_data
+
 
 def refresh_google_watchers_and_tokens():
     """

@@ -2,13 +2,16 @@ import json
 import logging
 import traceback
 from base64 import decodebytes
+from tempfile import NamedTemporaryFile
 
+from django.core.files.base import ContentFile
 from django.db import transaction
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from common.exceptions import IntegrationAccessRevokedException
+from document.repository.document import DocumentRepository
 from inbox.repository import InboxRepository
 from inbox.repository.google import GoogleMailRepository
 from integration.repository import IntegrationRepository
@@ -58,11 +61,33 @@ def google(request):
         mails = service.get_messages(
             message_ids=message_ids,
         )
-        with transaction.atomic():
-            inbox_items = GoogleMailRepository.create_mails(
-                mails=mails,
-                user_integration_id=integration["id"],
+        inbox_items, attachments = GoogleMailRepository.create_mails(
+            mails=mails,
+            user_integration_id=integration["id"],
+        )
+        documents = []
+        if len(attachments) > 0:
+            attachments = service.get_attachments(attachments=attachments)
+        for attachment in attachments:
+            content_bytes = attachment.get("data")
+            if isinstance(content_bytes, str):
+                content_bytes = content_bytes.encode("utf-8")
+            temp_file = NamedTemporaryFile(delete=True)
+            temp_file.write(content_bytes)
+            temp_file.flush()
+            content_file = ContentFile(content_bytes, name=attachment.get("filename"))
+            documents.append(
+                {
+                    "name": attachment["filename"],
+                    "user_id": integration["user_id"],
+                    "link": None,
+                    "file": content_file,
+                    "user_integration_id": integration["id"],
+                }
             )
+            temp_file.close()
+        with transaction.atomic():
+            DocumentRepository.add_documents(documents)
             InboxRepository.add_items(inbox_items)
         return HttpResponse(status=200)
     except IntegrationAccessRevokedException:
