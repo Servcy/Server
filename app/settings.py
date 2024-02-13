@@ -42,6 +42,7 @@ LOCAL_APPS = [
     "client",
     "task",
     "document",
+    "tag",
 ]
 
 OTHER_APPS = ["app", "webhook"]
