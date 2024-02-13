@@ -48,6 +48,7 @@ class BaseService(ABC):
         body: str,
         reply: str,
         is_body_html: bool,
+        **kwargs,
     ):
         """
         Send reply to user.

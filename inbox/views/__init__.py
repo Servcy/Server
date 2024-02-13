@@ -8,6 +8,7 @@ from common.responses import error_response, success_response
 from inbox.services import InboxService
 from integration.repository import IntegrationRepository
 from integration.utils.maps import integration_service_map
+from document.repository import DocumentRepository
 
 logger = logging.getLogger(__name__)
 
@@ -71,6 +72,11 @@ class InboxViewSet(ViewSet):
             requesting_user = request.user
             body = request.data.get("body", "")
             reply = request.data.get("reply", "")
+            file_ids = request.data.get("file_ids", [])
+            removed_file_ids = request.data.get("removed_file_ids", [])
+            DocumentRepository.remove_documents(
+                [int(file_id) for file_id in removed_file_ids]
+            )
             user_integration_id = request.data.get("user_integration_id", None)
             is_body_html = request.data.get("is_body_html", False)
             if not body or not reply or not user_integration_id:
@@ -103,6 +109,7 @@ class InboxViewSet(ViewSet):
                 body=body,
                 reply=reply,
                 is_body_html=is_body_html,
+                file_ids=[int(file_id) for file_id in file_ids],
             )
             return success_response()
         except Exception as e:
