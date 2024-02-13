@@ -21,7 +21,7 @@ class DocumentRepository:
         documents.delete()
 
     @staticmethod
-    def get_documents(self, filters: dict, return_values: list[str] = None):
+    def get_documents(filters: dict, return_values: list[str] = None):
         qs = Document.objects.filter(**filters)
         if return_values:
             qs = qs.values(*return_values)
