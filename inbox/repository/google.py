@@ -23,8 +23,9 @@ class GoogleMailRepository:
         for mail in mails:
             if not GoogleMailRepository._has_valid_labels(mail):
                 continue
+            uid = f"{mail['id']}-{user_integration_id}-{uuid.uuid4()}"
             body, attachments = GoogleMailService._get_mail_body(
-                mail["payload"], mail["id"]
+                mail["payload"], mail["id"], uid
             )
             inbox_items.append(
                 {
@@ -37,7 +38,7 @@ class GoogleMailRepository:
                     "body": body,
                     "is_body_html": True,
                     "user_integration_id": user_integration_id,
-                    "uid": f"{mail['id']}-{user_integration_id}-{uuid.uuid4()}",
+                    "uid": uid,
                     "category": "message",
                     "i_am_mentioned": True,
                 }

@@ -47,6 +47,7 @@ def microsoft(request):
         )
         mail = service.get_message(message_id)
         mail_has_attachments = mail.get("hasAttachments", False)
+        inbox_uid = f"{mail['id']}-{integration['id']}"
         if mail_has_attachments:
             attachments_response = service.get_attachments(message_id)
             attachments_encoded = attachments_response.get("value", [])
@@ -66,6 +67,7 @@ def microsoft(request):
                         "link": None,
                         "file": content_file,
                         "user_integration_id": integration["id"],
+                        "inbox_uid": inbox_uid,
                     }
                 )
                 temp_file.close()
@@ -78,7 +80,7 @@ def microsoft(request):
                         "body": mail["body"]["content"],
                         "is_body_html": mail["body"]["contentType"] == "html",
                         "user_integration_id": integration["id"],
-                        "uid": f"{mail['id']}-{integration['id']}",
+                        "uid": inbox_uid,
                         "category": "message",
                         "i_am_mentioned": True,
                     }

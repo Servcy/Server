@@ -188,6 +188,7 @@ def slack(request):
             ) or body["event"].get("type", "") == "message.im":
                 i_am_mentioned = True
             files = event_body.get("files", [])
+            inbox_uid = f"{uid}-{user_integration['id']}"
             for file in files:
                 attachments.append(
                     {
@@ -196,6 +197,7 @@ def slack(request):
                         "link": file["url_private"],
                         "file": None,
                         "user_integration_id": user_integration["id"],
+                        "inbox_uid": inbox_uid,
                     }
                 )
             inbox_items.append(
@@ -205,7 +207,7 @@ def slack(request):
                     "body": json.dumps(event_body),
                     "is_body_html": False,
                     "user_integration_id": user_integration["id"],
-                    "uid": f"{uid}-{user_integration['id']}",
+                    "uid": inbox_uid,
                     "category": (
                         "message"
                         if body["event"].get("type", "").startswith("message")
