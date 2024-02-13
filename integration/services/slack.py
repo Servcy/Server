@@ -115,21 +115,19 @@ class SlackService(BaseService):
         """
         documents = DocumentRepository.get_documents(filters={"id__in": file_ids})
         client = WebClient(meta_data["token"]["authed_user"]["access_token"])
-        attachments = []
-        for document in documents:
-            attachments.append(
-                {
-                    "title": document.name,
-                    "text": document.file.url,
-                }
-            )
         body = json.loads(body)
         result = client.chat_postMessage(
             channel=body["channel"],
             thread_ts=body["ts"],
             text=reply,
-            attachments=attachments,
         )
+        for document in documents:
+            result = client.files_upload_v2(
+                filename=document.name,
+                channel=body["channel"],
+                file=document.file.read(),
+                thread_ts=body["ts"],
+            )
         return result
 
     def fetch_team_members(self) -> list:
