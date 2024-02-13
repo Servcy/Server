@@ -60,7 +60,7 @@ def microsoft(request):
             InboxRepository.add_items(
                 [
                     {
-                        "title": mail["subject"],
+                        "title": mail["subject"] or "No Subject",
                         "cause": f"{mail['from']['emailAddress']['name']} <{mail['from']['emailAddress']['address']}>",
                         "body": mail["body"]["content"],
                         "is_body_html": mail["body"]["contentType"] == "html",
