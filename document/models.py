@@ -2,9 +2,7 @@ from django.db import models
 
 from app.models import TimeStampedModel
 from iam.models import User
-from inbox.models import Inbox
 from integration.models import UserIntegration
-from tag.models import Tag
 
 
 class Document(TimeStampedModel):
@@ -15,10 +13,6 @@ class Document(TimeStampedModel):
     user_integration = models.ForeignKey(
         UserIntegration, null=True, blank=False, on_delete=models.CASCADE
     )
-    inbox_item = models.ForeignKey(
-        Inbox, null=True, blank=False, on_delete=models.CASCADE
-    )
-    tags = models.ManyToManyField(Tag)
 
     class Meta:
         db_table = "document"
