@@ -43,6 +43,19 @@ def microsoft(request):
             refresh_token=integration["meta_data"]["token"]["refresh_token"]
         )
         mail = service.get_message(message_id)
+        mail_has_attachments = mail.get("hasAttachments", False)
+        if mail_has_attachments:
+            attachments_response = service.get_attachments(message_id)
+            attachments_encoded = attachments_response.get("value", [])
+            attachments = []
+            for attachment in attachments_encoded:
+                content_bytes = attachment.get("contentBytes")
+                attachments.append(
+                    {
+                        "name": attachment["name"],
+                        "data": content_bytes,
+                    }
+                )
         with transaction.atomic():
             InboxRepository.add_items(
                 [
@@ -55,6 +68,7 @@ def microsoft(request):
                         "uid": f"{mail['id']}-{integration['id']}",
                         "category": "message",
                         "i_am_mentioned": True,
+                        "attachments": attachments if mail_has_attachments else [],
                     }
                 ]
             )

@@ -16,6 +16,7 @@ class Inbox(TimeStampedModel):
     )
     category = models.CharField(max_length=255, null=True, blank=False, default=None)
     i_am_mentioned = models.BooleanField(default=False)
+    attachments = models.JSONField(null=True, blank=False, default=None)
 
     class Meta:
         db_table = "inbox"

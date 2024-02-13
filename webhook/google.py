@@ -3,7 +3,6 @@ import logging
 import traceback
 from base64 import decodebytes
 
-from django.db import transaction
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
@@ -58,12 +57,15 @@ def google(request):
         mails = service.get_messages(
             message_ids=message_ids,
         )
-        with transaction.atomic():
-            inbox_items = GoogleMailRepository.create_mails(
-                mails=mails,
-                user_integration_id=integration["id"],
-            )
-            InboxRepository.add_items(inbox_items)
+        inbox_items, attachments, has_attachments = GoogleMailRepository.create_mails(
+            mails=mails,
+            user_integration_id=integration["id"],
+        )
+        if has_attachments:
+            attachments = service.get_attachments(attachments=attachments)
+        for item in inbox_items:
+            item["attachments"] = attachments.get(item["uid"], [])
+        InboxRepository.add_items(inbox_items)
         return HttpResponse(status=200)
     except IntegrationAccessRevokedException:
         IntegrationRepository.revoke_user_integrations(integration.get("id", 0))

@@ -393,6 +393,27 @@ class GoogleService(BaseService):
             "threadId": threadId,
         }
 
+    def get_attachments(self, attachments) -> list[dict]:
+        """Get attachments"""
+        attachment_data = {}
+        for inbox_item_uid in attachments.keys():
+            for attachment in attachments.get(inbox_item_uid, []):
+                if inbox_item_uid not in attachment_data:
+                    attachment_data[inbox_item_uid] = []
+                file_info = self._make_google_request(
+                    self._google_service.users().messages().attachments().get,
+                    userId="me",
+                    messageId=attachment["message_id"],
+                    id=attachment["attachment_id"],
+                )
+                attachment_data[inbox_item_uid].append(
+                    {
+                        "name": attachment["filename"],
+                        "data": file_info["data"],
+                    }
+                )
+            return attachment_data
+
 
 def refresh_google_watchers_and_tokens():
     """

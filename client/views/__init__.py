@@ -9,7 +9,7 @@ from rest_framework.viewsets import ModelViewSet
 from client.repository.avatar import AvatarRepository
 from client.serializers import ClientSerializer
 from common.responses import error_response, success_response
-from document.repository.document import DocumentRepository
+from document.repository import DocumentRepository
 
 logger = logging.getLogger(__name__)
 

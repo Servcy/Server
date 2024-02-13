@@ -186,10 +186,16 @@ def slack(request):
                     "is_body_html": False,
                     "user_integration_id": user_integration["id"],
                     "uid": f"{uid}-{user_integration['id']}",
-                    "category": "message"
-                    if body["event"].get("type", "").startswith("message")
-                    else "notification",
+                    "category": (
+                        "message"
+                        if body["event"].get("type", "").startswith("message")
+                        else "notification"
+                    ),
                     "i_am_mentioned": i_am_mentioned,
+                    "attachments": [
+                        {"name": file["name"], "data": file["url_private"]}
+                        for file in event_body.get("files", [])
+                    ],
                 }
             )
         InboxRepository.add_items(inbox_items)
