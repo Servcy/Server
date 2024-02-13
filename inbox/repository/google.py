@@ -2,7 +2,7 @@ import uuid
 
 from inbox.services.google import GoogleMailService
 
-REQUIRED_LABELS = {"UNREAD", "CATEGORY_PERSONAL", "INBOX"}
+REQUIRED_LABELS = {"UNREAD", "INBOX"}
 EXCLUDED_LABELS = {
     "SPAM",
     "TRASH",
