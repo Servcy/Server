@@ -232,3 +232,15 @@ class MicrosoftService:
         if response.status_code != 202:
             raise Exception(response.text)
         return response
+
+    def get_attachments(self, message_id: str) -> dict:
+        """
+        Function to fetch attachments from outlook with ID
+        """
+        return self._make_microsoft_request(
+            requests.get,
+            f"{MICROSOFT_READ_MAIL_URI}/{message_id}/attachments",
+            headers={
+                "Authorization": "Bearer {}".format(self._token["access_token"]),
+            },
+        )
