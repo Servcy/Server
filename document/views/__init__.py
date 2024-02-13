@@ -1,5 +1,5 @@
 import logging
-import time
+from time import time
 import traceback
 import uuid
 
