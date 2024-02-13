@@ -31,7 +31,8 @@ class GoogleMailRepository:
                 {
                     "title": GoogleMailService._get_mail_header(
                         "Subject", mail["payload"]["headers"]
-                    ),
+                    )
+                    or "No Subject",
                     "cause": GoogleMailService._get_mail_header(
                         "From", mail["payload"]["headers"]
                     ),
