@@ -14,6 +14,7 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 from common.exceptions import IntegrationAccessRevokedException
+from document.repository import DocumentRepository
 from inbox.services.google import GoogleMailService
 from integration.repository import IntegrationRepository
 
@@ -323,6 +324,7 @@ class GoogleService(BaseService):
         meta_data: dict,
         body: str,
         reply: str,
+        file_ids: list[int],
         **kwargs,
     ):
         """
@@ -333,6 +335,15 @@ class GoogleService(BaseService):
         - body: The incoming message id.
         - reply: The reply message.
         """
+        documents = DocumentRepository.get_documents(filters={"id__in": file_ids})
+        attachment_data = []
+        for document in documents:
+            attachment_data.append(
+                {
+                    "filename": document.name,
+                    "data": document.file.read(),
+                }
+            )
         service = GoogleService(
             refresh_token=meta_data["token"]["refresh_token"],
             access_token=meta_data["token"]["access_token"],
@@ -365,6 +376,7 @@ class GoogleService(BaseService):
                     "Message-ID", mail["payload"]["headers"]
                 ),
             ),
+            attachments=attachment_data,
         )
         return response
 

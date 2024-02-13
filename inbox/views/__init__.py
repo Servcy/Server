@@ -5,10 +5,10 @@ from rest_framework.decorators import action
 from rest_framework.viewsets import ViewSet
 
 from common.responses import error_response, success_response
+from document.repository import DocumentRepository
 from inbox.services import InboxService
 from integration.repository import IntegrationRepository
 from integration.utils.maps import integration_service_map
-from document.repository import DocumentRepository
 
 logger = logging.getLogger(__name__)
 

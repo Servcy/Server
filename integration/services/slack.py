@@ -8,6 +8,7 @@ from django.conf import settings
 from slack_sdk import WebClient
 
 from common.exceptions import ServcyOauthCodeException
+from document.repository import DocumentRepository
 from integration.repository import IntegrationRepository
 
 from .base import BaseService
@@ -101,6 +102,7 @@ class SlackService(BaseService):
         meta_data: dict,
         body: str,
         reply: str,
+        file_ids: list[int],
         **kwargs,
     ):
         """
@@ -111,12 +113,22 @@ class SlackService(BaseService):
         - body: The complete event body.
         - reply: The reply message.
         """
+        documents = DocumentRepository.get_documents(filters={"id__in": file_ids})
         client = WebClient(meta_data["token"]["authed_user"]["access_token"])
+        attachments = []
+        for document in documents:
+            attachments.append(
+                {
+                    "title": document.name,
+                    "text": document.file.url,
+                }
+            )
         body = json.loads(body)
         result = client.chat_postMessage(
             channel=body["channel"],
             thread_ts=body["ts"],
             text=reply,
+            attachments=attachments,
         )
         return result
 

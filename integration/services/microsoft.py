@@ -1,3 +1,4 @@
+import base64
 import logging
 
 import msal
@@ -6,6 +7,7 @@ from django.conf import settings
 
 from common.exceptions import ServcyOauthCodeException
 from common.utils.datetime import future_date_in_iso_formate
+from document.repository import DocumentRepository
 from integration.repository import IntegrationRepository
 
 logger = logging.getLogger(__name__)
@@ -202,6 +204,7 @@ class MicrosoftService:
         meta_data: dict,
         body: str,
         reply: str,
+        file_ids: list[int],
         **kwargs,
     ):
         """
@@ -212,22 +215,36 @@ class MicrosoftService:
         - body: The incoming message id.
         - reply: The reply message.
         """
+        documents = DocumentRepository.get_documents(filters={"id__in": file_ids})
         client = MicrosoftService(refresh_token=meta_data["token"]["refresh_token"])
+        attachments = []
+        for document in documents:
+            attachments.append(
+                {
+                    "name": document.name,
+                    "contentBytes": base64.b64encode(document.file.read()).decode(
+                        "utf-8"
+                    ),
+                }
+            )
         message_id = "-".join(body.split("-")[:-1])
+        reply_message = {
+            "message": {
+                "body": {
+                    "contentType": "text",
+                    "content": reply,
+                }
+            },
+        }
+        if attachments:
+            reply_message["message"]["attachments"] = attachments
         response = requests.post(
             f"{MICROSOFT_READ_MAIL_URI}{message_id}/reply",
             headers={
                 "Authorization": f"Bearer {client._token['access_token']}",
                 "Content-Type": "application/json",
             },
-            json={
-                "message": {
-                    "body": {
-                        "contentType": "text",
-                        "content": reply,
-                    }
-                },
-            },
+            json=reply_message,
         )
         if response.status_code != 202:
             raise Exception(response.text)
