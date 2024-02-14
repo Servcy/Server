@@ -27,6 +27,8 @@ class InboxService(DataTableBase):
         return Q()
 
     def category_filter(self, category: str):
+        if self.filters.get("category") == "archived":
+            return Q(is_archived=True)
         if self.filters.get("category"):
             return Q(category=category)
         return Q()
