@@ -33,6 +33,15 @@ class InboxRepository:
         )
 
     @staticmethod
+    def read_item(item_id: int) -> Inbox:
+        """
+        Archive an item in the inbox.
+        """
+        return Inbox.objects.filter(id=item_id).update(
+            is_read=True, updated_at=datetime.datetime.now()
+        )
+
+    @staticmethod
     def filter(query: Q) -> list[Inbox]:
         """
         Filter inbox items.

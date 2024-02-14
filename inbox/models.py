@@ -9,6 +9,7 @@ class Inbox(TimeStampedModel):
     title = models.CharField(max_length=255)
     body = models.TextField(null=True, blank=False, default=None)
     is_archived = models.BooleanField(default=False)
+    is_read = models.BooleanField(default=False)
     cause = models.CharField(max_length=10000, null=True, blank=False, default=None)
     is_body_html = models.BooleanField(default=False)
     user_integration = models.ForeignKey(
