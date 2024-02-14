@@ -265,7 +265,7 @@ class IntegrationEventViewSet(ViewSet):
             )
 
     @action(detail=False, methods=["post"], url_path="disable-such-notifications")
-    def disable_user_integration_event(self, request):
+    def disable_such_notifications(self, request):
         try:
             user_id = request.user.id
             user_integration_id = int(request.data.get("user_integration_id", 0))
