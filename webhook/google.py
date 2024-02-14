@@ -60,6 +60,7 @@ def google(request):
         inbox_items, attachments, has_attachments = GoogleMailRepository.create_mails(
             mails=mails,
             user_integration_id=integration["id"],
+            user_id=integration["user_id"],
         )
         if has_attachments:
             attachments = service.get_attachments(attachments=attachments)
