@@ -30,14 +30,14 @@ class InboxService(DataTableBase):
         if self.filters.get("category") == "archived":
             return Q(is_archived=True)
         if self.filters.get("category"):
-            return Q(category=category)
-        return Q()
+            return Q(category=category, is_archived=False)
+        return Q(is_archived=False)
 
     def i_am_mentioned_filter(self, i_am_mentioned: bool):
         return Q(i_am_mentioned=i_am_mentioned)
 
     def get_queryset(self) -> "InboxService":
-        q = Q(user_integration__user=self.user, is_archived=False)
+        q = Q(user_integration__user=self.user)
         for key, val in self.filters.items():
             if not val:
                 continue
