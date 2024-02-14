@@ -27,7 +27,7 @@ class InboxViewSet(ViewSet):
                 sort_by=table_settings.get("sort_by", []),
                 sort_desc=table_settings.get("sort_desc", []),
                 page=table_settings.get("page", 1),
-                page_size=table_settings.get("page_size", 10),
+                page_size=table_settings.get("page_size", 50),
             )
             return success_response(
                 results={
