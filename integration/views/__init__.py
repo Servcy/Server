@@ -47,6 +47,7 @@ class IntegrationViewSet(GenericViewSet):
                     "is_connected": integration["id"] in connected_integrations,
                 }
                 for integration in integrations
+                if not integration["is_wip"]  # TODO: Reconsider in the future
             ]
             return success_response(
                 success_message="Integrations fetched successfully",
