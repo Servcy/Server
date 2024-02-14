@@ -9,7 +9,7 @@ class GoogleMailService:
     @staticmethod
     def _get_mail_body(payload: dict, message_id: str) -> tuple[str, list[dict]]:
         if "parts" not in payload:
-            return payload.get("body", {}).get("data", "-")
+            return payload.get("body", {}).get("data", "-"), []
         html_part = None
         text_part = None
         alternate_part = None
@@ -38,4 +38,4 @@ class GoogleMailService:
                 GoogleMailService._get_mail_body(alternate_part, message_id),
                 attachments,
             )
-        return "Could not find message body."
+        return "Could not find message body.", attachments
