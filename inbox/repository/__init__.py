@@ -42,11 +42,11 @@ class InboxRepository:
         )
 
     @staticmethod
-    def delete_item(item_id: int) -> None:
+    def delete_items(item_ids: list[int]) -> None:
         """
         Archive an item in the inbox.
         """
-        return Inbox.objects.filter(id=item_id).delete()
+        return Inbox.objects.filter(id__in=item_ids).delete()
 
     @staticmethod
     def filter(query: Q) -> list[Inbox]:

@@ -48,11 +48,11 @@ class InboxViewSet(ViewSet):
         try:
             user_id = request.user.id
             user = request.user
-            item_id = request.data.get("item_id", [])
+            item_id = request.data.get("item_id")
             if not item_id:
                 return error_response(
                     logger=logger,
-                    logger_message="No items to archive",
+                    logger_message="No item to read",
                 )
             inbox_service = InboxService(user=user, user_id=user_id)
             inbox_service.read_item(item_id=item_id)
@@ -63,30 +63,30 @@ class InboxViewSet(ViewSet):
         except Exception:
             return error_response(
                 logger=logger,
-                logger_message="Error while archiving inbox items",
+                logger_message="Error while reading inbox item",
             )
 
     @action(detail=False, methods=["post"], url_path="delete")
-    def delete_item(self, request):
+    def delete_items(self, request):
         try:
             user_id = request.user.id
             user = request.user
-            item_id = request.data.get("item_id", [])
-            if not item_id:
+            item_ids = request.data.get("item_ids", [])
+            if not item_ids:
                 return error_response(
                     logger=logger,
-                    logger_message="No items to archive",
+                    logger_message="No items to delete",
                 )
             inbox_service = InboxService(user=user, user_id=user_id)
-            inbox_service.delete_item(item_id=item_id)
+            inbox_service.delete_items(item_ids=item_ids)
             return success_response(
-                success_message="Inbox items delete successfully",
+                success_message="Inbox items deleted successfully",
                 status=status.HTTP_200_OK,
             )
         except Exception:
             return error_response(
                 logger=logger,
-                logger_message="Error while archiving inbox items",
+                logger_message="Error while deleting inbox items",
             )
 
     @action(detail=False, methods=["post"], url_path="archive")

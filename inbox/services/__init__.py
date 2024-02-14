@@ -78,8 +78,8 @@ class InboxService(DataTableBase):
         """
         return InboxRepository.read_item(item_id=item_id)
 
-    def delete_item(self, item_id: int) -> Inbox:
+    def delete_items(self, item_ids: list[int]) -> Inbox:
         """
         Archive an item.
         """
-        return InboxRepository.delete_item(item_id=item_id)
+        return InboxRepository.delete_items(item_ids=item_ids)
