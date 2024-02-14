@@ -66,6 +66,29 @@ class InboxViewSet(ViewSet):
                 logger_message="Error while archiving inbox items",
             )
 
+    @action(detail=False, methods=["post"], url_path="delete")
+    def delete_item(self, request):
+        try:
+            user_id = request.user.id
+            user = request.user
+            item_id = request.data.get("item_id", [])
+            if not item_id:
+                return error_response(
+                    logger=logger,
+                    logger_message="No items to archive",
+                )
+            inbox_service = InboxService(user=user, user_id=user_id)
+            inbox_service.delete_item(item_id=item_id)
+            return success_response(
+                success_message="Inbox items delete successfully",
+                status=status.HTTP_200_OK,
+            )
+        except Exception:
+            return error_response(
+                logger=logger,
+                logger_message="Error while archiving inbox items",
+            )
+
     @action(detail=False, methods=["post"], url_path="archive")
     def archive_items(self, request):
         try:
