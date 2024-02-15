@@ -208,28 +208,22 @@ class GoogleService(BaseService):
     @staticmethod
     def remove_publisher_for_user(email: str):
         """Remove publisher for user"""
-        try:
-            pubsub_v1_client = pubsub_v1.PublisherClient()
-            policy = pubsub_v1_client.get_iam_policy(
-                request={"resource": GOOGLE_PUB_SUB_TOPIC}
-            )
-            for binding in policy.bindings:
-                if (
-                    binding.role == "roles/pubsub.publisher"
-                    and f"user:{email}" in binding.members
-                ):
-                    binding.members.remove(f"user:{email}")
-            pubsub_v1_client.set_iam_policy(
-                request={"resource": GOOGLE_PUB_SUB_TOPIC, "policy": policy}
-            )
-        except Exception:
-            logger.exception(
-                f"Error in removing publisher for user {email}",
-                extra={
-                    "traceback": traceback.format_exc(),
-                },
-            )
-        return True
+        pubsub_v1_client = pubsub_v1.PublisherClient()
+        policy = pubsub_v1_client.get_iam_policy(
+            request={"resource": GOOGLE_PUB_SUB_TOPIC}
+        )
+        updated_bindings = []
+        for binding in policy.bindings:
+            if (
+                binding.role == "roles/pubsub.publisher"
+                and f"user:{email}" in binding.members
+            ):
+                binding.members.remove(f"user:{email}")
+            updated_bindings.append(binding)
+        policy.bindings = updated_bindings
+        pubsub_v1_client.set_iam_policy(
+            request={"resource": GOOGLE_PUB_SUB_TOPIC, "policy": policy}
+        )
 
     def get_latest_unread_primary_inbox(self, last_history_id: int) -> list[str]:
         """Get latest unread primary inbox messages"""
