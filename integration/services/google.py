@@ -1,7 +1,6 @@
 import base64
 import logging
 import mimetypes
-import time
 import traceback
 from email import encoders
 from email.mime.base import MIMEBase
@@ -10,7 +9,6 @@ from email.mime.text import MIMEText
 
 import requests
 from django.conf import settings
-from google.api_core.exceptions import Aborted
 from google.auth.exceptions import RefreshError
 from google.cloud import pubsub_v1
 from google.oauth2.credentials import Credentials
@@ -92,6 +90,7 @@ class GoogleService(BaseService):
             )
         except HttpError as err:
             if err.resp.status == 401:
+                GoogleService.remove_publisher_for_user(self._user_info["email"])
                 raise IntegrationAccessRevokedException()
             else:
                 logger.exception(
@@ -137,6 +136,7 @@ class GoogleService(BaseService):
                     "token": self._token,
                 },
             )
+            GoogleService.remove_publisher_for_user(self._user_info["email"])
             raise IntegrationAccessRevokedException()
         except HttpError as e:
             logger.exception(
@@ -208,36 +208,28 @@ class GoogleService(BaseService):
     @staticmethod
     def remove_publisher_for_user(email: str):
         """Remove publisher for user"""
-        pubsub_v1_client = pubsub_v1.PublisherClient()
-        max_retries = 5
-        base_delay = 1  # Initial delay is 1 second
-        for attempt in range(max_retries):
-            try:
-                policy = pubsub_v1_client.get_iam_policy(
-                    request={"resource": GOOGLE_PUB_SUB_TOPIC}
-                )
-                # Remove the user from the bindings instead of adding
-                for binding in policy.bindings:
-                    if (
-                        binding.role == "roles/pubsub.publisher"
-                        and f"user:{email}" in binding.members
-                    ):
-                        binding.members.remove(f"user:{email}")
-
-                pubsub_v1_client.set_iam_policy(
-                    request={"resource": GOOGLE_PUB_SUB_TOPIC, "policy": policy}
-                )
-                return True
-            except Aborted as e:
-                # Exponential backoff
-                sleep_time = base_delay * (2**attempt)
-                logger.warning(
-                    f"Failed to remove publisher for user {email}. Retrying in {sleep_time} seconds.",
-                    extra={"traceback": traceback.format_exc(), "email": email},
-                )
-                time.sleep(sleep_time)
-        # If all retries failed, raise an exception
-        raise Exception("Failed to remove publisher for user after several retries.")
+        try:
+            pubsub_v1_client = pubsub_v1.PublisherClient()
+            policy = pubsub_v1_client.get_iam_policy(
+                request={"resource": GOOGLE_PUB_SUB_TOPIC}
+            )
+            for binding in policy.bindings:
+                if (
+                    binding.role == "roles/pubsub.publisher"
+                    and f"user:{email}" in binding.members
+                ):
+                    binding.members.remove(f"user:{email}")
+            pubsub_v1_client.set_iam_policy(
+                request={"resource": GOOGLE_PUB_SUB_TOPIC, "policy": policy}
+            )
+        except Exception:
+            logger.exception(
+                f"Error in removing publisher for user {email}",
+                extra={
+                    "traceback": traceback.format_exc(),
+                },
+            )
+        return True
 
     def get_latest_unread_primary_inbox(self, last_history_id: int) -> list[str]:
         """Get latest unread primary inbox messages"""
