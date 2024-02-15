@@ -198,7 +198,7 @@ class GoogleService(BaseService):
         )
         policy.bindings.add(
             role="roles/pubsub.publisher",
-            members=[f"user:oauthtest121@gmail.com"],
+            members=[f"user:{self._user_info['email']}"],
         )
         pubsub_v1_client.set_iam_policy(
             request={"resource": GOOGLE_PUB_SUB_TOPIC, "policy": policy}
