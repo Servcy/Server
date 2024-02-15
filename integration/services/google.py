@@ -49,9 +49,9 @@ class GoogleService(BaseService):
         if self._token:
             self._initialize_google_service()
             if code:
-                self._fetch_user_info()._add_publisher_for_user()._add_watcher_to_inbox_pub_sub(
-                    self._user_info["email"]
-                )
+                self._fetch_user_info()
+                add_publisher_from_topic(self._user_info["email"])
+                self._add_watcher_to_inbox_pub_sub(self._user_info["email"])
 
     def refresh_tokens(self):
         """Refresh tokens"""
@@ -90,7 +90,7 @@ class GoogleService(BaseService):
             )
         except HttpError as err:
             if err.resp.status == 401:
-                GoogleService.remove_publisher_for_user(self._user_info["email"])
+                remove_publisher_from_topic(self._user_info["email"])
                 raise IntegrationAccessRevokedException()
             else:
                 logger.exception(
@@ -136,7 +136,7 @@ class GoogleService(BaseService):
                     "token": self._token,
                 },
             )
-            GoogleService.remove_publisher_for_user(self._user_info["email"])
+            remove_publisher_from_topic(self._user_info["email"])
             raise IntegrationAccessRevokedException()
         except HttpError as e:
             logger.exception(
@@ -147,7 +147,7 @@ class GoogleService(BaseService):
             )
             raise
 
-    def _fetch_user_info(self) -> "GoogleService":
+    def _fetch_user_info(self):
         """
         Fetch user info from google
         No need to refresh token as it is already done in _fetch_token
@@ -157,15 +157,13 @@ class GoogleService(BaseService):
             GOOGLE_USER_INFO_URI,
             headers={"Authorization": f"Bearer {self._token['access_token']}"},
         ).json()
-        return self
 
-    def _fetch_user_info_from_service(self) -> "GoogleService":
+    def _fetch_user_info_from_service(self):
         """Fetch user info from google"""
         self._user_info = self._make_google_request(
             self._google_service.users().getProfile,
             userId="me",
         )
-        return self
 
     def _add_watcher_to_inbox_pub_sub(self, email: str = None) -> dict:
         """Add watcher to inbox pub sub"""
@@ -188,41 +186,6 @@ class GoogleService(BaseService):
         """Remove watcher from inbox pub sub"""
         return self._make_google_request(
             self._google_service.users().stop, userId=email
-        )
-
-    def _add_publisher_for_user(self) -> "GoogleService":
-        """Add publisher for user"""
-        pubsub_v1_client = pubsub_v1.PublisherClient()
-        policy = pubsub_v1_client.get_iam_policy(
-            request={"resource": GOOGLE_PUB_SUB_TOPIC}
-        )
-        policy.bindings.add(
-            role="roles/pubsub.publisher",
-            members=[f"user:{self._user_info['email']}"],
-        )
-        pubsub_v1_client.set_iam_policy(
-            request={"resource": GOOGLE_PUB_SUB_TOPIC, "policy": policy}
-        )
-        return self
-
-    @staticmethod
-    def remove_publisher_for_user(email: str):
-        """Remove publisher for user"""
-        pubsub_v1_client = pubsub_v1.PublisherClient()
-        policy = pubsub_v1_client.get_iam_policy(
-            request={"resource": GOOGLE_PUB_SUB_TOPIC}
-        )
-        updated_bindings = []
-        for binding in policy.bindings:
-            if (
-                binding.role == "roles/pubsub.publisher"
-                and f"user:{email}" in binding.members
-            ):
-                binding.members.remove(f"user:{email}")
-            updated_bindings.append(binding)
-        policy.bindings = updated_bindings
-        pubsub_v1_client.set_iam_policy(
-            request={"resource": GOOGLE_PUB_SUB_TOPIC, "policy": policy}
         )
 
     def get_latest_unread_primary_inbox(self, last_history_id: int) -> list[str]:
@@ -440,7 +403,8 @@ def refresh_google_watchers_and_tokens():
                         "refresh_token"
                     ],
                 )
-                google_service._fetch_user_info_from_service()._add_watcher_to_inbox_pub_sub(
+                google_service._fetch_user_info_from_service()
+                google_service._add_watcher_to_inbox_pub_sub(
                     google_service._user_info["emailAddress"]
                 )
                 new_tokens = google_service.refresh_tokens()
@@ -469,3 +433,41 @@ def refresh_google_watchers_and_tokens():
                 "traceback": traceback.format_exc(),
             },
         )
+
+
+def add_publisher_from_topic(email: str):
+    """Add publisher for user"""
+    try:
+        pubsub_v1_client = pubsub_v1.PublisherClient()
+        policy = pubsub_v1_client.get_iam_policy(
+            request={"resource": GOOGLE_PUB_SUB_TOPIC}
+        )
+        policy.bindings.add(
+            role="roles/pubsub.publisher",
+            members=[f"user:{email}"],
+        )
+        pubsub_v1_client.set_iam_policy(
+            request={"resource": GOOGLE_PUB_SUB_TOPIC, "policy": policy}
+        )
+    except:
+        pass
+
+
+def remove_publisher_from_topic(email: str):
+    """Remove publisher for user"""
+    try:
+        pubsub_v1_client = pubsub_v1.PublisherClient()
+        policy = pubsub_v1_client.get_iam_policy(
+            request={"resource": GOOGLE_PUB_SUB_TOPIC}
+        )
+        for binding in policy.bindings:
+            if (
+                binding.role == "roles/pubsub.publisher"
+                and f"user:{email}" in binding.members
+            ):
+                binding.members.remove(f"user:{email}")
+        pubsub_v1_client.set_iam_policy(
+            request={"resource": GOOGLE_PUB_SUB_TOPIC, "policy": policy}
+        )
+    except:
+        pass
