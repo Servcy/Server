@@ -6,9 +6,9 @@ from rest_framework.viewsets import ViewSet
 
 from common.responses import error_response, success_response
 from document.repository import DocumentRepository
+from inbox.repository import InboxRepository
 from inbox.services import InboxService
 from integration.repository import IntegrationRepository
-from inbox.repository import InboxRepository
 from integration.utils.maps import integration_service_map
 
 logger = logging.getLogger(__name__)

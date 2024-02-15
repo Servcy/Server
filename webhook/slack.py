@@ -185,7 +185,7 @@ def slack(request):
                     "body": json.dumps(event_body),
                     "is_body_html": False,
                     "user_integration_id": user_integration["id"],
-                    "uid": f"{uid}-{user_integration['id']}",
+                    "uid": uid,
                     "category": (
                         "message"
                         if body["event"].get("type", "").startswith("message")

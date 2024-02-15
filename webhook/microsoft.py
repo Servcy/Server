@@ -61,20 +61,18 @@ def microsoft(request):
                     }
                 )
         with transaction.atomic():
-            InboxRepository.add_items(
-                [
-                    {
-                        "title": mail["subject"] or "No Subject",
-                        "cause": f"{mail['from']['emailAddress']['name']} <{mail['from']['emailAddress']['address']}>",
-                        "body": mail["body"]["content"],
-                        "is_body_html": mail["body"]["contentType"] == "html",
-                        "user_integration_id": integration["id"],
-                        "uid": f"{mail['id']}-{integration['id']}",
-                        "category": "message",
-                        "i_am_mentioned": True,
-                        "attachments": attachments if mail_has_attachments else [],
-                    }
-                ]
+            InboxRepository.add_item(
+                {
+                    "title": mail["subject"] or "No Subject",
+                    "cause": f"{mail['from']['emailAddress']['name']} <{mail['from']['emailAddress']['address']}>",
+                    "body": mail["body"]["content"],
+                    "is_body_html": mail["body"]["contentType"] == "html",
+                    "user_integration_id": integration["id"],
+                    "uid": mail["id"],
+                    "category": "message",
+                    "i_am_mentioned": True,
+                    "attachments": attachments if mail_has_attachments else [],
+                }
             )
         return HttpResponse(status=200)
     except IntegrityError:

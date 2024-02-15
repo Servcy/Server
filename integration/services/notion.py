@@ -312,7 +312,6 @@ class NotionService(BaseService):
 
     def add_comment(
         self,
-        page_id: str,
         comment: str,
         discussion_id: str,
     ):
@@ -353,7 +352,6 @@ class NotionService(BaseService):
         body = json.loads(body)
         notion_service = NotionService(token=meta_data["token"])
         notion_service.add_comment(
-            page_id=body.get("parent", {}).get("page_id", ""),
             comment=reply,
             discussion_id=body["discussion_id"],
         )
@@ -462,7 +460,7 @@ def process_page(
                     "body": json.dumps(comment),
                     "is_body_html": False,
                     "user_integration_id": user_integration["id"],
-                    "uid": f"{comment['id']}-{user_integration['id']}",
+                    "uid": comment["id"],
                     "category": "comment",
                     "i_am_mentioned": i_am_mentioned,
                 }

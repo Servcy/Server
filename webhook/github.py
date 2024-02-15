@@ -68,19 +68,17 @@ def github(request):
             in payload.get("comment", {}).get("body", "")
         ):
             i_am_mentioned = True
-        InboxRepository.add_items(
-            [
-                {
-                    "title": title,
-                    "cause": json.dumps(payload["sender"]),
-                    "body": json.dumps(payload),
-                    "is_body_html": False,
-                    "user_integration_id": user_integration.id,
-                    "uid": f"{guid}-{user_integration.id}",
-                    "category": "comment" if "comment" in event else "notification",
-                    "i_am_mentioned": i_am_mentioned,
-                }
-            ]
+        InboxRepository.add_item(
+            {
+                "title": title,
+                "cause": json.dumps(payload["sender"]),
+                "body": json.dumps(payload),
+                "is_body_html": False,
+                "user_integration_id": user_integration.id,
+                "uid": guid,
+                "category": "comment" if "comment" in event else "notification",
+                "i_am_mentioned": i_am_mentioned,
+            }
         )
         return HttpResponse(status=200)
     except Exception:

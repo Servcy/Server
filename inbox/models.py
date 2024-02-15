@@ -1,8 +1,8 @@
 from django.db import models
 
 from app.models import TimeStampedModel
-from integration.models import UserIntegration
 from iam.models import User
+from integration.models import UserIntegration
 
 
 class Inbox(TimeStampedModel):

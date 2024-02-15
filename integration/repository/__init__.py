@@ -11,39 +11,27 @@ from integration.models import Integration, UserIntegration
 
 class IntegrationRepository:
     @classmethod
-    def create_user_integration(
-        self,
-        integration_id: int,
-        user_id: int,
-        meta_data: dict,
-        account_id: str,
-        account_display_name: str = "",
-        configuration: list | dict = None,
-    ) -> UserIntegration:
-        defaults = {
-            "meta_data": IntegrationRepository.encrypt_meta_data(meta_data),
-            "account_display_name": account_display_name,
-            "is_revoked": False,
-        }
-        if configuration is not None:
-            defaults["configuration"] = configuration
-        user_integration, _ = UserIntegration.objects.update_or_create(
-            integration_id=integration_id,
-            user_id=user_id,
-            account_id=account_id,
-            defaults=defaults,
-        )
-        return user_integration
-
-    @classmethod
     def get_integration(self, filters: dict) -> Integration:
-        integration = Integration.objects.get(**filters)
-        return integration
+        return Integration.objects.get(**filters)
 
     @classmethod
     def get_user_integration(self, filters: dict) -> UserIntegration:
         user_integration = UserIntegration.objects.get(**filters, is_revoked=False)
         return user_integration
+
+    @staticmethod
+    def fetch_all_user_integrations() -> Q:
+        """
+        Fetch all user integrations.
+        """
+        return UserIntegration.objects.filter(is_revoked=False).all()
+
+    @staticmethod
+    def fetch_all_integrations() -> Q:
+        """
+        Fetch all integrations.
+        """
+        return Integration.objects.all()
 
     @classmethod
     def get_user_integrations(
@@ -76,6 +64,59 @@ class IntegrationRepository:
             return integrations
         return integrations[0] if integrations else None
 
+    @classmethod
+    def create_user_integration(
+        self,
+        integration_id: int,
+        user_id: int,
+        meta_data: dict,
+        account_id: str,
+        account_display_name: str = "",
+        configuration: list | dict = None,
+    ) -> UserIntegration:
+        defaults = {
+            "meta_data": IntegrationRepository.encrypt_meta_data(meta_data),
+            "account_display_name": account_display_name,
+            "is_revoked": False,
+        }
+        if configuration is not None:
+            defaults["configuration"] = configuration
+        user_integration, _ = UserIntegration.objects.update_or_create(
+            integration_id=integration_id,
+            user_id=user_id,
+            account_id=account_id,
+            defaults=defaults,
+        )
+        return user_integration
+
+    @staticmethod
+    def update_integraion_meta_data(user_integration_id: int, meta_data: dict):
+        UserIntegration.objects.filter(id=user_integration_id, is_revoked=False).update(
+            meta_data=IntegrationRepository.encrypt_meta_data(meta_data=meta_data),
+            updated_at=datetime.datetime.now(),
+        )
+
+    @staticmethod
+    def update_integraion_configuration(user_integration_id: int, configuration: dict):
+        UserIntegration.objects.filter(id=user_integration_id, is_revoked=False).update(
+            updated_at=datetime.datetime.now(), configuration=configuration
+        )
+
+    @staticmethod
+    def revoke_user_integrations(user_integrations: list[int] | int):
+        """
+        Revoke user integrations.
+        """
+        if isinstance(user_integrations, list):
+            UserIntegration.objects.filter(id__in=user_integrations).update(
+                updated_at=datetime.datetime.now(), is_revoked=True
+            )
+        elif isinstance(user_integrations, int):
+            UserIntegration.objects.filter(id=user_integrations).update(
+                is_revoked=True,
+                updated_at=datetime.datetime.now(),
+            )
+
     @staticmethod
     def decrypt_meta_data(meta_data: str) -> dict:
         fernet = Fernet(settings.FERNET_KEY)
@@ -98,45 +139,3 @@ class IntegrationRepository:
             .decode()
         )
         return encrypted_meta_data
-
-    @staticmethod
-    def update_integraion_meta_data(user_integration_id: int, meta_data: dict):
-        UserIntegration.objects.filter(id=user_integration_id, is_revoked=False).update(
-            meta_data=IntegrationRepository.encrypt_meta_data(meta_data=meta_data),
-            updated_at=datetime.datetime.now(),
-        )
-
-    @staticmethod
-    def update_integraion_configuration(user_integration_id: int, configuration: dict):
-        UserIntegration.objects.filter(id=user_integration_id, is_revoked=False).update(
-            updated_at=datetime.datetime.now(), configuration=configuration
-        )
-
-    @staticmethod
-    def fetch_all_user_integrations() -> Q:
-        """
-        Fetch all user integrations.
-        """
-        return UserIntegration.objects.filter(is_revoked=False).all()
-
-    @staticmethod
-    def fetch_all_integrations() -> Q:
-        """
-        Fetch all integrations.
-        """
-        return Integration.objects.all()
-
-    @staticmethod
-    def revoke_user_integrations(user_integrations: list[int] | int):
-        """
-        Revoke user integrations.
-        """
-        if isinstance(user_integrations, list):
-            UserIntegration.objects.filter(id__in=user_integrations).update(
-                updated_at=datetime.datetime.now(), is_revoked=True
-            )
-        elif isinstance(user_integrations, int):
-            UserIntegration.objects.filter(id=user_integrations).update(
-                is_revoked=True,
-                updated_at=datetime.datetime.now(),
-            )

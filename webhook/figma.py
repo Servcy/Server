@@ -58,21 +58,21 @@ def figma(request):
                     if mention["id"] == user_integration.account_id:
                         i_am_mentioned = True
                         break
-        InboxRepository.add_items(
-            [
-                {
-                    "title": get_title(body),
-                    "cause": body.get("triggered_by", {}).get("handle", "-"),
-                    "body": json.dumps(body),
-                    "is_body_html": False,
-                    "user_integration_id": user_integration.id,
-                    "uid": f"{body['webhook_id']}-{user_integration.id}",
-                    "category": "comment"
+        InboxRepository.add_item(
+            {
+                "title": get_title(body),
+                "cause": body.get("triggered_by", {}).get("handle", "-"),
+                "body": json.dumps(body),
+                "is_body_html": False,
+                "user_integration_id": user_integration.id,
+                "uid": body["webhook_id"],
+                "category": (
+                    "comment"
                     if "FILE_COMMENT" == body["event_type"]
-                    else "notification",
-                    "i_am_mentioned": i_am_mentioned,
-                }
-            ]
+                    else "notification"
+                ),
+                "i_am_mentioned": i_am_mentioned,
+            }
         )
         return HttpResponse(status=200)
     except Exception:

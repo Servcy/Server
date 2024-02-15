@@ -2,7 +2,7 @@ import datetime
 
 from django.db.models import Q
 
-from inbox.models import Inbox, BlockedEmail
+from inbox.models import BlockedEmail, Inbox
 
 
 class InboxRepository:
@@ -25,17 +25,18 @@ class InboxRepository:
         return BlockedEmail.objects.filter(email=email, user_id=user_id).exists()
 
     @staticmethod
-    def add_item(item: dict) -> Inbox:
+    def add_item(item: dict) -> None:
         """
         Add an item to the inbox.
         """
-        return Inbox.objects.create(**item)
+        Inbox.objects.get_or_create(**item)
 
-    def add_items(items: list[dict]) -> list[Inbox]:
+    def add_items(items: list[dict]) -> None:
         """
         Add items to the inbox.
         """
-        return Inbox.objects.bulk_create([Inbox(**item) for item in items])
+        for item in items:
+            InboxRepository.add_item(item)
 
     @staticmethod
     def archive_item(item_ids: list[int]) -> Inbox:
