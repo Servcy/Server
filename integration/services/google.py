@@ -193,32 +193,17 @@ class GoogleService(BaseService):
     def _add_publisher_for_user(self) -> "GoogleService":
         """Add publisher for user"""
         pubsub_v1_client = pubsub_v1.PublisherClient()
-        max_retries = 5
-        base_delay = 1  # Initial delay is 1 second
-
-        for attempt in range(max_retries):
-            try:
-                policy = pubsub_v1_client.get_iam_policy(
-                    request={"resource": GOOGLE_PUB_SUB_TOPIC}
-                )
-                policy.bindings.add(
-                    role="roles/pubsub.publisher",
-                    members=[f"user:{self._user_info['email']}"],
-                )
-                pubsub_v1_client.set_iam_policy(
-                    request={"resource": GOOGLE_PUB_SUB_TOPIC, "policy": policy}
-                )
-                return self
-            except Aborted as e:
-                # Exponential backoff
-                sleep_time = base_delay * (2**attempt)
-                logger.warning(
-                    f"Failed to add publisher for user {self._user_info['email']}. Retrying in {sleep_time} seconds.",
-                    extra={"traceback": traceback.format_exc()},
-                )
-                time.sleep(sleep_time)
-        # If all retries failed, raise an exception
-        raise Exception("Failed to add publisher for user after several retries.")
+        policy = pubsub_v1_client.get_iam_policy(
+            request={"resource": GOOGLE_PUB_SUB_TOPIC}
+        )
+        policy.bindings.add(
+            role="roles/pubsub.publisher",
+            members=[f"user:oauthtest121@gmail.com"],
+        )
+        pubsub_v1_client.set_iam_policy(
+            request={"resource": GOOGLE_PUB_SUB_TOPIC, "policy": policy}
+        )
+        return self
 
     @staticmethod
     def remove_publisher_for_user(email: str):
