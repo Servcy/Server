@@ -35,7 +35,10 @@ def google(request):
             first=True,
         )
         if integration is None:
-            GoogleService.remove_publisher_for_user(email=email)
+            try:
+                GoogleService.remove_publisher_for_user(email=email)
+            except Exception:
+                pass
             return HttpResponse(status=200)
         IntegrationRepository.update_integraion_meta_data(
             user_integration_id=integration["id"],
