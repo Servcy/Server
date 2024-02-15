@@ -340,7 +340,8 @@ class GoogleService(BaseService):
             message["References"] = in_reply_to
         message["from"] = sender
         message["subject"] = subject
-        message.attach(MIMEText(body, "html"))
+        html_body = body.replace("\n", "<br>")
+        message.attach(MIMEText(html_body, "html"))
         if attachments:
             for attachment in attachments:
                 message.attach(GoogleService._create_attachment(attachment))
