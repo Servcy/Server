@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 @csrf_exempt
-@require_POST()
+@require_POST
 def jira(request):
     try:
         headers = request.headers
