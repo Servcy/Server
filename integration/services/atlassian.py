@@ -26,10 +26,9 @@ class AtlassianService(BaseService):
             else kwargs.get("token")
         )
         self.user_integration = None
-        self.cloud_id_jira = None
-        self.cloud_id_confluence = None
-        # self._fetch_cloud_ids()
-        # self._user_info = self._fetch_user_info()
+        self.cloud_id = None
+        self._user_info = self._fetch_user_info()
+        self._fetch_cloud_id()
 
     def _fetch_token(self, code: str):
         """
@@ -49,7 +48,7 @@ class AtlassianService(BaseService):
             )
         return token_info.json()
 
-    def _fetch_cloud_ids(self):
+    def _fetch_cloud_id(self):
         """
         Fetches cloud ids for Jira and Confluence.
         """
@@ -64,11 +63,7 @@ class AtlassianService(BaseService):
             raise ServcyOauthCodeException(
                 f"An error occurred while obtaining cloud ids from Atlassian.\n{str(response)}"
             )
-        for cloud in response.json():
-            if cloud["productType"] == "jira":
-                self.cloud_id_jira = cloud["id"]
-            elif cloud["productType"] == "confluence":
-                self.cloud_id_confluence = cloud["id"]
+        self.cloud_id = response.json()[0]["id"]
 
     def _fetch_user_info(self) -> dict:
         """
@@ -92,19 +87,6 @@ class AtlassianService(BaseService):
         self._fetch_user_info()
         return True
 
-    def send_reply(
-        meta_data: dict,
-        user_integration: UserIntegration,
-        body: str,
-        reply: str,
-        is_body_html: bool,
-        **kwargs,
-    ):
-        """
-        Send reply to user.
-        """
-        pass
-
     def create_integration(self, user_id: int) -> UserIntegration:
         """
         Create integration for user.
@@ -114,23 +96,12 @@ class AtlassianService(BaseService):
                 filters={"name": "Atlassian"}
             ).id,
             user_id=user_id,
-            meta_data={"token": self._token},
-            account_id="test account id",
-            account_display_name="test display name",
+            meta_data={
+                "token": self._token,
+                "user_info": self._user_info,
+                "cloud_id": self.cloud_id,
+            },
+            account_id=self._user_info["account_id"],
+            account_display_name=self._user_info["email"],
         )
-        # self._create_webhook(self._user_info["id"])
         return self.user_integration
-
-    def _create_webhook(self, user_id: str):
-        """
-        Create webhook for user.
-        """
-        data = {
-            "url": f"{settings.BACKEND_URL}/api/integration/atlassian/webhook",
-            "events": ["jira:issue_created", "jira:issue_updated"],
-        }
-        requests.post(
-            f"{self._atlassian_api_url}/ex/jira/{user_id}/rest/webhooks/1.0/webhook",
-            headers={"Authorization": f"Bearer {self._token['access_token']}"},
-            data=json.dumps(data),
-        )
