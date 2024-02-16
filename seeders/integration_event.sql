@@ -134,3 +134,9 @@ INSERT INTO integration_event (created_at, updated_at, name, integration_id, des
 INSERT INTO integration_event (created_at, updated_at, name, integration_id, description) VALUES('2024-01-05 22:36:50.355', '2024-01-05 22:36:50.355', 'project', 10, 'An event related to a project');
 INSERT INTO integration_event (created_at, updated_at, name, integration_id, description) VALUES('2024-01-05 22:36:50.360', '2024-01-05 22:36:50.360', 'task', 10, 'An event related to a task');
 INSERT INTO integration_event (created_at, updated_at, name, integration_id, description) VALUES('2024-01-05 22:36:50.361', '2024-01-05 22:36:50.361', 'story', 10, 'An event related to a story');
+INSERT INTO integration_event (created_at, updated_at, name, integration_id, description) VALUES('2024-01-05 22:36:50.361', '2024-01-05 22:36:50.361', 'jira:issue_created', 9, 'An issue was created on Jira');
+INSERT INTO integration_event (created_at, updated_at, name, integration_id, description) VALUES('2024-01-05 22:36:50.361', '2024-01-05 22:36:50.361', 'jira:issue_updated', 9, 'An issue was updated on Jira');
+INSERT INTO integration_event (created_at, updated_at, name, integration_id, description) VALUES('2024-01-05 22:36:50.361', '2024-01-05 22:36:50.361', 'jira:issue_deleted', 9, 'An issue was deleted on Jira');
+INSERT INTO integration_event (created_at, updated_at, name, integration_id, description) VALUES('2024-01-05 22:36:50.361', '2024-01-05 22:36:50.361', 'comment_created', 9, 'A comment was added on Jira');
+INSERT INTO integration_event (created_at, updated_at, name, integration_id, description) VALUES('2024-01-05 22:36:50.361', '2024-01-05 22:36:50.361', 'comment_updated', 9, 'A comment was updated on Jira');
+INSERT INTO integration_event (created_at, updated_at, name, integration_id, description) VALUES('2024-01-05 22:36:50.361', '2024-01-05 22:36:50.361', 'comment_deleted', 9, 'A comment was deleted on Jira');
