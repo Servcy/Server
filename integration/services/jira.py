@@ -131,7 +131,7 @@ class JiraService(BaseService):
         """
         existing_webhooks = self.fetch_webhooks()
         for webhook in existing_webhooks:
-            if webhook["url"] == f"{settings.BASE_URL}/webhook/jira":
+            if webhook["url"] == f"{settings.BACKEND_URL}/webhook/jira":
                 return
         response = requests.post(
             f"{self._jira_api_url}/ex/jira/{self.cloud_id}/rest/api/3/webhook",
@@ -141,7 +141,7 @@ class JiraService(BaseService):
                 "Content-Type": "application/json",
             },
             json={
-                "url": f"{settings.BASE_URL}/webhook/jira",
+                "url": f"{settings.BACKEND_URL}/webhook/jira",
                 "webhooks": [
                     {
                         "events": [
