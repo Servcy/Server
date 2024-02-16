@@ -182,7 +182,7 @@ class JiraService(BaseService):
         )
         if response.status_code != 200:
             logger.exception(
-                f"An error occurred while extending webhooks for Jira.\n{str(response.json())}",
+                f"An error occurred while extending webhooks for Jira.\n{str(response)}",
                 extra={
                     "traceback": traceback.format_exc(),
                 },
