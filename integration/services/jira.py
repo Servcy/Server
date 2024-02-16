@@ -27,9 +27,8 @@ class JiraService(BaseService):
             else kwargs.get("token")
         )
         self.user_integration = None
-        self.cloud_id = (
-            kwargs.get("cloud_id") if kwargs.get("cloud_id") else self._fetch_cloud_id()
-        )
+        self.cloud_id = None
+        self._fetch_cloud_id()
         self._user_info = self._fetch_user_info()
 
     def _fetch_token(self, code: str):
