@@ -153,7 +153,7 @@ class JiraService(BaseService):
                             "comment_updated",
                             "comment_deleted",
                         ],
-                        "jqFilter": f"assignee = {self._user_info['account_id']}",
+                        "jqlFilter": f"assignee = {self._user_info['account_id']}",
                     },
                 ],
             },
