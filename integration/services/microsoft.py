@@ -231,7 +231,7 @@ class MicrosoftService:
                     "contentType": content_type,
                 }
             )
-        message_id = "-".join(body.split("-")[:-1])
+        message_id = body
         reply_message = {
             "message": {
                 "body": {

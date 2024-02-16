@@ -286,9 +286,7 @@ class GoogleService(BaseService):
             refresh_token=meta_data["token"]["refresh_token"],
             access_token=meta_data["token"]["access_token"],
         )
-        user_integration = kwargs.get("user_integration")
-        message_id = body.split(f"-{user_integration['id']}-")[0]
-        mail = service.get_message(message_id)
+        mail = service.get_message(body)
         thread = service._make_google_request(
             service._google_service.users().threads().get,
             userId="me",
