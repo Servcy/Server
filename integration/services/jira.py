@@ -162,6 +162,7 @@ class JiraService(BaseService):
             raise ServcyOauthCodeException(
                 f"An error occurred while creating webhooks for Jira.\n{str(response.json())}"
             )
+        return response.json()
 
     def extend_webhook(self) -> None:
         """
