@@ -29,6 +29,8 @@ class GoogleMailRepository:
             sender = GoogleMailService._get_mail_header(
                 "From", mail["payload"]["headers"]
             )
+            if not sender:
+                continue
             sender_email = sender.split("<")[-1].split(">")[0]
             if not GoogleMailRepository._has_valid_labels(
                 mail
