@@ -89,7 +89,7 @@ model_id =
 organization_id = 
 max_tokens =
 
-[atlassian]
+[jira]
 client_id=
 app_id=
 redirect_uri=

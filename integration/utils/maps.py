@@ -7,7 +7,7 @@ from integration.services import (
     NotionService,
     SlackService,
     TrelloService,
-    AtlassianService,
+    JiraService,
 )
 
 integration_service_map = {
@@ -18,6 +18,6 @@ integration_service_map = {
     "Figma": FigmaService,
     "Outlook": MicrosoftService,
     "Asana": AsanaService,
-    "Atlassian": AtlassianService,
+    "Jira": JiraService,
     "Trello": TrelloService,
 }

@@ -6,4 +6,4 @@ from .microsoft import MicrosoftService
 from .notion import NotionService
 from .slack import SlackService
 from .trello import TrelloService
-from .atlassian import AtlassianService
+from .jira import JiraService

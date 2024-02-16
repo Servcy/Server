@@ -15,7 +15,7 @@ from integration.services.microsoft import MicrosoftService
 from integration.services.notion import NotionService
 from integration.services.slack import SlackService
 from integration.services.trello import TrelloService
-from integration.services.atlassian import AtlassianService
+from integration.services.jira import JiraService
 
 logger = logging.getLogger(__name__)
 
@@ -109,6 +109,6 @@ class OauthViewset(viewsets.ViewSet):
     def trello(self, request):
         return self._handle_oauth_code(request, TrelloService, "Trello")
 
-    @action(detail=False, methods=["put"], url_path="atlassian")
-    def atlassian(self, request):
-        return self._handle_oauth_code(request, AtlassianService, "Atlassian")
+    @action(detail=False, methods=["put"], url_path="jira")
+    def jira(self, request):
+        return self._handle_oauth_code(request, JiraService, "Atlassian")
