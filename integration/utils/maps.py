@@ -3,11 +3,11 @@ from integration.services import (
     FigmaService,
     GithubService,
     GoogleService,
+    JiraService,
     MicrosoftService,
     NotionService,
     SlackService,
     TrelloService,
-    JiraService,
 )
 
 integration_service_map = {

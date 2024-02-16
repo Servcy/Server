@@ -2,8 +2,8 @@ from .asana import AsanaService
 from .figma import FigmaService
 from .github import GithubService
 from .google import GoogleService
+from .jira import JiraService
 from .microsoft import MicrosoftService
 from .notion import NotionService
 from .slack import SlackService
 from .trello import TrelloService
-from .jira import JiraService

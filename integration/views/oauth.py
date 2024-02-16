@@ -11,11 +11,11 @@ from integration.services.asana import AsanaService
 from integration.services.figma import FigmaService
 from integration.services.github import GithubService
 from integration.services.google import GOOGLE_SCOPES, GoogleService
+from integration.services.jira import JiraService
 from integration.services.microsoft import MicrosoftService
 from integration.services.notion import NotionService
 from integration.services.slack import SlackService
 from integration.services.trello import TrelloService
-from integration.services.jira import JiraService
 
 logger = logging.getLogger(__name__)
 
