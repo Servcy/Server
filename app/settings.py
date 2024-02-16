@@ -320,12 +320,14 @@ JIRA_APP_REDIRECT_URI = f"{FRONTEND_URL}/{config.get('jira', 'redirect_uri')}"
 
 # Cron Jobs
 CRONJOBS = [
+    # 0 0 * * * -> every day at midnight
+    # 0 0 * * 0 -> every week on sunday at midnight
     (
-        "0 0 * * *",  # every day at midnight
+        "0 0 * * *",
         "integration.scripts.microsoft.renew_microsoft_subscriptions",
     ),
     (
-        "0 0 * * 0",  # every week on sunday at midnight
+        "0 0 * * 0",
         "integration.services.audit.main",
     ),
     (
@@ -333,11 +335,15 @@ CRONJOBS = [
         "integration.services.slack.update_members",
     ),
     (
-        "0 0 * * *",  # special case for notion, because notion doesn't have webhooks
+        "0 0 * * *",
         "integration.services.notion.poll_new_comments",
     ),
     (
         "0 0 * * *",
         "integration.services.google.refresh_google_watchers_and_tokens",
+    ),
+    (
+        "0 0 * * 0",
+        "integration.services.jira.refresh_jira_webhooks_and_tokens",
     ),
 ]

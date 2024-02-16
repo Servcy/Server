@@ -106,7 +106,7 @@ class JiraService(BaseService):
             account_id=self._user_info["account_id"],
             account_display_name=self._user_info["email"],
         )
-        # self.create_webhook()
+        self.create_webhook()
         return self.user_integration
 
     def fetch_webhooks(self) -> list:
@@ -192,58 +192,65 @@ class JiraService(BaseService):
                 },
             )
 
+    def refresh_token(self):
+        """
+        Refreshes token for Jira integration.
+        """
+        data = {
+            "grant_type": "refresh_token",
+            "client_id": self._jira_client_id,
+            "client_secret": self._jira_app_secret,
+            "refresh_token": self._token["refresh_token"],
+        }
+        token_info = requests.post(f"{self._jira_auth_url}/oauth/token", data=data)
+        if token_info.status_code != 200:
+            raise ServcyOauthCodeException(
+                f"An error occurred while refreshing token for Jira.\n{str(token_info.json())}"
+            )
+        return token_info.json()
 
-# def refresh_jira_webhooks_and_tokens():
-#     """
-#     Refreshes Jira webhooks and tokens.
-#     """
 
-#     try:
-#         user_integrations = IntegrationRepository.get_user_integrations(
-#             {
-#                 "integration__name": "Jira",
-#             }
-#         )
-#         for user_integration in user_integrations:
-#             try:
-#                 jira_service = JiraService(
-#                     token=user_integration["meta_data"]["token"],
-#                     cloud_id=user_integration["meta_data"]["cloud_id"],
-#                 )
-#                 google_service._fetch_user_info_from_service()
-#                 google_service._add_watcher_to_inbox_pub_sub(
-#                     google_service._user_info["emailAddress"]
-#                 )
-#                 new_tokens = google_service.refresh_tokens()
-#                 IntegrationRepository.update_integraion_meta_data(
-#                     user_integration_id=user_integration["id"],
-#                     meta_data={
-#                         **user_integration["meta_data"],
-#                         "token": {
-#                             **user_integration["meta_data"]["token"],
-#                             **new_tokens,
-#                         },
-#                     },
-#                 )
-#             except:
-#                 logger.exception(
-#                     f"Error in refreshing watchers for gmail for user integration {user_integration['id']}",
-#                     extra={
-#                         "traceback": traceback.format_exc(),
-#                     },
-#                 )
-#                 continue
-#     except Exception:
-#         logger.exception(
-#             f"Error in refreshing webhooks and tokens for Jira",
-#             extra={
-#                 "traceback": traceback.format_exc(),
-#             },
-#         )
-#     integrations = IntegrationRepository.get_integrations(filters={"name": ""})
-#     for integration in integrations:
-#         service = JiraService(token=integration.meta_data["token"])
-#         service.create_webhook()
-#         IntegrationRepository.update_integration(
-#             integration.id, meta_data={"token": service._token}
-#         )
+def refresh_jira_webhooks_and_tokens():
+    """
+    Refreshes Jira webhooks and tokens.
+    """
+
+    try:
+        user_integrations = IntegrationRepository.get_user_integrations(
+            {
+                "integration__name": "Jira",
+            }
+        )
+        for user_integration in user_integrations:
+            try:
+                jira_service = JiraService(
+                    token=user_integration["meta_data"]["token"],
+                    cloud_id=user_integration["meta_data"]["cloud_id"],
+                )
+                jira_service.extend_webhook()
+                new_tokens = jira_service.refresh_token()
+                IntegrationRepository.update_integraion_meta_data(
+                    user_integration_id=user_integration["id"],
+                    meta_data={
+                        **user_integration["meta_data"],
+                        "token": {
+                            **user_integration["meta_data"]["token"],
+                            **new_tokens,
+                        },
+                    },
+                )
+            except:
+                logger.exception(
+                    f"Error in refreshing webhooks and tokens for Jira",
+                    extra={
+                        "traceback": traceback.format_exc(),
+                    },
+                )
+                continue
+    except Exception:
+        logger.exception(
+            f"Error in refreshing webhooks and tokens for Jira",
+            extra={
+                "traceback": traceback.format_exc(),
+            },
+        )
