@@ -149,15 +149,11 @@ class JiraService(BaseService):
                             "jira:issue_created",
                             "jira:issue_updated",
                             "jira:issue_deleted",
-                        ],
-                        "jqFilter": f"assignee = {self._user_info['account_id']}",
-                    },
-                    {
-                        "events": [
                             "comment_created",
                             "comment_updated",
                             "comment_deleted",
                         ],
+                        "jqFilter": f"assignee = {self._user_info['account_id']}",
                     },
                 ],
             },
