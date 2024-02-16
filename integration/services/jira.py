@@ -149,7 +149,7 @@ class JiraService(BaseService):
                             "jira:issue_updated",
                             "jira:issue_deleted",
                         ],
-                        "jqFilter": f"assignee = {self._user_info['accountId']}",
+                        "jqFilter": f"assignee = {self._user_info['account_id']}",
                     },
                     {
                         "events": [
