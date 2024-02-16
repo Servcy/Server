@@ -93,3 +93,4 @@ max_tokens =
 client_id=
 app_id=
 redirect_uri=
+client_secret=

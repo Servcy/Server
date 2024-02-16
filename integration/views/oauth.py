@@ -15,6 +15,7 @@ from integration.services.microsoft import MicrosoftService
 from integration.services.notion import NotionService
 from integration.services.slack import SlackService
 from integration.services.trello import TrelloService
+from integration.services.atlassian import AtlassianService
 
 logger = logging.getLogger(__name__)
 
@@ -33,9 +34,11 @@ class OauthViewset(viewsets.ViewSet):
             service = service_class(code=code, user_id=request.user.id)
             user_integration = service.create_integration(user_id=request.user.id)
             return success_response(
-                results={"redirect_uri": f"{user_integration.integration.configure_at}"}
-                if user_integration.integration.configure_at is not None
-                else None,
+                results=(
+                    {"redirect_uri": f"{user_integration.integration.configure_at}"}
+                    if user_integration.integration.configure_at is not None
+                    else None
+                ),
                 success_message=f"Successfully integrated with {service_name}!",
                 status=status.HTTP_200_OK,
             )
@@ -105,3 +108,7 @@ class OauthViewset(viewsets.ViewSet):
     @action(detail=False, methods=["put"], url_path="trello")
     def trello(self, request):
         return self._handle_oauth_code(request, TrelloService, "Trello")
+
+    @action(detail=False, methods=["put"], url_path="atlassian")
+    def atlassian(self, request):
+        return self._handle_oauth_code(request, AtlassianService, "Atlassian")
