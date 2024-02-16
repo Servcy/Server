@@ -312,6 +312,10 @@ ASANA_APP_REDIRECT_URI = f"{FRONTEND_URL}/{config.get('asana', 'redirect_uri')}"
 TRELLO_APP_KEY = config.get("trello", "app_key")
 TRELLO_APP_CLIENT_SECRET = config.get("trello", "client_secret")
 TRELLO_APP_REDIRECT_URI = f"{FRONTEND_URL}/{config.get('trello', 'redirect_uri')}"
+# Atlassian
+ATLASSIAN_APP_CLIENT_ID = config.get("atlassian", "client_id")
+ATLASSIAN_APP_ID = config.get("atlassian", "app_id")
+ATLASSIAN_APP_REDIRECT_URI = f"{FRONTEND_URL}/{config.get('atlassian', 'redirect_uri')}"
 
 # Cron Jobs
 CRONJOBS = [

@@ -88,3 +88,8 @@ api_key =
 model_id = 
 organization_id = 
 max_tokens =
+
+[atlassian]
+client_id=
+app_id=
+redirect_uri=
