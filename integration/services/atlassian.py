@@ -114,7 +114,7 @@ class AtlassianService(BaseService):
                 filters={"name": "Atlassian"}
             ).id,
             user_id=user_id,
-            meta_data={"token": self._token, "user_info": self._user_info},
+            meta_data={"token": self._token},
             account_id="test account id",
             account_display_name="test display name",
         )
