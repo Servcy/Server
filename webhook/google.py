@@ -30,6 +30,13 @@ def google(request):
         authorization = request.headers.get("Authorization", "")
         authorization_token = authorization.split("Bearer ")[-1]
         if not authorization_token:
+            logger.warning(
+                "Authorization token not found in the request headers.",
+                extra={
+                    "headers": request.headers,
+                    "payload": request.body.decode("utf-8"),
+                },
+            )
             return HttpResponse(status=401)
         else:
             google_service_credentials = json.load(
@@ -46,6 +53,13 @@ def google(request):
                 or decoded_authorization_token["email"]
                 == google_service_credentials["client_email"]
             ):
+                logger.warning(
+                    "Authorization token is not valid.",
+                    extra={
+                        "authorization_token": authorization_token,
+                        "decoded_authorization_token": decoded_authorization_token,
+                    },
+                )
                 return HttpResponse(status=401)
         payload = json.loads(request.body.decode("utf-8"))
         encoded_data = payload["message"]["data"]
