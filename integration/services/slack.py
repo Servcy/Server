@@ -4,6 +4,7 @@ import requests
 from django.conf import settings
 from slack_sdk import WebClient
 
+from common.exceptions import IntegrationAccessRevokedException
 from integration.repository import IntegrationRepository
 
 from .base import BaseService
@@ -53,12 +54,27 @@ class SlackService(BaseService):
             response.raise_for_status()
         self._token = response.json()
 
+    def _fetch_team_members(self) -> list:
+        client = WebClient(self._token["authed_user"]["access_token"])
+        if not client.auth_test().get("ok"):
+            raise IntegrationAccessRevokedException(
+                "The access token for the Slack integration is revoked."
+            )
+        users_list = client.users_list()
+        members = users_list["members"]
+        cursor = users_list["response_metadata"]["next_cursor"]
+        while cursor:
+            users_list = client.users_list(cursor=cursor)
+            cursor = users_list["response_metadata"]["next_cursor"]
+            members.append(users_list["members"])
+        return members
+
     def create_integration(self, user_id: int):
         """Create a user integration in the local database with token and team details from Slack.
 
         :param user_id: ID of the user for whom the integration is created
         """
-        members = self.fetch_team_members()
+        members = self._fetch_team_members()
         return IntegrationRepository.create_user_integration(
             integration_id=IntegrationRepository.get_integration(
                 filters={"name": "Slack"}
@@ -81,21 +97,7 @@ class SlackService(BaseService):
         - bool: True if integration is active, False otherwise.
         """
         self._token = meta_data["token"]
-        response = requests.post(
-            url="https://slack.com/api/auth.test",
-            headers={
-                "Authorization": f"Bearer {self._token['authed_user']['access_token']}"
-            },
-        ).json()
-        return response.get("ok") is True
-
-    def fetch_team_members(self) -> list:
-        client = WebClient(self._token["authed_user"]["access_token"])
-        users_list = client.users_list()
-        members = users_list["members"]
-        cursor = users_list["response_metadata"]["next_cursor"]
-        while cursor:
-            users_list = client.users_list(cursor=cursor)
-            cursor = users_list["response_metadata"]["next_cursor"]
-            members.append(users_list["members"])
-        return members
+        configuration = self._fetch_team_members()
+        IntegrationRepository.update_integraion(
+            kwargs.get("user_integration_id"), configuration=configuration
+        )
