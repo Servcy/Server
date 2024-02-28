@@ -1,0 +1,9 @@
+INSERT INTO integration (id, "name", logo, description, configure_at) VALUES(2, 'Outlook', 'https://servcy-public.s3.amazonaws.com/outlook.svg', 'Track important emails from a unified inbox.', NULL);
+INSERT INTO integration (id, "name", logo, description, configure_at) VALUES(7, 'Asana', 'https://servcy-public.s3.amazonaws.com/asana.svg', 'Track projects, tasks, and comments from inbox.', NULL);
+INSERT INTO integration (id, "name", logo, description, configure_at) VALUES(6, 'Github', 'https://servcy-public.s3.amazonaws.com/github.svg', 'Track PR''s, projects, issues, and comments from inbox.', 'https://github.com/apps/servcy/installations/select_target');
+INSERT INTO integration (id, "name", logo, description, configure_at) VALUES(8, 'Trello', 'https://servcy-public.s3.amazonaws.com/trello.svg', 'Track projects, tasks, and comments from inbox.', NULL);
+INSERT INTO integration (id, "name", logo, description, configure_at) VALUES(4, 'Slack', 'https://servcy-public.s3.amazonaws.com/slack.svg', 'Read all your messages from a unified dashboard.', NULL);
+INSERT INTO integration (id, "name", logo, description, configure_at) VALUES(5, 'Figma', 'https://servcy-public.s3.amazonaws.com/figma.svg', 'View all your comments in on place.', NULL);
+INSERT INTO integration (id, "name", logo, description, configure_at) VALUES(3, 'Notion', 'https://servcy-public.s3.amazonaws.com/notion.svg', 'View all your comments in on place.', NULL);
+INSERT INTO integration (id, "name", logo, description, configure_at) VALUES(9, 'Jira', 'https://servcy-public.s3.amazonaws.com/jira.svg', 'Track projects, tasks, and comments from inbox.', NULL);
+INSERT INTO integration (id, "name", logo, description, configure_at) VALUES(1, 'Gmail', 'https://servcy-public.s3.amazonaws.com/gmail.svg', 'Track important emails from a unified inbox.', NULL);
