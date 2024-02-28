@@ -124,7 +124,7 @@ class MicrosoftService:
                 "notificationUrl": f"{settings.BACKEND_URL}/webhook/microsoft",
                 "resource": "me/mailFolders('Inbox')/messages?$filter=isRead eq false",
                 "expirationDateTime": future_date_in_iso_formate(3, True),
-                "clientState": self._token["id_token_claims"]["email"],
+                "clientState": settings.MICROSOFT_APP_CLIENT_SECRET,
             },
         )
         return response

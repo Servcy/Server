@@ -2,6 +2,7 @@ import json
 import logging
 import traceback
 
+from django.conf import settings
 from django.db import IntegrityError, transaction
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -26,6 +27,11 @@ def microsoft(request):
                 content=validation_token, content_type="text/plain", status=200
             )
         notificaiton = json.loads(request.body.decode("utf-8"))
+        client_state = notificaiton["value"][0]["clientState"]
+        if client_state is None:
+            return HttpResponse(status=200)
+        elif client_state != settings.MICROSOFT_APP_CLIENT_SECRET:
+            return HttpResponse(status=401)
         account_id = notificaiton["value"][0]["clientState"]
         message_id = notificaiton["value"][0]["resourceData"]["id"]
         integration = IntegrationRepository.get_user_integrations(
