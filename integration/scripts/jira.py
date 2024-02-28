@@ -11,7 +11,6 @@ def refresh_webhooks_and_tokens():
     """
     Refreshes Jira webhooks and tokens.
     """
-
     try:
         user_integrations = IntegrationRepository.get_user_integrations(
             {

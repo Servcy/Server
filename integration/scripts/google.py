@@ -44,15 +44,16 @@ def refresh_watchers_and_tokens():
                 )
             except:
                 logger.exception(
-                    f"Error in refreshing watchers for gmail for user integration {user_integration['id']}",
+                    f"Error in refreshing watchers.",
                     extra={
                         "traceback": traceback.format_exc(),
+                        "user_integration_id": user_integration["id"],
+                        "user_integration_account_id": user_integration["account_id"],
                     },
                 )
-                continue
     except Exception:
         logger.exception(
-            f"Error in refreshing watchers for gmail.",
+            f"Error occurred while running cron job.",
             extra={
                 "traceback": traceback.format_exc(),
             },
