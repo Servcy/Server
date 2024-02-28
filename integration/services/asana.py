@@ -5,7 +5,6 @@ from django.conf import settings
 from common.exceptions import (
     ExternalIntegrationException,
     IntegrationAccessRevokedException,
-    ServcyOauthCodeException,
 )
 from integration.models import UserIntegration
 from integration.repository import IntegrationRepository
@@ -49,7 +48,7 @@ class AsanaService(BaseService):
         response = requests.post(AsanaService._token_uri, data=data)
         token_data = response.json()
         if "error" in token_data:
-            raise ServcyOauthCodeException(
+            raise ExternalIntegrationException(
                 f"An error occurred while obtaining access token from Asana",
                 extra={"error": token_data},
             )

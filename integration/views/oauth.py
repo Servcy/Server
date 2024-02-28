@@ -1,11 +1,9 @@
 import logging
-import traceback
 import urllib.parse
 
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 
-from common.exceptions import ServcyOauthCodeException
 from common.responses import error_response, success_response
 from integration.services.asana import AsanaService
 from integration.services.figma import FigmaService
@@ -42,26 +40,7 @@ class OauthViewset(viewsets.ViewSet):
                 success_message=f"Successfully integrated with {service_name}!",
                 status=status.HTTP_200_OK,
             )
-        except ServcyOauthCodeException as error:
-            return error_response(
-                logger=logger,
-                logger_message=error.message,
-                error_message=f"An error occurred while integrating with {service_name}. Please try again later.",
-            )
-        except KeyError:
-            return error_response(
-                logger=logger,
-                logger_message="KeyError occurred processing oauth request.",
-                error_message="code is required!",
-                status=status.HTTP_400_BAD_REQUEST,
-            )
         except Exception:
-            logger.exception(
-                f"An unexpected error occurred processing oauth request for {service_name}",
-                extra={
-                    "traceback": traceback.format_exc(),
-                },
-            )
             return error_response(
                 logger=logger,
                 logger_message="An unexpected error occurred processing oauth request.",
