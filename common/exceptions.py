@@ -28,16 +28,6 @@ class ServcyAPIException(APIException, ServcyBaseException):
     default_code = "APIException"
 
 
-class ServcyOauthCodeException(ServcyBaseException):
-    """
-    Exception raised when oauth code is not provided.
-    """
-
-    status_code = status.HTTP_400_BAD_REQUEST
-    default_detail = "Oauth code is required!"
-    default_code = "OauthCodeException"
-
-
 class ExternalIntegrationException(ServcyAPIException):
     """
     For Servcy External Integrations.
@@ -55,6 +45,16 @@ class IntegrationAccessRevokedException(ServcyAPIException):
     default_detail = "Integration access revoked"
     default_code = "IntegrationAccessRevokedException"
     status_code = status.HTTP_401_UNAUTHORIZED
+
+
+class ExternalAPIRateLimitException(ServcyAPIException):
+    """
+    For Servcy External API Rate Limit.
+    """
+
+    default_detail = "External API Rate Limit Exception"
+    default_code = "ExternalAPIRateLimitException"
+    status_code = status.HTTP_429_TOO_MANY_REQUESTS
 
 
 def servcy_exception_handler(exception, context):
@@ -77,13 +77,3 @@ def servcy_exception_handler(exception, context):
     if response is not None:
         response.data["status_code"] = response.status_code
     return response
-
-
-class ExternalAPIRateLimitException(ServcyAPIException):
-    """
-    For Servcy External API Rate Limit.
-    """
-
-    default_detail = "External API Rate Limit Exception"
-    default_code = "ExternalAPIRateLimitException"
-    status_code = status.HTTP_429_TOO_MANY_REQUESTS

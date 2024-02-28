@@ -4,7 +4,6 @@ import requests
 from django.conf import settings
 from slack_sdk import WebClient
 
-from common.exceptions import ServcyOauthCodeException
 from integration.repository import IntegrationRepository
 
 from .base import BaseService
@@ -49,13 +48,10 @@ class SlackService(BaseService):
         """
         response = requests.post(
             url=SLACK_TOKEN_URL, data=self._construct_token_request_data(code)
-        ).json()
-
-        if "error" in response:
-            raise ServcyOauthCodeException(
-                f"An error occurred while obtaining access token from Slack.\n{str(response)}"
-            )
-        self._token = response
+        )
+        if response.status_code != 200:
+            response.raise_for_status()
+        self._token = response.json()
 
     def create_integration(self, user_id: int):
         """Create a user integration in the local database with token and team details from Slack.
