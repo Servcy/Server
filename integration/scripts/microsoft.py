@@ -8,7 +8,7 @@ from integration.services.microsoft import MicrosoftService
 logger = logging.getLogger(__name__)
 
 
-def renew_microsoft_subscriptions():
+def renew_subscriptions():
     """
     This function is used to renew the Microsoft subscriptions.
     """

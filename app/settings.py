@@ -319,26 +319,26 @@ JIRA_APP_REDIRECT_URI = f"{FRONTEND_URL}/{config.get('jira', 'redirect_uri')}"
 CRONJOBS = [
     (
         "0 0 * * *",
-        "integration.scripts.microsoft.renew_microsoft_subscriptions",
-    ),
-    (
-        "0 0 * * *",
         "integration.services.audit.main",
     ),
     (
         "0 0 * * *",
-        "integration.services.slack.update_members",
+        "integration.scripts.slack.update_workspace_members",
     ),
     (
         "0 0 * * *",
-        "integration.services.notion.poll_new_comments",
+        "integration.scripts.notion.poll_new_comments",
     ),
     (
         "0 0 * * *",
-        "integration.services.google.refresh_google_watchers_and_tokens",
+        "integration.scripts.google.refresh_watchers_and_tokens",
     ),
     (
         "0 0 * * *",
-        "integration.services.jira.refresh_jira_webhooks_and_tokens",
+        "integration.scripts.jira.refresh_webhooks_and_tokens",
+    ),
+    (
+        "0 0 * * *",
+        "integration.scripts.microsoft.renew_subscriptions",
     ),
 ]
