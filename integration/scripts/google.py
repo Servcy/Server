@@ -1,6 +1,7 @@
 import logging
 import traceback
 
+from common.exceptions import IntegrationAccessRevokedException
 from integration.repository import IntegrationRepository
 from integration.services.google import GoogleService
 
@@ -40,6 +41,10 @@ def refresh_watchers_and_tokens():
                             },
                         }
                     ),
+                )
+            except IntegrationAccessRevokedException:
+                IntegrationRepository.revoke_user_integrations(
+                    user_integrations=user_integration["id"]
                 )
             except:
                 logger.exception(
