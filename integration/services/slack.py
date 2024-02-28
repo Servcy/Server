@@ -1,4 +1,3 @@
-import json
 import logging
 import time
 import traceback
@@ -8,7 +7,6 @@ from django.conf import settings
 from slack_sdk import WebClient
 
 from common.exceptions import ServcyOauthCodeException
-from document.repository import DocumentRepository
 from integration.repository import IntegrationRepository
 
 from .base import BaseService
@@ -96,40 +94,6 @@ class SlackService(BaseService):
             },
         ).json()
         return response.get("ok") is True
-
-    @staticmethod
-    def send_reply(
-        meta_data: dict,
-        body: str,
-        reply: str,
-        file_ids: list[int],
-        **kwargs,
-    ):
-        """
-        Send a reply to a message.
-
-        Args:
-        - meta_data: The user integration meta data.
-        - body: The complete event body.
-        - reply: The reply message.
-        """
-        documents = DocumentRepository.get_documents(filters={"id__in": file_ids})
-        client = WebClient(meta_data["token"]["authed_user"]["access_token"])
-        body = json.loads(body)
-        result = client.chat_postMessage(
-            channel=body["channel"],
-            thread_ts=body["ts"],
-            text=reply,
-        )
-        for document in documents:
-            result = client.files_upload_v2(
-                filename=document.name,
-                channel=body["channel"],
-                file=document.file.read(),
-                thread_ts=body["ts"],
-            )
-        DocumentRepository.remove_documents(file_ids)
-        return result
 
     def fetch_team_members(self) -> list:
         client = WebClient(self._token["authed_user"]["access_token"])

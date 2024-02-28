@@ -7,7 +7,6 @@ from django.conf import settings
 from common.exceptions import ExternalIntegrationException, ServcyOauthCodeException
 from integration.models import UserIntegration
 from integration.repository import IntegrationRepository
-from project.repository import ProjectRepository
 
 from .base import BaseService
 
@@ -79,7 +78,7 @@ class AsanaService(BaseService):
             )
         return token_data
 
-    def _establish_webhooks(self, user_id: int) -> None:
+    def _establish_webhooks(self) -> None:
         """Establishes webhook for Asana."""
         if not self.client:
             self.client = asana.Client.access_token(self._token["access_token"])
@@ -91,14 +90,6 @@ class AsanaService(BaseService):
             for project in projects:
                 project = self.client.projects.get_project(
                     project["gid"], opt_pretty=True
-                )
-                ProjectRepository.create(
-                    name=project["name"],
-                    description=project["notes"],
-                    user_id=user_id,
-                    user_integration_id=self.user_integration.id,
-                    uid=project["gid"],
-                    meta_data=project,
                 )
                 self.create_task_monitoring_webhook(
                     project["gid"], user_integration_id=self.user_integration.id
@@ -115,7 +106,7 @@ class AsanaService(BaseService):
             meta_data={"token": self._token, "user_info": self._user_info},
             account_display_name=self._user_info["name"],
         )
-        self._establish_webhooks(user_id)
+        self._establish_webhooks()
         return self.user_integration
 
     def create_task_monitoring_webhook(self, project_id, user_integration_id):

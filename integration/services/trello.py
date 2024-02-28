@@ -1,12 +1,9 @@
-import json
-
 import requests
 from django.conf import settings
 
 from common.exceptions import ServcyOauthCodeException
 from integration.models import UserIntegration
 from integration.repository import IntegrationRepository
-from project.repository import ProjectRepository
 
 from .base import BaseService
 
@@ -55,6 +52,7 @@ class TrelloService(BaseService):
         )
         # https://developer.atlassian.com/cloud/trello/guides/rest-api/webhooks/#webhook-actions-and-types
         self._create_webhook(self._user_info["id"])
+        self._establish_webhooks()
         return self.user_integration
 
     def is_active(self, meta_data: dict, **kwargs) -> bool:
@@ -75,7 +73,7 @@ class TrelloService(BaseService):
         """Abstract method implementation"""
         return super()._fetch_token(code)
 
-    def _establish_webhooks(self, user_id: int) -> None:
+    def _establish_webhooks(self) -> None:
         """
         Establishes webhooks for Trello integration.
         """
@@ -88,14 +86,6 @@ class TrelloService(BaseService):
             )
         boards = boards.json()
         for board in boards:
-            ProjectRepository.create(
-                user_id=user_id,
-                name=board["name"],
-                description=board["desc"],
-                user_integration_id=self.user_integration.id,
-                uid=board["id"],
-                meta_data=board,
-            )
             # Create webhook for each board so that we can get notifications for new cards.
             self._create_webhook(board["id"])
 
@@ -119,30 +109,3 @@ class TrelloService(BaseService):
             raise ServcyOauthCodeException(
                 f"An error occurred while creating webhook for Trello.\n{response.text}"
             )
-
-    @staticmethod
-    def send_reply(
-        meta_data: dict,
-        body: str,
-        reply: str,
-        **kwargs,
-    ):
-        """
-        Send a reply to a message.
-
-        Args:
-        - meta_data: The user integration meta data.
-        - body: The event body.
-        - reply: The reply message.
-        """
-        token = meta_data["token"]
-        body = json.loads(body)
-        url = f"https://api.trello.com/1/cards/{body['data']['card']['id']}/actions/comments"
-        headers = {"Accept": "application/json"}
-        query = {"text": reply, "key": TrelloService._trello_key, "token": token}
-        response = requests.request("POST", url, headers=headers, params=query)
-        if response.status_code != 200:
-            raise ServcyOauthCodeException(
-                f"An error occurred while obtaining user info from Trello.\n{str(response.text)}"
-            )
-        return response.json()
