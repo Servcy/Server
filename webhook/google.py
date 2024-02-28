@@ -7,7 +7,10 @@ from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from common.exceptions import IntegrationAccessRevokedException
+from common.exceptions import (
+    ExternalAPIRateLimitException,
+    IntegrationAccessRevokedException,
+)
 from inbox.repository import InboxRepository
 from inbox.repository.google import GoogleMailRepository
 from integration.repository import IntegrationRepository
@@ -69,6 +72,8 @@ def google(request):
         return HttpResponse(status=200)
     except IntegrationAccessRevokedException:
         IntegrationRepository.revoke_user_integrations(integration.get("id", 0))
+        return HttpResponse(status=200)
+    except ExternalAPIRateLimitException:
         return HttpResponse(status=200)
     except Exception:
         logger.exception(

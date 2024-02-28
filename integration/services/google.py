@@ -15,7 +15,10 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-from common.exceptions import IntegrationAccessRevokedException
+from common.exceptions import (
+    ExternalAPIRateLimitException,
+    IntegrationAccessRevokedException,
+)
 from document.repository import DocumentRepository
 from inbox.services.google import GoogleMailService
 from integration.repository import IntegrationRepository
@@ -138,9 +141,11 @@ class GoogleService(BaseService):
             )
             remove_publisher_from_topic(self._user_info["email"])
             raise IntegrationAccessRevokedException()
-        except HttpError as e:
+        except HttpError as err:
+            if err.resp.status == 429:
+                raise ExternalAPIRateLimitException("Too many requests to google api")
             logger.exception(
-                f"Error in making request to Google API: {e}",
+                f"Error in making request to Google API: {err}",
                 extra={
                     "traceback": traceback.format_exc(),
                 },

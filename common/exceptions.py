@@ -77,3 +77,13 @@ def servcy_exception_handler(exception, context):
     if response is not None:
         response.data["status_code"] = response.status_code
     return response
+
+
+class ExternalAPIRateLimitException(ServcyAPIException):
+    """
+    For Servcy External API Rate Limit.
+    """
+
+    default_detail = "External API Rate Limit Exception"
+    default_code = "ExternalAPIRateLimitException"
+    status_code = status.HTTP_429_TOO_MANY_REQUESTS
