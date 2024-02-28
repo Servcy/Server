@@ -1,7 +1,7 @@
-import uuid
 import json
 import logging
 import traceback
+import uuid
 
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
