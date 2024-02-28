@@ -1,7 +1,6 @@
 import requests
 from django.conf import settings
 
-from common.exceptions import ServcyOauthCodeException
 from integration.models import UserIntegration
 from integration.repository import IntegrationRepository
 
@@ -38,8 +37,7 @@ class GithubService(BaseService):
         response = requests.request(method, url, **kwargs)
         json_response = response.json()
         if "error" in json_response:
-            error_msg = f"An error occurred while communicating with Github API.\n{str(json_response)}"
-            raise ServcyOauthCodeException(error_msg)
+            response.raise_for_status()
         return json_response
 
     def _fetch_token(self, code: str) -> None:
@@ -55,9 +53,7 @@ class GithubService(BaseService):
             [tuple(token.split("=")) for token in response.text.split("&") if token]
         )
         if "error" in token_data:
-            raise ServcyOauthCodeException(
-                f"An error occurred while obtaining access token from Github.\n{str(token_data)}"
-            )
+            response.raise_for_status()
         self._token = token_data
 
     def create_integration(self, user_id: int) -> UserIntegration:

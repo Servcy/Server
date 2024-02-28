@@ -111,8 +111,7 @@ class UserIntegrationViewSet(
         except ExternalIntegrationException as e:
             return error_response(
                 logger=logger,
-                error_message=e.message,
-                logger_message=f"An error occurred while configuring Figma integration. {e.message}",
+                logger_message=f"An error occurred while configuring Figma integration.",
                 status=status.HTTP_400_BAD_REQUEST,
             )
         except Exception:
