@@ -40,23 +40,3 @@ class BaseService(ABC):
         Fetch access and/or refresh token from service.
         """
         pass
-
-    @staticmethod
-    def send_reply(
-        meta_data: dict,
-        user_integration: UserIntegration,
-        body: str,
-        reply: str,
-        is_body_html: bool,
-        **kwargs,
-    ):
-        """
-        Send reply to user.
-
-        Args:
-        - user_integration: The user integration record.
-        - body: The body of the message.
-        - reply: The reply to send.
-        - is_body_html: Whether the body is html or not.
-        """
-        pass

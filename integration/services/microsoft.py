@@ -1,6 +1,4 @@
-import base64
 import logging
-import mimetypes
 
 import msal
 import requests
@@ -8,7 +6,6 @@ from django.conf import settings
 
 from common.exceptions import ServcyOauthCodeException
 from common.utils.datetime import future_date_in_iso_formate
-from document.repository import DocumentRepository
 from integration.repository import IntegrationRepository
 
 logger = logging.getLogger(__name__)
@@ -199,61 +196,6 @@ class MicrosoftService:
         self._token = meta_data["token"]
         response = self.list_subscriptions()
         return "error" not in response
-
-    @staticmethod
-    def send_reply(
-        meta_data: dict,
-        body: str,
-        reply: str,
-        file_ids: list[int],
-        **kwargs,
-    ):
-        """
-        Send a reply to a message.
-
-        Args:
-        - meta_data: The user integration meta data.
-        - body: The incoming message id.
-        - reply: The reply message.
-        """
-        documents = DocumentRepository.get_documents(filters={"id__in": file_ids})
-        client = MicrosoftService(refresh_token=meta_data["token"]["refresh_token"])
-        attachments = []
-        for document in documents:
-            content_type, _ = mimetypes.guess_type(document.name)
-            attachments.append(
-                {
-                    "name": document.name,
-                    "contentBytes": base64.b64encode(document.file.read()).decode(
-                        "utf-8"
-                    ),
-                    "@odata.type": f"#microsoft.graph.fileAttachment",
-                    "contentType": content_type,
-                }
-            )
-        message_id = body
-        reply_message = {
-            "message": {
-                "body": {
-                    "contentType": "text",
-                    "content": reply,
-                }
-            },
-        }
-        if attachments:
-            reply_message["message"]["attachments"] = attachments
-        response = requests.post(
-            f"{MICROSOFT_READ_MAIL_URI}{message_id}/reply",
-            headers={
-                "Authorization": f"Bearer {client._token['access_token']}",
-                "Content-Type": "application/json",
-            },
-            json=reply_message,
-        )
-        if response.status_code != 202:
-            raise Exception(response.text)
-        DocumentRepository.remove_documents(file_ids)
-        return response
 
     def get_attachments(self, message_id: str) -> dict:
         """

@@ -1,5 +1,4 @@
 import base64
-import json
 import logging
 
 import requests
@@ -330,25 +329,3 @@ class NotionService(BaseService):
         response = requests.post(url=self._NOTION_COMMENTS, json=data, headers=headers)
         response_json = response.json()
         return response_json
-
-    @staticmethod
-    def send_reply(
-        meta_data: dict,
-        body: str,
-        reply: str,
-        **kwargs,
-    ):
-        """
-        Send reply to notion.
-
-        Args:
-        - meta_data: The user integration meta data.
-        - body: The event body.
-        - reply: The reply to send.
-        """
-        body = json.loads(body)
-        notion_service = NotionService(token=meta_data["token"])
-        notion_service.add_comment(
-            comment=reply,
-            discussion_id=body["discussion_id"],
-        )

@@ -1,11 +1,5 @@
-import base64
 import logging
-import mimetypes
 import traceback
-from email import encoders
-from email.mime.base import MIMEBase
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 
 import requests
 from django.conf import settings
@@ -19,8 +13,6 @@ from common.exceptions import (
     ExternalAPIRateLimitException,
     IntegrationAccessRevokedException,
 )
-from document.repository import DocumentRepository
-from inbox.services.google import GoogleMailService
 from integration.repository import IntegrationRepository
 
 from .base import BaseService
@@ -261,111 +253,6 @@ class GoogleService(BaseService):
         self._token = meta_data["token"]
         self._initialize_google_service()
         return True
-
-    @staticmethod
-    def send_reply(
-        meta_data: dict,
-        body: str,
-        reply: str,
-        file_ids: list[int],
-        **kwargs,
-    ):
-        """
-        Send a reply to a message.
-
-        Args:
-        - meta_data: The user integration meta data.
-        - body: The incoming message id.
-        - reply: The reply message.
-        """
-        documents = DocumentRepository.get_documents(filters={"id__in": file_ids})
-        attachment_data = []
-        for document in documents:
-            attachment_data.append(
-                {
-                    "filename": document.name,
-                    "data": document.file.read(),
-                }
-            )
-        service = GoogleService(
-            refresh_token=meta_data["token"]["refresh_token"],
-            access_token=meta_data["token"]["access_token"],
-        )
-        mail = service.get_message(body)
-        thread = service._make_google_request(
-            service._google_service.users().threads().get,
-            userId="me",
-            id=mail["threadId"],
-        )
-        response = service._make_google_request(
-            service._google_service.users().messages().send,
-            userId="me",
-            body=service.create_html_message(
-                sender=GoogleMailService._get_mail_header(
-                    "Reply-To", mail["payload"]["headers"]
-                ),
-                recipient=GoogleMailService._get_mail_header(
-                    "From", mail["payload"]["headers"]
-                ),
-                cc=GoogleMailService._get_mail_header("Cc", mail["payload"]["headers"]),
-                subject=GoogleMailService._get_mail_header(
-                    "Subject", mail["payload"]["headers"]
-                ),
-                body=reply,
-                threadId=thread["id"],
-                in_reply_to=GoogleMailService._get_mail_header(
-                    "Message-ID", mail["payload"]["headers"]
-                ),
-                attachments=attachment_data,
-            ),
-        )
-        DocumentRepository.remove_documents(file_ids)
-        return response
-
-    @staticmethod
-    def create_html_message(
-        sender: str,
-        recipient: str,
-        cc: str,
-        subject: str,
-        body: str,
-        threadId: str = None,
-        in_reply_to: str = None,
-        attachments: list[dict] = None,
-    ) -> dict:
-        """Creates a message for an email."""
-        message = MIMEMultipart()
-        message["to"] = recipient
-        if cc:
-            message["cc"] = cc
-        if in_reply_to:
-            message["In-Reply-To"] = in_reply_to
-            message["References"] = in_reply_to
-        message["from"] = sender
-        message["subject"] = subject
-        html_body = body.replace("\n", "<br>")
-        message.attach(MIMEText(html_body, "html"))
-        if attachments:
-            for attachment in attachments:
-                message.attach(GoogleService._create_attachment(attachment))
-        return {
-            "raw": base64.urlsafe_b64encode(message.as_bytes()).decode(),
-            "threadId": threadId,
-        }
-
-    @staticmethod
-    def _create_attachment(attachment: dict) -> dict:
-        """Create attachment"""
-        content_type, _ = mimetypes.guess_type(attachment["filename"])
-        main_type, sub_type = content_type.split("/", 1)
-        my_file = MIMEBase(main_type, sub_type)
-        my_file.set_payload(attachment["data"])
-        my_file.add_header(
-            "Content-Disposition",
-            f"attachment; filename={attachment['filename']}",
-        )
-        encoders.encode_base64(my_file)
-        return my_file
 
     def get_attachments(self, attachments) -> list[dict]:
         """Get attachments"""

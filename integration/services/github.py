@@ -1,5 +1,3 @@
-import json
-
 import requests
 from django.conf import settings
 
@@ -140,43 +138,3 @@ class GithubService(BaseService):
         self._token = meta_data["token"]
         self._fetch_user_info()
         return True
-
-    @staticmethod
-    def send_reply(
-        meta_data: dict,
-        body: str,
-        reply: str,
-        **kwargs,
-    ):
-        """
-        Send reply to github.
-
-        Args:
-        - meta_data: The user integration meta data.
-        - body: The event body.
-        - reply: The reply to send.
-        """
-        user_info = meta_data["user_info"]
-        tokens = meta_data["token"]
-        body = json.loads(body)
-        event = body["event"]
-        if event == "issue_comment":
-            GithubService._make_request(
-                "POST",
-                f"repos/{user_info['login']}/{body['repository']['name']}/issues/{body['issue']['number']}/comments",
-                headers={
-                    "Authorization": f"Bearer {tokens['access_token']}",
-                    "Accept": "application/vnd.github+json",
-                },
-                json={"body": reply},
-            )
-        elif event == "pull_request_review_comment":
-            GithubService._make_request(
-                "POST",
-                f"repos/{user_info['login']}/{body['repository']['name']}/pulls/{body['pull_request']['number']}/comments/{body['comment']['id']}/replies",
-                headers={
-                    "Authorization": f"Bearer {tokens['access_token']}",
-                    "Accept": "application/vnd.github+json",
-                },
-                json={"body": reply},
-            )

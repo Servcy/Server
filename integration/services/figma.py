@@ -1,5 +1,3 @@
-import json
-
 import requests
 from django.conf import settings
 
@@ -183,27 +181,4 @@ class FigmaService(BaseService):
             f"v1/files/{file_key}/comments",
             headers=headers,
             json=data,
-        )
-
-    @staticmethod
-    def send_reply(
-        meta_data: dict,
-        body: str,
-        reply: str,
-        **kwargs,
-    ):
-        """
-        Send reply to figma.
-
-        Args:
-        - meta_data: The user integration meta data.
-        - body: The event body.
-        - reply: The reply to the message.
-        """
-        body = json.loads(body)
-        figma_service = FigmaService(refresh_token=meta_data["token"]["refresh_token"])
-        figma_service.add_comment(
-            file_key=body["file_key"],
-            comment_id=body["comment_id"],
-            message=reply,
         )
