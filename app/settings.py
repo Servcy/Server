@@ -294,6 +294,7 @@ SLACK_APP_REDIRECT_URI = f"{FRONTEND_URL}/{config.get('slack', 'redirect_uri')}"
 # Github
 GITHUB_APP_CLIENT_ID = config.get("github", "client_id")
 GITHUB_APP_CLIENT_SECRET = config.get("github", "client_secret")
+GITHUB_WEBHOOK_SECRET = config.get("github", "webhook_secret")
 GITHUB_APP_REDIRECT_URI = f"{FRONTEND_URL}/{config.get('github', 'redirect_uri')}"
 # Figma
 FIGMA_APP_CLIENT_ID = config.get("figma", "client_id")

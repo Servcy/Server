@@ -1,8 +1,12 @@
 import json
 import logging
+import hashlib
+import hmac
 import traceback
 
+from django.conf import settings
 from django.http import HttpResponse
+from common.exceptions import ExternalIntegrationException
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
@@ -24,6 +28,26 @@ VALID_EVENTS = [
 ]
 
 
+def verify_signature(payload_body, secret_token, signature_header):
+    """Verify that the payload was sent from GitHub by validating SHA256.
+
+    Raise and return 403 if not authorized.
+
+    Args:
+        payload_body: original request body to verify (request.body())
+        secret_token: GitHub app webhook token (WEBHOOK_SECRET)
+        signature_header: header received from GitHub (x-hub-signature-256)
+    """
+    if not signature_header:
+        raise ExternalIntegrationException("x-hub-signature-256 header is missing!")
+    hash_object = hmac.new(
+        secret_token.encode("utf-8"), msg=payload_body, digestmod=hashlib.sha256
+    )
+    expected_signature = "sha256=" + hash_object.hexdigest()
+    if not hmac.compare_digest(expected_signature, signature_header):
+        raise ExternalIntegrationException("Request signatures didn't match!")
+
+
 @csrf_exempt
 @require_POST
 def github(request):
@@ -31,6 +55,10 @@ def github(request):
         payload = json.loads(request.body)
         event = request.headers.get("X-GitHub-Event", "ping")
         guid = request.headers.get("X-GitHub-Delivery")
+        request_signature = request.headers.get("X-Hub-Signature")
+        verify_signature(
+            request.body, settings.GITHUB_WEBHOOK_SECRET, request_signature
+        )
         if event == "ping":
             return HttpResponse(status=200)
         if event == "installation" or event == "installation_repositories":
@@ -81,6 +109,19 @@ def github(request):
             }
         )
         return HttpResponse(status=200)
+    except ExternalIntegrationException:
+        logger.exception(
+            f"An error occurred while processing github webhook",
+            exc_info=True,
+            extra={
+                "body": payload,
+                "headers": request.headers,
+                "event": event,
+                "guid": guid,
+                "traceback": traceback.format_exc(),
+            },
+        )
+        return HttpResponse(status=403)
     except Exception:
         logger.exception(
             f"An error occurred while processing github webhook",
