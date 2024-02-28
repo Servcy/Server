@@ -43,7 +43,6 @@ EVENT_MAP = {
     "deleteComment": "Someone deleted their comment on a card",
     "updateComment": "Someone updated their comment on a card",
     "commentCard": "Someone commented on a card",
-    # TODO: handle during document module creation
     "deleteAttachmentFromCard": "Deleted an attachment from a card",
     "addAttachmentToCard": "An attachment was added to a card",
 }
