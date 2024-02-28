@@ -10,6 +10,7 @@ from email.mime.text import MIMEText
 import requests
 from django.conf import settings
 from google.auth.exceptions import RefreshError
+from google.cloud import pubsub_v1
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
@@ -21,10 +22,6 @@ from common.exceptions import (
 from document.repository import DocumentRepository
 from inbox.services.google import GoogleMailService
 from integration.repository import IntegrationRepository
-from integration.scripts.google import (
-    add_publisher_from_topic,
-    remove_publisher_from_topic,
-)
 
 from .base import BaseService
 
@@ -56,7 +53,7 @@ class GoogleService(BaseService):
             self._initialize_google_service()
             if code:
                 self._fetch_user_info()
-                add_publisher_from_topic(self._user_info["email"])
+                GoogleService.add_publisher_from_topic(self._user_info["email"])
                 self._add_watcher_to_inbox_pub_sub(self._user_info["email"])
 
     def refresh_tokens(self):
@@ -96,7 +93,7 @@ class GoogleService(BaseService):
             )
         except HttpError as err:
             if err.resp.status == 401:
-                remove_publisher_from_topic(self._user_info["email"])
+                GoogleService.remove_publisher_from_topic(self._user_info["email"])
                 raise IntegrationAccessRevokedException()
             else:
                 logger.exception(
@@ -142,7 +139,7 @@ class GoogleService(BaseService):
                     "token": self._token,
                 },
             )
-            remove_publisher_from_topic(self._user_info["email"])
+            GoogleService.remove_publisher_from_topic(self._user_info["email"])
             raise IntegrationAccessRevokedException()
         except HttpError as err:
             if err.resp.status == 429:
@@ -390,3 +387,41 @@ class GoogleService(BaseService):
                     }
                 )
             return attachment_data
+
+    @staticmethod
+    def add_publisher_from_topic(email: str):
+        """Add publisher for user"""
+        try:
+            pubsub_v1_client = pubsub_v1.PublisherClient()
+            policy = pubsub_v1_client.get_iam_policy(
+                request={"resource": GOOGLE_PUB_SUB_TOPIC}
+            )
+            policy.bindings.add(
+                role="roles/pubsub.publisher",
+                members=[f"user:{email}"],
+            )
+            pubsub_v1_client.set_iam_policy(
+                request={"resource": GOOGLE_PUB_SUB_TOPIC, "policy": policy}
+            )
+        except:
+            pass
+
+    @staticmethod
+    def remove_publisher_from_topic(email: str):
+        """Remove publisher for user"""
+        try:
+            pubsub_v1_client = pubsub_v1.PublisherClient()
+            policy = pubsub_v1_client.get_iam_policy(
+                request={"resource": GOOGLE_PUB_SUB_TOPIC}
+            )
+            for binding in policy.bindings:
+                if (
+                    binding.role == "roles/pubsub.publisher"
+                    and f"user:{email}" in binding.members
+                ):
+                    binding.members.remove(f"user:{email}")
+            pubsub_v1_client.set_iam_policy(
+                request={"resource": GOOGLE_PUB_SUB_TOPIC, "policy": policy}
+            )
+        except:
+            pass

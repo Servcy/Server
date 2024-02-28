@@ -1,10 +1,8 @@
 import logging
 import traceback
 
-from google.cloud import pubsub_v1
-
 from integration.repository import IntegrationRepository
-from integration.services.google import GOOGLE_PUB_SUB_TOPIC, GoogleService
+from integration.services.google import GoogleService
 
 logger = logging.getLogger(__name__)
 
@@ -57,41 +55,3 @@ def refresh_watchers_and_tokens():
                 "traceback": traceback.format_exc(),
             },
         )
-
-
-def add_publisher_from_topic(email: str):
-    """Add publisher for user"""
-    try:
-        pubsub_v1_client = pubsub_v1.PublisherClient()
-        policy = pubsub_v1_client.get_iam_policy(
-            request={"resource": GOOGLE_PUB_SUB_TOPIC}
-        )
-        policy.bindings.add(
-            role="roles/pubsub.publisher",
-            members=[f"user:{email}"],
-        )
-        pubsub_v1_client.set_iam_policy(
-            request={"resource": GOOGLE_PUB_SUB_TOPIC, "policy": policy}
-        )
-    except:
-        pass
-
-
-def remove_publisher_from_topic(email: str):
-    """Remove publisher for user"""
-    try:
-        pubsub_v1_client = pubsub_v1.PublisherClient()
-        policy = pubsub_v1_client.get_iam_policy(
-            request={"resource": GOOGLE_PUB_SUB_TOPIC}
-        )
-        for binding in policy.bindings:
-            if (
-                binding.role == "roles/pubsub.publisher"
-                and f"user:{email}" in binding.members
-            ):
-                binding.members.remove(f"user:{email}")
-        pubsub_v1_client.set_iam_policy(
-            request={"resource": GOOGLE_PUB_SUB_TOPIC, "policy": policy}
-        )
-    except:
-        pass
