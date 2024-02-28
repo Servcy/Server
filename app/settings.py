@@ -264,8 +264,8 @@ GOOGLE_OAUTH2_REDIRECT_URI = f"{FRONTEND_URL}/{config.get('google', 'redirect_ur
 GOOGLE_PROJECT_ID = config.get("google", "project_id")
 GOOGLE_OAUTH2_SCOPES = [
     "https://www.googleapis.com/auth/gmail.readonly",
+    "https://www.googleapis.com/auth/userinfo.profile",
     "https://www.googleapis.com/auth/userinfo.email",
-    "email",
     "openid",
 ]
 GOOGLE_PUB_SUB_TOPIC = config.get("google", "pub_sub_topic")
@@ -273,7 +273,7 @@ GOOGLE_PUB_SUB_SUBSCRIPTION = config.get("google", "pub_sub_subscription")
 GOOGLE_APPLICATION_CREDENTIALS = BASE_DIR / "config/servcy-gcp-service-account-key.json"
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = str(GOOGLE_APPLICATION_CREDENTIALS)
 # microsoft
-MICROSOFT_OAUTH2_SCOPES = ["User.Read", "Mail.Read"]
+MICROSOFT_OAUTH2_SCOPES = ["User.Read", "Mail.Read", "openid", "profile", "email"]
 MICROSOFT_APP_NAME = config.get("microsoft", "display_name")
 MICROSOFT_APP_CLIENT_ID = config.get("microsoft", "client_id")
 MICROSOFT_APP_CLIENT_SECRET_ID = config.get("microsoft", "client_secret_id")
