@@ -14,8 +14,6 @@ from integration.repository import IntegrationRepository
 from integration.repository.events import DisabledUserIntegrationEventRepository
 from integration.services.asana import AsanaService
 from integration.utils.events import is_event_and_action_disabled
-from project.repository import ProjectRepository
-from task.repository import TaskRepository
 
 logger = logging.getLogger(__name__)
 
@@ -34,16 +32,8 @@ def asana(request, user_integration_id):
             events = body.get("events")
             user_integration = None
             meta_data = None
-            projects_to_create = []
-            tasks_to_create = []
-            tasks_to_delete = []
-            tasks_to_undelete = []
-            projects_to_delete = []
-            projects_to_undelete = []
             asana_service = None
-            tasks_to_update = []
             inbox_items = []
-            projects_to_update = []
             disabled_events = DisabledUserIntegrationEventRepository.get_disabled_user_integration_events(
                 user_integration_id=user_integration_id
             )
@@ -95,13 +85,6 @@ def asana(request, user_integration_id):
                         asana_service.create_task_monitoring_webhook(
                             project_uid, user_integration_id
                         )
-                        projects_to_create.append(project)
-                    if action == "changed":
-                        projects_to_update.append(project)
-                    if action in ["removed", "deleted"]:
-                        projects_to_delete.append(project)
-                    if action == "undeleted":
-                        projects_to_undelete.append(project)
                 elif event["resource"]["resource_type"] == "task":
                     action = event["action"]
                     task_uid = event["resource"]["gid"]
@@ -133,14 +116,6 @@ def asana(request, user_integration_id):
                                 "i_am_mentioned": i_am_following,
                             }
                         )
-                    if action == "changed":
-                        tasks_to_update.append(task)
-                    elif action == "added":
-                        tasks_to_create.append(task)
-                    elif action in ["removed", "deleted"]:
-                        tasks_to_delete.append(task)
-                    elif action == "undeleted":
-                        tasks_to_undelete.append(task)
                 elif (
                     event["resource"]["resource_type"] == "story"
                     and event["resource"]["resource_subtype"] == "comment_added"
@@ -198,81 +173,6 @@ def asana(request, user_integration_id):
                         },
                     )
             with transaction.atomic():
-                if tasks_to_delete:
-                    TaskRepository.delete_bulk(
-                        user_integration.user.id,
-                        [
-                            task["gid"]
-                            for task in tasks_to_delete
-                            if task["gid"] is not None
-                        ],
-                    )
-                if tasks_to_update:
-                    TaskRepository.update_bulk(
-                        [
-                            {
-                                "uid": task["gid"],
-                                "name": task["name"],
-                                "description": task["notes"],
-                                "meta_data": task,
-                            }
-                            for task in tasks_to_update
-                        ]
-                    )
-                if tasks_to_undelete:
-                    TaskRepository.undelete(
-                        [
-                            task["gid"]
-                            for task in tasks_to_undelete
-                            if task["gid"] is not None
-                        ]
-                    )
-                if projects_to_delete:
-                    ProjectRepository.delete_bulk(
-                        [
-                            project["gid"]
-                            for project in projects_to_delete
-                            if project["gid"] is not None
-                        ]
-                    )
-                if projects_to_undelete:
-                    ProjectRepository.undelete(
-                        [
-                            project["gid"]
-                            for project in projects_to_undelete
-                            if project["gid"] is not None
-                        ]
-                    )
-                if projects_to_update:
-                    ProjectRepository.update_bulk(
-                        [
-                            {
-                                "uid": project["gid"],
-                                "name": project["name"],
-                                "description": project["notes"],
-                                "meta_data": project,
-                            }
-                            for project in projects_to_update
-                        ]
-                    )
-                for project in projects_to_create:
-                    ProjectRepository.create(
-                        uid=project["gid"],
-                        user_integration_id=user_integration.id,
-                        user_id=user_integration.user.id,
-                        name=project["name"],
-                        description=project["notes"],
-                        meta_data=project,
-                    )
-                for task in tasks_to_create:
-                    TaskRepository.create(
-                        uid=task["gid"],
-                        name=task["name"],
-                        description=task["notes"],
-                        project_uid=task["projects"][0]["gid"],
-                        user_id=user_integration.user.id,
-                        meta_data=task,
-                    )
                 InboxRepository.add_items(inbox_items)
             return HttpResponse(
                 status=200, content="OK", content_type="application/json"

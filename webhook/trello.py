@@ -14,8 +14,6 @@ from inbox.repository import InboxRepository
 from integration.repository import IntegrationRepository
 from integration.repository.events import DisabledUserIntegrationEventRepository
 from integration.utils.events import is_event_and_action_disabled
-from project.repository import ProjectRepository
-from task.repository import TaskRepository
 
 logger = logging.getLogger(__name__)
 
@@ -133,56 +131,6 @@ def trello(request, user_integration_id):
                     ),
                     "i_am_mentioned": i_am_mentioned,
                 }
-            )
-        if action["type"] == "createBoard":
-            ProjectRepository.create(
-                uid=action["data"]["board"]["id"],
-                user_integration_id=user_integration.id,
-                user_id=user_integration.user.id,
-                name=action["data"]["board"]["name"],
-                description=action["data"]["board"].get("desc", ""),
-                meta_data=action["data"]["board"],
-            )
-        if action["type"] == "updateBoard":
-            ProjectRepository.update(
-                filters={
-                    "uid": action["data"]["board"]["id"],
-                    "user_integration_id": user_integration_id,
-                },
-                updates={
-                    "name": action["data"]["board"]["name"],
-                    "description": action["data"]["board"].get("desc", ""),
-                    "meta_data": action["data"]["board"],
-                },
-            )
-        if action["type"] in [
-            "createCard",
-            "convertToCardFromCheckItem",
-        ]:
-            TaskRepository.create(
-                uid=action["data"]["card"]["id"],
-                user_id=user_integration.user_id,
-                name=action["data"]["card"]["name"],
-                description=action["data"]["card"].get("desc", ""),
-                meta_data=action["data"]["card"],
-                project_uid=action["data"]["board"]["id"],
-            )
-        if action["type"] == "updateCard":
-            TaskRepository.update(
-                filters={
-                    "uid": action["data"]["card"]["id"],
-                    "user_id": user_integration.user_id,
-                },
-                updates={
-                    "name": action["data"]["card"]["name"],
-                    "description": action["data"]["card"].get("desc", ""),
-                    "meta_data": action["data"]["card"],
-                },
-            )
-        if action["type"] == "deleteCard":
-            TaskRepository.delete_bulk(
-                user_integration.user_id,
-                [action["data"]["card"]["id"]],
             )
         return HttpResponse(status=200)
     except Exception:
