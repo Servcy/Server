@@ -1,6 +1,6 @@
-from rest_framework.serializers import ModelSerializer, PrimaryKeyRelatedField
+from rest_framework.serializers import ModelSerializer
 
-from client.models import Avatar, Client
+from client.models import Client
 
 
 class ClientSerializer(ModelSerializer):
