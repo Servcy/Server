@@ -34,7 +34,10 @@ def github(request):
         if event == "ping":
             return HttpResponse(status=200)
         if event == "installation" or event == "installation_repositories":
-            GithubService.manage_github_repositories(payload)
+            try:
+                GithubService.manage_github_repositories(payload)
+            except:
+                pass
             return HttpResponse(status=200)
         if event not in VALID_EVENTS:
             logger.warning(f"Received invalid github event: {event} - {payload}")
