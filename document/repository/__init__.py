@@ -3,7 +3,7 @@ from document.models import Document
 
 class DocumentRepository:
     @staticmethod
-    def create(**kwargs):
+    def add_document(**kwargs):
         return Document.objects.create(**kwargs)
 
     @staticmethod

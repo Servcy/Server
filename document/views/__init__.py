@@ -39,7 +39,7 @@ class DocumentViewSet(ModelViewSet):
             for file in files:
                 file_name = file.name
                 file.name = f"{user_id}_{file.name}_{int(time())}"
-                document = DocumentRepository.create(
+                document = DocumentRepository.add_document(
                     file=file,
                     user_id=user_id,
                     name=file_name,
