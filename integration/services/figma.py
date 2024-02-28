@@ -1,7 +1,10 @@
 import requests
 from django.conf import settings
 
-from common.exceptions import ExternalIntegrationException, ServcyOauthCodeException
+from common.exceptions import (
+    ExternalIntegrationException,
+    IntegrationAccessRevokedException,
+)
 from integration.models import UserIntegration
 from integration.repository import IntegrationRepository
 
@@ -30,7 +33,7 @@ class FigmaService(BaseService):
         elif refresh_token:
             self._refresh_token(refresh_token)
         else:
-            raise ServcyOauthCodeException(
+            raise ExternalIntegrationException(
                 "Code/Refresh token is required for fetching access token from Figma."
             )
         self._user_info = self._fetch_user_info()
@@ -49,6 +52,10 @@ class FigmaService(BaseService):
             error_msg = f"An error occurred while communicating with Figma API.\\n{str(json_response)}"
             if json_response.get("status", 0) == 400:
                 raise ExternalIntegrationException(
+                    json_response.get("message", error_msg)
+                )
+            elif json_response.get("status", 0) == 401:
+                raise IntegrationAccessRevokedException(
                     json_response.get("message", error_msg)
                 )
             else:

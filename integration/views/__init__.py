@@ -108,7 +108,7 @@ class UserIntegrationViewSet(
                 )
                 request.data["configuration"] = configuration
             return super().partial_update(request, *args, **kwargs)
-        except ExternalIntegrationException as e:
+        except ExternalIntegrationException:
             return error_response(
                 logger=logger,
                 logger_message=f"An error occurred while configuring Figma integration.",
