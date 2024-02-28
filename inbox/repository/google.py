@@ -1,5 +1,3 @@
-import uuid
-
 from inbox.repository import InboxRepository
 from inbox.services.google import GoogleMailService
 
