@@ -34,8 +34,10 @@ class GoogleMailRepository:
             sender_email = sender.split("<")[-1].split(">")[0]
             if not GoogleMailRepository._has_valid_labels(mail):
                 continue
-            if sender_email not in user_integration_configuration.get(
-                "whitelisted_emails", []
+            if (
+                user_integration_configuration is not None
+                and sender_email
+                not in user_integration_configuration.get("whitelisted_emails", [])
             ):
                 continue
             body, files = GoogleMailService._get_mail_body(mail["payload"], mail["id"])
