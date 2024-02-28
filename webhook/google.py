@@ -1,11 +1,15 @@
 import json
 import logging
+import os
 import traceback
 from base64 import decodebytes
 
+from django.conf import settings
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
+from google.auth.transport import requests
+from google.oauth2 import id_token
 
 from common.exceptions import (
     ExternalAPIRateLimitException,
@@ -22,9 +26,27 @@ logger = logging.getLogger(__name__)
 @csrf_exempt
 @require_POST
 def google(request):
-    account_id = None
-    history_id = None
     try:
+        authorization = request.headers.get("Authorization", "")
+        authorization_token = authorization.split("Bearer ")[-1]
+        if not authorization_token:
+            return HttpResponse(status=401)
+        else:
+            google_service_credentials = json.load(
+                open(os.environ["GOOGLE_APPLICATION_CREDENTIALS"])
+            )
+            decoded_authorization_token = id_token.verify_oauth2_token(
+                authorization_token,
+                requests.Request(),
+                f"{settings.BACKEND_URL}/webhook/google",
+            )
+            if (
+                decoded_authorization_token["azp"]
+                == google_service_credentials["client_id"]
+                or decoded_authorization_token["email"]
+                == google_service_credentials["client_email"]
+            ):
+                return HttpResponse(status=401)
         payload = json.loads(request.body.decode("utf-8"))
         encoded_data = payload["message"]["data"]
         decoded_data = json.loads(decodebytes(encoded_data.encode()).decode())
@@ -58,6 +80,7 @@ def google(request):
         unread_message_ids = service.get_latest_unread_primary_inbox(last_history_id)
         if not unread_message_ids:
             return HttpResponse(status=200)
+
         mails = service.get_messages(
             message_ids=unread_message_ids,
         )
