@@ -16,6 +16,7 @@ The easiest way to get started with Servcy is by creating a [Servcy Cloud](https
 4. `mkdir logs`
 5. If you're in non-debug mode you'll need a new_relic.ini file under config directory
 6. For google service you'll need servcy-gcp-service-account-key under config directory
+7. Use sql seeders to prefill integration and integration_event table
 
 ### Installing Dependencies
 
