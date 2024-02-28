@@ -275,7 +275,7 @@ GOOGLE_PUB_SUB_SUBSCRIPTION = config.get("google", "pub_sub_subscription")
 GOOGLE_APPLICATION_CREDENTIALS = BASE_DIR / "config/servcy-gcp-service-account-key.json"
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = str(GOOGLE_APPLICATION_CREDENTIALS)
 # microsoft
-MICROSOFT_OAUTH2_SCOPES = ["User.Read", "Mail.Read", "Mail.Send"]
+MICROSOFT_OAUTH2_SCOPES = ["User.Read", "Mail.Read"]
 MICROSOFT_APP_NAME = config.get("microsoft", "display_name")
 MICROSOFT_APP_CLIENT_ID = config.get("microsoft", "client_id")
 MICROSOFT_APP_CLIENT_SECRET_ID = config.get("microsoft", "client_secret_id")
