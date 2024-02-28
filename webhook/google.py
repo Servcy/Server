@@ -22,17 +22,17 @@ logger = logging.getLogger(__name__)
 @csrf_exempt
 @require_POST
 def google(request):
-    email = None
+    account_id = None
     history_id = None
     try:
         payload = json.loads(request.body.decode("utf-8"))
         encoded_data = payload["message"]["data"]
         decoded_data = json.loads(decodebytes(encoded_data.encode()).decode())
-        email = decoded_data["emailAddress"]
+        account_id = decoded_data["emailAddress"]
         history_id = decoded_data["historyId"]
         user_integration = IntegrationRepository.get_user_integrations(
             filters={
-                "account_id": email,
+                "account_id": account_id,
                 "integration__name": "Gmail",
             },
             first=True,
@@ -55,11 +55,11 @@ def google(request):
             access_token=user_integration["meta_data"]["token"]["access_token"],
             refresh_token=user_integration["meta_data"]["token"]["refresh_token"],
         )
-        message_ids = service.get_latest_unread_primary_inbox(last_history_id)
-        if not message_ids:
+        unread_message_ids = service.get_latest_unread_primary_inbox(last_history_id)
+        if not unread_message_ids:
             return HttpResponse(status=200)
         mails = service.get_messages(
-            message_ids=message_ids,
+            message_ids=unread_message_ids,
         )
         inbox_items, attachments, has_attachments = GoogleMailRepository.create_mails(
             mails=mails,
@@ -79,10 +79,12 @@ def google(request):
         return HttpResponse(status=200)
     except Exception:
         logger.exception(
-            f"An error occurred processing webhook for google request. {email} {history_id}",
+            f"An error occurred processing webhook for google request.",
             extra={
                 "payload": payload,
                 "headers": request.headers,
+                "account_id": account_id,
+                "history_id": history_id,
                 "traceback": traceback.format_exc(),
             },
         )
