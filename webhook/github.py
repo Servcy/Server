@@ -16,14 +16,11 @@ logger = logging.getLogger(__name__)
 
 VALID_EVENTS = [
     "issues",
-    "projects_v2_item",
     "pull_request",
     "pull_request_review_thread",
     "pull_request_review_comment",
     "pull_request_review",
-    "milestone",
     "issue_comment",
-    "projects_v2",
 ]
 
 
