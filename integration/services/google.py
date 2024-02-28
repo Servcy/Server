@@ -189,15 +189,15 @@ class GoogleService(BaseService):
         Implementation of abstract method from BaseService.
         """
         self._token = meta_data["token"]
+        self._user_info = meta_data["user_info"]
         self.refresh_tokens()
-        self._fetch_user_info()
         self._add_watcher_to_inbox_pub_sub(self._user_info["email"])
         IntegrationRepository.update_integraion(
             user_integration_id=kwargs["user_integration_id"],
             meta_data=IntegrationRepository.encrypt_meta_data(
                 {
+                    **meta_data,
                     "token": self._token,
-                    "user_info": self._user_info,
                 }
             ),
         )

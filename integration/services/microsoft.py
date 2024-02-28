@@ -1,10 +1,11 @@
+import datetime
 import logging
 
 import msal
 import requests
 from django.conf import settings
 
-from common.exceptions import ServcyOauthCodeException
+from common.exceptions import ExternalIntegrationException
 from common.utils.datetime import future_date_in_iso_formate
 from integration.repository import IntegrationRepository
 
@@ -22,17 +23,14 @@ MICROSOFT_AUTHORITY_URI = "https://login.microsoftonline.com/common"
 class MicrosoftService:
     """Service class for Microsoft integration."""
 
-    def __init__(
-        self, code: str = None, refresh_token: str = None, scopes: list = None, **kwargs
-    ) -> None:
+    def __init__(self, code: str = None, refresh_token: str = None, **kwargs) -> None:
         """Initialize the MicrosoftService with either an authorization code or refresh token.
 
         :param code: Authorization code
         :param refresh_token: Refresh token
         :param scopes: List of scopes for token fetching
         """
-        if scopes is None:
-            scopes = ["User.Read", "Mail.Read"]
+        self._scopes = settings.MICROSOFT_OAUTH2_SCOPES
         self._app = msal.ConfidentialClientApplication(
             client_id=MICROSOFT_CLIENT_ID,
             client_credential=MICROSOFT_CLIENT_SECRET,
@@ -44,24 +42,19 @@ class MicrosoftService:
         elif refresh_token:
             self._token = self._refresh_token(
                 refresh_token=refresh_token,
-                scopes=scopes,
             )
 
     def _make_microsoft_request(self, method, url, **kwargs):
         """Helper function to make requests to Microsoft API."""
         response = method(url, **kwargs).json()
         if "error" in response:
-            if response["error"]["code"] == "InvalidAuthenticationToken":
-                self._token = self._refresh_token(
-                    refresh_token=self._token["refresh_token"],
-                    scopes=["User.Read", "Mail.Read"],
-                )
-                return self._make_microsoft_request(method, url, **kwargs)
-            else:
-                logger.exception(
-                    f"Error in making request to Microsoft API: {response['error']['message']}"
-                )
-                raise Exception(response["error"]["message"])
+            raise ExternalIntegrationException(
+                "An error occurred while making request to Microsoft",
+                extra={
+                    "error": response.get("error"),
+                    "error_description": response.get("error_description"),
+                },
+            )
         return response
 
     def _fetch_token(
@@ -77,20 +70,22 @@ class MicrosoftService:
             redirect_uri=MICROSOFT_REDIRECT_URI,
         )
         if "error" in response:
-            raise ServcyOauthCodeException(
-                f"An error occurred while obtaining access token from Microsoft.\n{str(response)}"
+            raise ExternalIntegrationException(
+                "An error occurred while obtaining access token from Microsoft",
+                extra={
+                    "error": response.get("error"),
+                    "error_description": response.get("error_description"),
+                },
             )
         return response
 
-    def _refresh_token(
-        self, refresh_token: str, scopes: list = ["User.Read", "Mail.Read"]
-    ) -> dict:
+    def _refresh_token(self, refresh_token: str) -> dict:
         """
         Function to get new token using refresh token
         """
         return self._app.acquire_token_by_refresh_token(
             refresh_token=refresh_token,
-            scopes=scopes,
+            scopes=self._scopes,
         )
 
     def create_integration(self, user_id: int):
@@ -157,19 +152,6 @@ class MicrosoftService:
             },
         )
 
-    def list_subscriptions(self) -> dict:
-        """
-        List all subscriptions for user.
-        """
-        return self._make_microsoft_request(
-            requests.get,
-            MICROSOFT_SUBSCRIPTION_URI,
-            headers={
-                "Authorization": f"Bearer {self._token['access_token']}",
-                "Content-Type": "application/json",
-            },
-        )
-
     def remove_subscription(self, subscription_id: str) -> None:
         """
         Remove subscription for user.
@@ -193,9 +175,15 @@ class MicrosoftService:
         Returns:
         - bool: True if integration is active, False otherwise.
         """
-        self._token = meta_data["token"]
-        response = self.list_subscriptions()
-        return "error" not in response
+        self._token = self._refresh_token(
+            meta_data["token"]["refresh_token"],
+        )
+        subscription = meta_data["subscription"]
+        expiration_date_time = datetime.datetime.strptime(
+            subscription["expirationDateTime"], "%Y-%m-%dT%H:%M:%S.%fZ"
+        )
+        if (expiration_date_time - datetime.datetime.now()).total_seconds() < 86400:
+            self.renew_subscription(subscription["id"])
 
     def get_attachments(self, message_id: str) -> dict:
         """

@@ -79,17 +79,16 @@ class JiraService(BaseService):
         Checks if integration is active.
         """
         self._token = meta_data["token"]
+        self.cloud_id = meta_data["cloud_id"]
+        self._user_info = meta_data["user_info"]
         self._token = self.refresh_token()
-        self._fetch_cloud_id()
-        self._user_info = self._fetch_user_info()
         self.extend_webhook()
         IntegrationRepository.update_integraion(
             user_integration_id=kwargs["user_integration_id"],
             meta_data=IntegrationRepository.encrypt_meta_data(
                 {
+                    **meta_data,
                     "token": self._token,
-                    "user_info": self._user_info,
-                    "cloud_id": self.cloud_id,
                 }
             ),
         )

@@ -319,17 +319,5 @@ CRONJOBS = [
     (
         "0 0 * * *",
         "integration.services.audit.main",
-    ),
-    (
-        "0 0 * * *",
-        "integration.scripts.slack.update_workspace_members",
-    ),
-    (
-        "0 0 * * *",
-        "integration.scripts.notion.poll_new_comments",
-    ),
-    (
-        "0 0 * * *",
-        "integration.scripts.microsoft.renew_subscriptions",
-    ),
+    )
 ]
