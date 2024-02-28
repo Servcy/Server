@@ -319,5 +319,9 @@ CRONJOBS = [
     (
         "0 0 * * *",
         "integration.services.audit.main",
-    )
+    ),
+    (
+        "0 * * * *",
+        "integration.scripts.notion.poll_new_comments",
+    ),
 ]

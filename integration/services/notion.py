@@ -4,7 +4,6 @@ import logging
 import requests
 from django.conf import settings
 
-from common.exceptions import ServcyOauthCodeException
 from integration.repository import IntegrationRepository
 
 from .base import BaseService
@@ -58,13 +57,10 @@ class NotionService(BaseService):
                 "redirect_uri": settings.NOTION_APP_REDIRECT_URI,
             },
             headers=self._create_basic_auth_header(),
-        ).json()
-
-        if response.get("object") == "error" or "error" in response:
-            raise ServcyOauthCodeException(
-                f"An error occurred while obtaining access token from Notion.\n{str(response)}"
-            )
-        self._token = response
+        )
+        if response.status_code != 200:
+            response.raise_for_status()
+        self._token = response.json()
 
     def create_integration(self, user_id: int):
         """Create a user integration in the local database with token and workspace details.
