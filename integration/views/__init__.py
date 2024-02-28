@@ -39,7 +39,7 @@ class IntegrationViewSet(GenericViewSet):
             for user_integration in user_integrations:
                 connected_integrations.add(user_integration["integration_id"])
             integrations = IntegrationRepository.fetch_all_integrations().values(
-                "id", "name", "description", "logo", "is_wip", "configure_at"
+                "id", "name", "description", "logo", "configure_at"
             )
             integrations = [
                 {
@@ -47,7 +47,6 @@ class IntegrationViewSet(GenericViewSet):
                     "is_connected": integration["id"] in connected_integrations,
                 }
                 for integration in integrations
-                if not integration["is_wip"]  # TODO: Reconsider in the future
             ]
             return success_response(
                 success_message="Integrations fetched successfully",
