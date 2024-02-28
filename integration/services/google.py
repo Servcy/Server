@@ -43,8 +43,8 @@ class GoogleService(BaseService):
             }
         if self._token:
             self._initialize_google_service()
+            self._fetch_user_info()
             if code:
-                self._fetch_user_info()
                 GoogleService.add_publisher_from_topic(self._user_info["email"])
                 self._add_watcher_to_inbox_pub_sub(self._user_info["email"])
 
@@ -131,7 +131,8 @@ class GoogleService(BaseService):
                     "token": self._token,
                 },
             )
-            GoogleService.remove_publisher_from_topic(self._user_info["email"])
+            if self._user_info and self._user_info.get("email"):
+                GoogleService.remove_publisher_from_topic(self._user_info["email"])
             raise IntegrationAccessRevokedException()
         except HttpError as err:
             if err.resp.status == 429:
