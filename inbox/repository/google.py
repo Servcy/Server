@@ -18,7 +18,9 @@ class GoogleMailRepository:
 
     @staticmethod
     def create_mails(
-        mails: list, user_integration_id: int, user_id: int
+        mails: list,
+        user_integration_id: int,
+        user_integration_configuration: dict,
     ) -> tuple[list, list, bool]:
         inbox_items = []
         attachments = {}
@@ -30,9 +32,11 @@ class GoogleMailRepository:
             if not sender:
                 continue
             sender_email = sender.split("<")[-1].split(">")[0]
-            if not GoogleMailRepository._has_valid_labels(
-                mail
-            ) or InboxRepository.is_email_blocked(sender_email, user_id):
+            if not GoogleMailRepository._has_valid_labels(mail):
+                continue
+            if sender_email not in user_integration_configuration.get(
+                "whitelisted_emails", []
+            ):
                 continue
             body, files = GoogleMailService._get_mail_body(mail["payload"], mail["id"])
             inbox_items.append(

@@ -2,27 +2,13 @@ import datetime
 
 from django.db.models import Q
 
-from inbox.models import BlockedEmail, Inbox
+from inbox.models import Inbox
 
 
 class InboxRepository:
     """
     Inbox Repository
     """
-
-    @staticmethod
-    def block_email(email: str, user):
-        """
-        Block an email.
-        """
-        return BlockedEmail.objects.create(email=email, user=user)
-
-    @staticmethod
-    def is_email_blocked(email: str, user_id) -> bool:
-        """
-        Check if an email is blocked.
-        """
-        return BlockedEmail.objects.filter(email=email, user_id=user_id).exists()
 
     @staticmethod
     def add_item(item: dict) -> None:

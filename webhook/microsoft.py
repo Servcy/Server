@@ -43,9 +43,9 @@ def microsoft(request):
             refresh_token=integration["meta_data"]["token"]["refresh_token"]
         )
         mail = service.get_message(message_id)
-        if InboxRepository.is_email_blocked(
-            mail["from"]["emailAddress"]["address"], integration["user_id"]
-        ):
+        if mail["from"]["emailAddress"]["address"] not in integration[
+            "configuration"
+        ].get("whitelisted_emails", []):
             return HttpResponse(status=200)
         mail_has_attachments = mail.get("hasAttachments", False)
         if mail_has_attachments:

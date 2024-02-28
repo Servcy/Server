@@ -1,7 +1,6 @@
 from django.db import models
 
 from app.models import TimeStampedModel
-from iam.models import User
 from integration.models import UserIntegration
 
 
@@ -24,13 +23,3 @@ class Inbox(TimeStampedModel):
         db_table = "inbox"
         verbose_name = "Inbox"
         unique_together = ("uid", "user_integration")
-
-
-class BlockedEmail(TimeStampedModel):
-    email = models.CharField(max_length=255)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-
-    class Meta:
-        db_table = "blocked_email"
-        verbose_name = "Blocked Email"
-        unique_together = ("email", "user")

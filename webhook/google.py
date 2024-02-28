@@ -30,30 +30,30 @@ def google(request):
         decoded_data = json.loads(decodebytes(encoded_data.encode()).decode())
         email = decoded_data["emailAddress"]
         history_id = decoded_data["historyId"]
-        integration = IntegrationRepository.get_user_integrations(
+        user_integration = IntegrationRepository.get_user_integrations(
             filters={
                 "account_id": email,
                 "integration__name": "Gmail",
             },
             first=True,
         )
-        if integration is None:
+        if user_integration is None:
             return HttpResponse(status=200)
         IntegrationRepository.update_integraion(
-            user_integration_id=integration["id"],
+            user_integration_id=user_integration["id"],
             meta_data=IntegrationRepository.encrypt_meta_data(
                 {
-                    **integration["meta_data"],
+                    **user_integration["meta_data"],
                     "last_history_id": history_id,
                 }
             ),
         )
-        last_history_id = int(integration["meta_data"].get("last_history_id", 0))
+        last_history_id = int(user_integration["meta_data"].get("last_history_id", 0))
         if last_history_id == 0:
             return HttpResponse(status=200)
         service = GoogleService(
-            access_token=integration["meta_data"]["token"]["access_token"],
-            refresh_token=integration["meta_data"]["token"]["refresh_token"],
+            access_token=user_integration["meta_data"]["token"]["access_token"],
+            refresh_token=user_integration["meta_data"]["token"]["refresh_token"],
         )
         message_ids = service.get_latest_unread_primary_inbox(last_history_id)
         if not message_ids:
@@ -63,8 +63,8 @@ def google(request):
         )
         inbox_items, attachments, has_attachments = GoogleMailRepository.create_mails(
             mails=mails,
-            user_integration_id=integration["id"],
-            user_id=integration["user_id"],
+            user_integration_id=user_integration["id"],
+            user_integration_configuration=user_integration["configuration"],
         )
         if has_attachments:
             attachments = service.get_attachments(attachments=attachments)
@@ -73,7 +73,7 @@ def google(request):
         InboxRepository.add_items(inbox_items)
         return HttpResponse(status=200)
     except IntegrationAccessRevokedException:
-        IntegrationRepository.revoke_user_integrations(integration.get("id", 0))
+        IntegrationRepository.revoke_user_integrations(user_integration.get("id", 0))
         return HttpResponse(status=200)
     except ExternalAPIRateLimitException:
         return HttpResponse(status=200)

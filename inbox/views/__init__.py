@@ -5,7 +5,6 @@ from rest_framework.decorators import action
 from rest_framework.viewsets import ViewSet
 
 from common.responses import error_response, success_response
-from inbox.repository import InboxRepository
 from inbox.services import InboxService
 
 logger = logging.getLogger(__name__)
@@ -62,27 +61,6 @@ class InboxViewSet(ViewSet):
             return error_response(
                 logger=logger,
                 logger_message="Error while reading inbox item",
-            )
-
-    @action(detail=False, methods=["post"], url_path="block-email")
-    def block_email(self, request):
-        try:
-            user = request.user
-            email = request.data.get("email")
-            if not email:
-                return error_response(
-                    logger=logger,
-                    logger_message="No email to block!",
-                )
-            InboxRepository.block_email(email=email, user=user)
-            return success_response(
-                success_message="Email blocked successfully",
-                status=status.HTTP_200_OK,
-            )
-        except Exception:
-            return error_response(
-                logger=logger,
-                logger_message="Error while blocking email",
             )
 
     @action(detail=False, methods=["post"], url_path="delete")
