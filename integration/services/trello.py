@@ -1,7 +1,6 @@
 import requests
 from django.conf import settings
 
-from common.exceptions import ServcyOauthCodeException
 from integration.models import UserIntegration
 from integration.repository import IntegrationRepository
 
@@ -30,14 +29,12 @@ class TrelloService(BaseService):
         """
         Fetches user info from Trello.
         """
-        user_info = requests.get(
+        response = requests.get(
             f"https://api.trello.com/1/members/me?key={self._trello_key}&token={self._token}"
         )
-        if user_info.status_code != 200:
-            raise ServcyOauthCodeException(
-                f"An error occurred while obtaining user info from Trello.\n{str(user_info.json())}"
-            )
-        return user_info.json()
+        if response.status_code != 200:
+            response.raise_for_status()
+        return response.json()
 
     def create_integration(self, user_id: int) -> UserIntegration:
         """Creates integration for user."""
@@ -77,14 +74,12 @@ class TrelloService(BaseService):
         """
         Establishes webhooks for Trello integration.
         """
-        boards = requests.get(
+        response = requests.get(
             f"https://api.trello.com/1/members/me/boards?key={self._trello_key}&token={self._token}"
         )
-        if boards.status_code != 200:
-            raise ServcyOauthCodeException(
-                f"An error occurred while obtaining boards from Trello.\n{str(boards.json())}"
-            )
-        boards = boards.json()
+        if response.status_code != 200:
+            response.raise_for_status()
+        boards = response.json()
         for board in boards:
             # Create webhook for each board so that we can get notifications for new cards.
             self._create_webhook(board["id"])
@@ -106,6 +101,4 @@ class TrelloService(BaseService):
         ):
             return
         if response.status_code != 200:
-            raise ServcyOauthCodeException(
-                f"An error occurred while creating webhook for Trello.\n{response.text}"
-            )
+            response.raise_for_status()
