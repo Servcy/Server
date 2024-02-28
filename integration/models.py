@@ -8,12 +8,9 @@ class Integration(models.Model):
     name = models.CharField(max_length=100)
     logo = models.URLField(default=None, null=True)
     description = models.CharField(max_length=5000)
-    meta_data = models.JSONField()
     configure_at = models.CharField(
         max_length=250, default=None, null=True, blank=False
     )
-    is_wip = models.BooleanField(default=False)  # is work in progress
-    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "integration"
@@ -45,7 +42,7 @@ class UserIntegration(TimeStampedModel):
         unique_together = ("user", "integration", "account_id")
 
 
-class IntegrationEvent(TimeStampedModel):
+class IntegrationEvent(models.Model):
     """
     This model is used to keep track of unique events for an integration.
     """
