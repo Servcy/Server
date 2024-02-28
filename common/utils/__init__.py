@@ -1,4 +1,3 @@
-import decimal
 import json
 import logging
 import random
@@ -13,7 +12,6 @@ from django.core import serializers
 from django.core.paginator import EmptyPage, Paginator
 from django.db.models import Value as V
 from django.db.models import When
-from django.db.models.query import QuerySet
 
 logger = logging.getLogger(__name__)
 
