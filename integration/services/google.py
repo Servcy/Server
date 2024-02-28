@@ -46,7 +46,7 @@ class GoogleService(BaseService):
             self._fetch_user_info()
             if code:
                 GoogleService.add_publisher_from_topic(self._user_info["email"])
-                self._add_watcher_to_inbox_pub_sub(self._user_info["email"])
+                self.add_watcher_to_inbox_pub_sub(self._user_info["email"])
 
     def refresh_tokens(self):
         """Refresh tokens"""
@@ -156,14 +156,7 @@ class GoogleService(BaseService):
             headers={"Authorization": f"Bearer {self._token['access_token']}"},
         ).json()
 
-    def _fetch_user_info_from_service(self):
-        """Fetch user info from google"""
-        self._user_info = self._make_google_request(
-            self._google_service.users().getProfile,
-            userId="me",
-        )
-
-    def _add_watcher_to_inbox_pub_sub(self, email: str = None) -> dict:
+    def add_watcher_to_inbox_pub_sub(self, email: str = None) -> dict:
         """Add watcher to inbox pub sub"""
         if not email:
             raise Exception("Email is required for adding watcher to inbox pub sub!")

@@ -25,8 +25,7 @@ def refresh_watchers_and_tokens():
                         "refresh_token"
                     ],
                 )
-                google_service._fetch_user_info_from_service()
-                google_service._add_watcher_to_inbox_pub_sub(
+                google_service.add_watcher_to_inbox_pub_sub(
                     google_service._user_info["emailAddress"]
                 )
                 new_tokens = google_service.refresh_tokens()
