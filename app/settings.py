@@ -45,7 +45,7 @@ LOCAL_APPS = [
     "tag",
 ]
 
-OTHER_APPS = ["app", "webhook"]
+OTHER_APPS = ["app", "webhook", "common"]
 
 INSTALLED_APPS = [
     "django.contrib.admin",

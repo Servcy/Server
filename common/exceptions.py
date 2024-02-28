@@ -1,6 +1,5 @@
 import logging
 
-from django.db import DatabaseError
 from newrelic.agent import notice_error
 from rest_framework import status
 from rest_framework.exceptions import APIException
