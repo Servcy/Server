@@ -76,6 +76,7 @@ def google(request):
         service = GoogleService(
             access_token=user_integration["meta_data"]["token"]["access_token"],
             refresh_token=user_integration["meta_data"]["token"]["refresh_token"],
+            user_info=user_integration["meta_data"]["user_info"],
         )
         unread_message_ids = service.get_latest_unread_primary_inbox(last_history_id)
         if not unread_message_ids:

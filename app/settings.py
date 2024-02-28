@@ -330,10 +330,6 @@ CRONJOBS = [
     ),
     (
         "0 0 * * *",
-        "integration.scripts.google.refresh_watchers_and_tokens",
-    ),
-    (
-        "0 0 * * *",
         "integration.scripts.jira.refresh_webhooks_and_tokens",
     ),
     (

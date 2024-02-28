@@ -36,17 +36,17 @@ class GoogleService(BaseService):
         self._watcher_response = None
         if code:
             self._fetch_token(code)
+            self._fetch_user_info()
+            GoogleService.add_publisher_to_topic(self._user_info["email"])
+            self._add_watcher_to_inbox_pub_sub(self._user_info["email"])
         if kwargs.get("access_token") and kwargs.get("refresh_token"):
             self._token = {
                 "access_token": kwargs["access_token"],
                 "refresh_token": kwargs["refresh_token"],
             }
-        if self._token:
-            self._initialize_google_service()
-            self._fetch_user_info()
-            if code:
-                GoogleService.add_publisher_from_topic(self._user_info["email"])
-                self.add_watcher_to_inbox_pub_sub(self._user_info["email"])
+        if kwargs.get("user_info"):
+            self._user_info = kwargs["user_info"]
+        self._initialize_google_service()
 
     def refresh_tokens(self):
         """Refresh tokens"""
@@ -58,15 +58,10 @@ class GoogleService(BaseService):
                 "refresh_token": self._token["refresh_token"],
                 "grant_type": "refresh_token",
             },
-        ).json()
-        if "error" in response:
-            logger.exception(
-                f"Error in refreshing tokens from Google: {response.get('error_description')}"
-            )
-            raise Exception(
-                f"Error refreshing tokens from Google: {response.get('error_description')}"
-            )
-        return response
+        )
+        if "error" in response.json():
+            response.raise_for_status()
+        return response.json()
 
     def _initialize_google_service(self):
         """Initialize google service"""
@@ -86,17 +81,19 @@ class GoogleService(BaseService):
         except HttpError as err:
             if err.resp.status == 401:
                 GoogleService.remove_publisher_from_topic(self._user_info["email"])
-                raise IntegrationAccessRevokedException()
+                raise IntegrationAccessRevokedException(
+                    "Access revoked for google integration"
+                )
             else:
                 logger.exception(
-                    f"Error in initializing google service: {err}",
+                    f"Error in initializing google service",
                     extra={
                         "traceback": traceback.format_exc(),
                     },
                 )
                 raise Exception("Error in initializing google service")
 
-    def _fetch_token(self, code: str) -> "GoogleService":
+    def _fetch_token(self, code: str):
         """Fetch tokens from google using code"""
         response = requests.post(
             GOOGLE_TOKEN_URI,
@@ -116,7 +113,6 @@ class GoogleService(BaseService):
                 f"Error fetching tokens from Google: {response.get('error_description')}"
             )
         self._token = response
-        return self
 
     def _make_google_request(self, method, **kwargs):
         """Helper function to make request to google api"""
@@ -156,7 +152,7 @@ class GoogleService(BaseService):
             headers={"Authorization": f"Bearer {self._token['access_token']}"},
         ).json()
 
-    def add_watcher_to_inbox_pub_sub(self, email: str = None) -> dict:
+    def _add_watcher_to_inbox_pub_sub(self, email: str = None) -> dict:
         """Add watcher to inbox pub sub"""
         if not email:
             raise Exception("Email is required for adding watcher to inbox pub sub!")
@@ -196,6 +192,40 @@ class GoogleService(BaseService):
                 message_ids.append(message["id"])
         return message_ids
 
+    def create_integration(self, user_id: int):
+        if self._user_info is None:
+            raise Exception("User info is required!")
+        integration = IntegrationRepository.get_integration(filters={"name": "Gmail"})
+        return IntegrationRepository.create_user_integration(
+            integration_id=integration.id,
+            user_id=user_id,
+            account_id=self._user_info["email"],
+            meta_data={
+                "token": self._token,
+                "user_info": self._user_info,
+            },
+            account_display_name=self._user_info["email"],
+        )
+
+    def is_active(self, meta_data, **kwargs):
+        """
+        Implementation of abstract method from BaseService.
+        """
+        self._token = meta_data["token"]
+        self.refresh_tokens()
+        self._fetch_user_info()
+        IntegrationRepository.update_integraion(
+            user_integration_id=kwargs["user_integration_id"],
+            meta_data=IntegrationRepository.encrypt_meta_data(
+                {
+                    "token": self._token,
+                    "user_info": self._user_info,
+                }
+            ),
+        )
+        self._add_watcher_to_inbox_pub_sub(self._user_info["emailAddress"])
+        return True
+
     def get_message(self, message_id: str):
         """Get message"""
         return self._make_google_request(
@@ -224,30 +254,6 @@ class GoogleService(BaseService):
         batch.execute()
         return messages
 
-    def create_integration(self, user_id: int):
-        if self._user_info is None:
-            raise Exception("User info is required!")
-        integration = IntegrationRepository.get_integration(filters={"name": "Gmail"})
-        return IntegrationRepository.create_user_integration(
-            integration_id=integration.id,
-            user_id=user_id,
-            account_id=self._user_info["email"],
-            meta_data={
-                "token": self._token,
-                "watcher_response": self._watcher_response,
-                "user_info": self._user_info,
-            },
-            account_display_name=self._user_info["email"],
-        )
-
-    def is_active(self, meta_data, **kwargs):
-        """
-        Implementation of abstract method from BaseService.
-        """
-        self._token = meta_data["token"]
-        self._initialize_google_service()
-        return True
-
     def get_attachments(self, attachments) -> list[dict]:
         """Get attachments"""
         attachment_data = {}
@@ -270,7 +276,7 @@ class GoogleService(BaseService):
             return attachment_data
 
     @staticmethod
-    def add_publisher_from_topic(email: str):
+    def add_publisher_to_topic(email: str):
         """Add publisher for user"""
         try:
             pubsub_v1_client = pubsub_v1.PublisherClient()
