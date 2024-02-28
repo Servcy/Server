@@ -80,7 +80,8 @@ class GoogleService(BaseService):
             )
         except HttpError as err:
             if err.resp.status == 401:
-                GoogleService.remove_publisher_from_topic(self._user_info["email"])
+                if self._user_info and self._user_info.get("email"):
+                    GoogleService.remove_publisher_from_topic(self._user_info["email"])
                 raise IntegrationAccessRevokedException(
                     "Access revoked for google integration"
                 )
@@ -129,7 +130,9 @@ class GoogleService(BaseService):
             )
             if self._user_info and self._user_info.get("email"):
                 GoogleService.remove_publisher_from_topic(self._user_info["email"])
-            raise IntegrationAccessRevokedException()
+            raise IntegrationAccessRevokedException(
+                "Access revoked for google integration"
+            )
         except HttpError as err:
             if err.resp.status == 429:
                 raise ExternalAPIRateLimitException("Too many requests to google api")
@@ -166,23 +169,6 @@ class GoogleService(BaseService):
             body=watch_request,
         )
 
-    def get_latest_unread_primary_inbox(self, last_history_id: int) -> list[str]:
-        """Get latest unread primary inbox messages"""
-        response = self._make_google_request(
-            self._google_service.users().history().list,
-            userId="me",
-            startHistoryId=last_history_id,
-            historyTypes=["messageAdded"],
-            labelId="UNREAD",
-        )
-        message_ids = []
-        for history in response.get("history", []):
-            messages_added = history.get("messagesAdded", [])
-            for message_added in messages_added:
-                message = message_added["message"]
-                message_ids.append(message["id"])
-        return message_ids
-
     def create_integration(self, user_id: int):
         if self._user_info is None:
             raise Exception("User info is required!")
@@ -205,6 +191,7 @@ class GoogleService(BaseService):
         self._token = meta_data["token"]
         self.refresh_tokens()
         self._fetch_user_info()
+        self._add_watcher_to_inbox_pub_sub(self._user_info["email"])
         IntegrationRepository.update_integraion(
             user_integration_id=kwargs["user_integration_id"],
             meta_data=IntegrationRepository.encrypt_meta_data(
@@ -214,8 +201,24 @@ class GoogleService(BaseService):
                 }
             ),
         )
-        self._add_watcher_to_inbox_pub_sub(self._user_info["emailAddress"])
         return True
+
+    def get_latest_unread_primary_inbox(self, last_history_id: int) -> list[str]:
+        """Get latest unread primary inbox messages"""
+        response = self._make_google_request(
+            self._google_service.users().history().list,
+            userId="me",
+            startHistoryId=last_history_id,
+            historyTypes=["messageAdded"],
+            labelId="UNREAD",
+        )
+        message_ids = []
+        for history in response.get("history", []):
+            messages_added = history.get("messagesAdded", [])
+            for message_added in messages_added:
+                message = message_added["message"]
+                message_ids.append(message["id"])
+        return message_ids
 
     def get_message(self, message_id: str):
         """Get message"""
