@@ -2,7 +2,11 @@ import asana
 import requests
 from django.conf import settings
 
-from common.exceptions import ExternalIntegrationException, ServcyOauthCodeException
+from common.exceptions import (
+    ExternalIntegrationException,
+    IntegrationAccessRevokedException,
+    ServcyOauthCodeException,
+)
 from integration.models import UserIntegration
 from integration.repository import IntegrationRepository
 
@@ -46,7 +50,8 @@ class AsanaService(BaseService):
         token_data = response.json()
         if "error" in token_data:
             raise ServcyOauthCodeException(
-                f"An error occurred while obtaining access token from Asana.\n{str(token_data)}"
+                f"An error occurred while obtaining access token from Asana",
+                extra={"error": token_data},
             )
         self._token = token_data
 
@@ -71,8 +76,9 @@ class AsanaService(BaseService):
         )
         token_data = response.json()
         if "error" in token_data:
-            raise ServcyOauthCodeException(
-                f"An error occurred while refreshing access token from Asana.\n{str(token_data)}"
+            raise IntegrationAccessRevokedException(
+                f"An error occurred while refreshing tokens for Asana",
+                extra={"error": token_data},
             )
         return token_data
 
@@ -197,7 +203,12 @@ class AsanaService(BaseService):
         Returns:
         - bool: True if integration is active, False otherwise.
         """
-        self._token = AsanaService._refresh_tokens(meta_data["token"]["refresh_token"])
+        try:
+            self._token = AsanaService._refresh_tokens(
+                meta_data["token"]["refresh_token"]
+            )
+        except IntegrationAccessRevokedException:
+            return False
         IntegrationRepository.update_integraion(
             user_integration_id=kwargs["user_integration_id"],
             meta_data=IntegrationRepository.encrypt_meta_data(
@@ -226,7 +237,7 @@ class AsanaService(BaseService):
                 self.client = asana.Client.access_token(self._token["access_token"])
             task = self.client.tasks.get_task(task_gid, opt_pretty=True)
             return task
-        except asana.error.NotFoundError as err:
+        except asana.error.NotFoundError:
             raise ExternalIntegrationException("Asana task not found.")
 
     def get_user(self, user_gid: str) -> dict:

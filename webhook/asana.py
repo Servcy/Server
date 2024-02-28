@@ -3,12 +3,16 @@ import logging
 import traceback
 import uuid
 
+from django.conf import settings
 from django.db import transaction
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
-from common.exceptions import ExternalIntegrationException
+from common.exceptions import (
+    ExternalIntegrationException,
+    IntegrationAccessRevokedException,
+)
 from inbox.repository import InboxRepository
 from integration.repository import IntegrationRepository
 from integration.repository.events import DisabledUserIntegrationEventRepository
@@ -34,6 +38,7 @@ def asana(request, user_integration_id):
             meta_data = None
             asana_service = None
             inbox_items = []
+            revoked_user_integrations = []
             disabled_events = DisabledUserIntegrationEventRepository.get_disabled_user_integration_events(
                 user_integration_id=user_integration_id
             )
@@ -50,14 +55,15 @@ def asana(request, user_integration_id):
                     meta_data = IntegrationRepository.decrypt_meta_data(
                         user_integration.meta_data
                     )
-                    asana_service = AsanaService(
-                        refresh_token=meta_data["token"]["refresh_token"]
-                    )
+                    try:
+                        asana_service = AsanaService(
+                            refresh_token=meta_data["token"]["refresh_token"]
+                        )
+                    except IntegrationAccessRevokedException:
+                        revoked_user_integrations.append({user_integration})
+                        continue
                 elif event["user"]["gid"] is None:
-                    raise Exception(
-                        f"Received an event with no user gid from Asana webhook.",
-                        extra={"event": event},
-                    )
+                    continue
                 causing_user = asana_service.get_user(event["user"]["gid"])
                 if event["resource"]["resource_type"] == "project":
                     action = event["action"]
@@ -172,7 +178,26 @@ def asana(request, user_integration_id):
                             "user_integration_id": user_integration_id,
                         },
                     )
+            for revoked_user_integration in revoked_user_integrations:
+                inbox_items.append(
+                    {
+                        "title": f"An integration has been revoked, please re-authenticate.",
+                        "cause": None,
+                        "body": f"""<div style="margin-left: 10px; font-family: monospace;"><table><tr><td>Integration Name</td><td style="padding-left: 16px; font-weight: 600;">{revoked_user_integration.integration.name}</td></tr><tr><td>Account</td><td style="padding-left: 16px; font-weight: 600;">{revoked_user_integration.account_display_name}</td></tr></table><div style="margin: 10px 0;"><a style="color: #26542F; text-decoration: underline;" href="{settings.FRONTEND_URL}/integrations?integration={revoked_user_integration.integration.id}">Click here</a> to re-authenticate.</div></div>""",
+                        "is_body_html": True,
+                        "user_integration_id": revoked_user_integration.id,
+                        "uid": str(uuid.uuid4()),
+                        "category": "notification",
+                        "i_am_mentioned": True,
+                    }
+                )
             with transaction.atomic():
+                IntegrationRepository.revoke_user_integrations(
+                    [
+                        revoked_user_integration.id
+                        for revoked_user_integration in revoked_user_integrations
+                    ]
+                )
                 InboxRepository.add_items(inbox_items)
             return HttpResponse(
                 status=200, content="OK", content_type="application/json"
