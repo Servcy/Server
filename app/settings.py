@@ -38,9 +38,6 @@ LOCAL_APPS = [
     "iam",
     "integration",
     "inbox",
-    "project",
-    "client",
-    "task",
     "document",
     "tag",
 ]
