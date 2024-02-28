@@ -90,16 +90,10 @@ class IntegrationRepository:
         return user_integration
 
     @staticmethod
-    def update_integraion_meta_data(user_integration_id: int, meta_data: dict):
+    def update_integraion(user_integration_id: int, **kwargs):
         UserIntegration.objects.filter(id=user_integration_id, is_revoked=False).update(
-            meta_data=IntegrationRepository.encrypt_meta_data(meta_data=meta_data),
             updated_at=datetime.datetime.now(),
-        )
-
-    @staticmethod
-    def update_integraion_configuration(user_integration_id: int, configuration: dict):
-        UserIntegration.objects.filter(id=user_integration_id, is_revoked=False).update(
-            updated_at=datetime.datetime.now(), configuration=configuration
+            **kwargs,
         )
 
     @staticmethod

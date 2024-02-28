@@ -35,7 +35,7 @@ def poll_new_comments():
         with transaction.atomic():
             InboxRepository.add_items(inbox_items)
             for user_integration_id, configuration in configuration_map.items():
-                IntegrationRepository.update_integraion_configuration(
+                IntegrationRepository.update_integraion(
                     user_integration_id, configuration=configuration
                 )
     except Exception:

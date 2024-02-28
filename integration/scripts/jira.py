@@ -26,15 +26,17 @@ def refresh_webhooks_and_tokens():
                 )
                 jira_service.extend_webhook()
                 new_tokens = jira_service.refresh_token()
-                IntegrationRepository.update_integraion_meta_data(
+                IntegrationRepository.update_integraion(
                     user_integration_id=user_integration["id"],
-                    meta_data={
-                        **user_integration["meta_data"],
-                        "token": {
-                            **user_integration["meta_data"]["token"],
-                            **new_tokens,
-                        },
-                    },
+                    meta_data=IntegrationRepository.encrypt_meta_data(
+                        {
+                            **user_integration["meta_data"],
+                            "token": {
+                                **user_integration["meta_data"]["token"],
+                                **new_tokens,
+                            },
+                        }
+                    ),
                 )
             except:
                 logger.exception(

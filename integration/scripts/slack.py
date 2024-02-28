@@ -21,7 +21,7 @@ def update_workspace_members():
                 members = SlackService(
                     token=user_integration["meta_data"]["token"]
                 ).fetch_team_members()
-                IntegrationRepository.update_integraion_configuration(
+                IntegrationRepository.update_integraion(
                     user_integration["id"], configuration=members
                 )
                 time.sleep(60)

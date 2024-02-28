@@ -200,15 +200,17 @@ class AsanaService(BaseService):
         - bool: True if integration is active, False otherwise.
         """
         self._token = AsanaService._refresh_tokens(meta_data["token"]["refresh_token"])
-        IntegrationRepository.update_integraion_meta_data(
+        IntegrationRepository.update_integraion(
             user_integration_id=kwargs["user_integration_id"],
-            meta_data={
-                **meta_data,
-                "token": {
-                    **meta_data["token"],
-                    **self._token,
-                },
-            },
+            meta_data=IntegrationRepository.encrypt_meta_data(
+                {
+                    **meta_data,
+                    "token": {
+                        **meta_data["token"],
+                        **self._token,
+                    },
+                }
+            ),
         )
         return True
 

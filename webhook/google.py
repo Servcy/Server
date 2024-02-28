@@ -39,12 +39,14 @@ def google(request):
         )
         if integration is None:
             return HttpResponse(status=200)
-        IntegrationRepository.update_integraion_meta_data(
+        IntegrationRepository.update_integraion(
             user_integration_id=integration["id"],
-            meta_data={
-                **integration["meta_data"],
-                "last_history_id": history_id,
-            },
+            meta_data=IntegrationRepository.encrypt_meta_data(
+                {
+                    **integration["meta_data"],
+                    "last_history_id": history_id,
+                }
+            ),
         )
         last_history_id = int(integration["meta_data"].get("last_history_id", 0))
         if last_history_id == 0:
