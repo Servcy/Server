@@ -166,15 +166,6 @@ class GoogleService(BaseService):
             body=watch_request,
         )
 
-    def remove_watcher_from_inbox_pub_sub(
-        self,
-        email: str,
-    ) -> dict:
-        """Remove watcher from inbox pub sub"""
-        return self._make_google_request(
-            self._google_service.users().stop, userId=email
-        )
-
     def get_latest_unread_primary_inbox(self, last_history_id: int) -> list[str]:
         """Get latest unread primary inbox messages"""
         response = self._make_google_request(
