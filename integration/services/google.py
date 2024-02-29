@@ -34,11 +34,6 @@ class GoogleService(BaseService):
         self._token = None
         self._user_info = None
         self._watcher_response = None
-        if code:
-            self._fetch_token(code)
-            self._fetch_user_info()
-            GoogleService.add_publisher_to_topic(self._user_info["email"])
-            self._add_watcher_to_inbox_pub_sub(self._user_info["email"])
         if kwargs.get("access_token") and kwargs.get("refresh_token"):
             self._token = {
                 "access_token": kwargs["access_token"],
@@ -46,7 +41,13 @@ class GoogleService(BaseService):
             }
         if kwargs.get("user_info"):
             self._user_info = kwargs["user_info"]
+        if code:
+            self._fetch_token(code)
+            self._fetch_user_info()
+            GoogleService.add_publisher_to_topic(self._user_info["email"])
         self._initialize_google_service()
+        if code:
+            self._add_watcher_to_inbox_pub_sub(self._user_info["email"])
 
     def _initialize_google_service(self):
         """Initialize google service"""
