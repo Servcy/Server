@@ -66,19 +66,12 @@ class GoogleService(BaseService):
             )
         except HttpError as err:
             if err.resp.status == 401:
-                if self._user_info and self._user_info.get("email"):
-                    GoogleService.remove_publisher_from_topic(self._user_info["email"])
+                GoogleService.remove_publisher_from_topic(self._user_info["email"])
                 raise IntegrationAccessRevokedException(
                     "Access revoked for google integration"
                 )
             else:
-                logger.exception(
-                    f"Error in initializing google service",
-                    extra={
-                        "traceback": traceback.format_exc(),
-                    },
-                )
-                raise Exception("Error in initializing google service")
+                raise err
 
     def _fetch_token(self, code: str):
         """Fetch tokens from google using code"""
@@ -106,29 +99,14 @@ class GoogleService(BaseService):
         try:
             return method(**kwargs).execute()
         except RefreshError:
-            logger.exception(
-                "Error in refreshing token for google",
-                extra={
-                    "user_info": self._user_info,
-                    "traceback": traceback.format_exc(),
-                    "token": self._token,
-                },
-            )
-            if self._user_info and self._user_info.get("email"):
-                GoogleService.remove_publisher_from_topic(self._user_info["email"])
+            GoogleService.remove_publisher_from_topic(self._user_info["email"])
             raise IntegrationAccessRevokedException(
                 "Access revoked for google integration"
             )
         except HttpError as err:
             if err.resp.status == 429:
                 raise ExternalAPIRateLimitException("Too many requests to google api")
-            logger.exception(
-                f"Error in making request to Google API: {err}",
-                extra={
-                    "traceback": traceback.format_exc(),
-                },
-            )
-            raise
+            raise err
 
     def _fetch_user_info(self):
         """
@@ -174,9 +152,8 @@ class GoogleService(BaseService):
         """
         Implementation of abstract method from BaseService.
         """
-        self._token = meta_data["token"]
         self._user_info = meta_data["user_info"]
-        self.refresh_tokens()
+        self._token = self.refresh_tokens(meta_data["token"]["refresh_token"])
         self._add_watcher_to_inbox_pub_sub(self._user_info["email"])
         IntegrationRepository.update_integraion(
             user_integration_id=kwargs["user_integration_id"],
@@ -188,21 +165,6 @@ class GoogleService(BaseService):
             ),
         )
         return True
-
-    def refresh_tokens(self):
-        """Refresh tokens"""
-        response = requests.post(
-            GOOGLE_TOKEN_URI,
-            data={
-                "client_id": GOOGLE_CLIENT_ID,
-                "client_secret": GOOGLE_CLIENT_SECRET,
-                "refresh_token": self._token["refresh_token"],
-                "grant_type": "refresh_token",
-            },
-        )
-        if "error" in response.json():
-            response.raise_for_status()
-        return response.json()
 
     def get_latest_unread_primary_inbox(self, last_history_id: int) -> list[str]:
         """Get latest unread primary inbox messages"""
@@ -307,3 +269,19 @@ class GoogleService(BaseService):
             )
         except:
             pass
+
+    @staticmethod
+    def refresh_tokens(refresh_token):
+        """Refresh tokens"""
+        response = requests.post(
+            GOOGLE_TOKEN_URI,
+            data={
+                "client_id": GOOGLE_CLIENT_ID,
+                "client_secret": GOOGLE_CLIENT_SECRET,
+                "refresh_token": refresh_token,
+                "grant_type": "refresh_token",
+            },
+        )
+        if "error" in response.json():
+            response.raise_for_status()
+        return response.json()
