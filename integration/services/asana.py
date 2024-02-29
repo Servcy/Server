@@ -120,6 +120,23 @@ class AsanaService(BaseService):
         )
         return True
 
+    def _establish_webhooks(self) -> None:
+        """Establishes webhook for Asana."""
+        if not self.client:
+            self.client = asana.Client.access_token(self._token["access_token"])
+        for workspace in self._user_info["workspaces"]:
+            self.create_project_monitoring_webhook(workspace["gid"])
+            projects = self.client.projects.get_projects_for_workspace(
+                workspace["gid"], opt_pretty=True
+            )
+            for project in projects:
+                project = self.client.projects.get_project(
+                    project["gid"], opt_pretty=True
+                )
+                self.create_task_monitoring_webhook(
+                    project["gid"], user_integration_id=self.user_integration.id
+                )
+
     def create_task_monitoring_webhook(self, project_id, user_integration_id):
         if not self.client:
             self.client = asana.Client.access_token(self._token["access_token"])
