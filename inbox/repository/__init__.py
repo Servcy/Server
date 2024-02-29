@@ -1,6 +1,5 @@
-import datetime
-
 from django.db.models import Q
+from django.utils import timezone
 
 from inbox.models import Inbox
 
@@ -38,7 +37,7 @@ class InboxRepository:
         Archive an item in the inbox.
         """
         return Inbox.objects.filter(id__in=item_ids).update(
-            is_archived=True, updated_at=datetime.datetime.now()
+            is_archived=True, updated_at=timezone.now()
         )
 
     @staticmethod
@@ -47,7 +46,7 @@ class InboxRepository:
         Archive an item in the inbox.
         """
         return Inbox.objects.filter(id=item_id).update(
-            is_read=True, updated_at=datetime.datetime.now()
+            is_read=True, updated_at=timezone.now()
         )
 
     @staticmethod

@@ -1,10 +1,10 @@
-import datetime
 import json
 from base64 import b64decode, b64encode
 
 from cryptography.fernet import Fernet
 from django.conf import settings
 from django.db.models import Q
+from django.utils import timezone
 
 from integration.models import Integration, UserIntegration
 
@@ -92,7 +92,7 @@ class IntegrationRepository:
     @staticmethod
     def update_integraion(user_integration_id: int, **kwargs):
         UserIntegration.objects.filter(id=user_integration_id, is_revoked=False).update(
-            updated_at=datetime.datetime.now(),
+            updated_at=timezone.now(),
             **kwargs,
         )
 
@@ -103,12 +103,12 @@ class IntegrationRepository:
         """
         if isinstance(user_integrations, list):
             UserIntegration.objects.filter(id__in=user_integrations).update(
-                updated_at=datetime.datetime.now(), is_revoked=True
+                updated_at=timezone.now(), is_revoked=True
             )
         elif isinstance(user_integrations, int):
             UserIntegration.objects.filter(id=user_integrations).update(
                 is_revoked=True,
-                updated_at=datetime.datetime.now(),
+                updated_at=timezone.now(),
             )
 
     @staticmethod
