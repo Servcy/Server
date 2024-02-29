@@ -66,7 +66,7 @@ class MicrosoftService:
         """
         response = self._app.acquire_token_by_authorization_code(
             code=code,
-            scopes=["User.Read", "Mail.Read"],
+            scopes=self._scopes,
             redirect_uri=MICROSOFT_REDIRECT_URI,
         )
         if "error" in response:
