@@ -1,5 +1,5 @@
 import logging
-import traceback
+import time
 
 import requests
 from django.conf import settings
@@ -144,6 +144,18 @@ class GoogleService(BaseService):
             meta_data={
                 "token": self._token,
                 "user_info": self._user_info,
+                "last_history_id": (
+                    0
+                    if self._watcher_response is None
+                    or "historyId" not in self._watcher_response
+                    else self._watcher_response["historyId"]
+                ),
+                "watcher_expiration": (
+                    None
+                    if self._watcher_response is None
+                    or "expiration" not in self._watcher_response
+                    else self._watcher_response["expiration"]
+                ),
             },
             account_display_name=self._user_info["email"],
         )
@@ -153,17 +165,35 @@ class GoogleService(BaseService):
         Implementation of abstract method from BaseService.
         """
         self._user_info = meta_data["user_info"]
+        self._watcher_response = {
+            "historyId": meta_data.get("last_history_id", 0),
+            "expiration": meta_data.get("watcher_expiration"),
+        }
         self._token = {
             **meta_data["token"],
             **GoogleService.refresh_tokens(meta_data["token"]["refresh_token"]),
         }
-        self._add_watcher_to_inbox_pub_sub(self._user_info["email"])
+        watcher_expiration = meta_data.get("watcher_expiration")
+        if watcher_expiration and watcher_expiration - 86400 < time.time():
+            self._add_watcher_to_inbox_pub_sub(self._user_info["email"])
         IntegrationRepository.update_integraion(
             user_integration_id=kwargs["user_integration_id"],
             meta_data=IntegrationRepository.encrypt_meta_data(
                 {
                     **meta_data,
                     "token": self._token,
+                    "last_history_id": (
+                        0
+                        if self._watcher_response is None
+                        or "historyId" not in self._watcher_response
+                        else self._watcher_response["historyId"]
+                    ),
+                    "watcher_expiration": (
+                        None
+                        if self._watcher_response is None
+                        or "expiration" not in self._watcher_response
+                        else self._watcher_response["expiration"]
+                    ),
                 }
             ),
         )
