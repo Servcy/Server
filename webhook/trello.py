@@ -102,35 +102,36 @@ def trello(request, user_integration_id):
                 user_integration_id=user_integration_id
             )
         )
+        if is_event_and_action_disabled(disabled_events, action["type"], None):
+            return HttpResponse(status=200)
         user_integration = IntegrationRepository.get_user_integration(
             {
                 "id": user_integration_id,
                 "integration__name": "Trello",
             }
         )
-        if not is_event_and_action_disabled(disabled_events, action["type"], None):
-            i_am_mentioned = False
-            if (
-                action["type"] == "commentCard"
-                and user_integration.account_display_name in action["data"]["text"]
-            ) or (
-                action["type"] in ["addMemberToCard", "addMemberToBoard"]
-                and user_integration.account_id == action["data"].get("idMember", "")
-            ):
-                i_am_mentioned = True
-            InboxRepository.add_item(
-                {
-                    "uid": action["id"],
-                    "title": EVENT_MAP[action["type"]],
-                    "body": json.dumps(action),
-                    "cause": json.dumps(body["action"]["memberCreator"]),
-                    "user_integration_id": user_integration_id,
-                    "category": (
-                        "notification" if "comment" not in action["type"] else "comment"
-                    ),
-                    "i_am_mentioned": i_am_mentioned,
-                }
-            )
+        i_am_mentioned = False
+        if (
+            action["type"] == "commentCard"
+            and user_integration.account_display_name in action["data"]["text"]
+        ) or (
+            action["type"] in ["addMemberToCard", "addMemberToBoard"]
+            and user_integration.account_id == action["data"].get("idMember", "")
+        ):
+            i_am_mentioned = True
+        InboxRepository.add_item(
+            {
+                "uid": action["id"],
+                "title": EVENT_MAP[action["type"]],
+                "body": json.dumps(action),
+                "cause": json.dumps(body["action"]["memberCreator"]),
+                "user_integration_id": user_integration_id,
+                "category": (
+                    "notification" if "comment" not in action["type"] else "comment"
+                ),
+                "i_am_mentioned": i_am_mentioned,
+            }
+        )
         return HttpResponse(status=200)
     except Exception:
         logger.exception(

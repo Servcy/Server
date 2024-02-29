@@ -157,7 +157,6 @@ def slack(request):
             if is_event_and_action_disabled(
                 disabled_events, body["event"]["type"], None
             ):
-                # this event is disabled by the user
                 continue
             try:
                 mentions = [
