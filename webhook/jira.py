@@ -30,13 +30,22 @@ def jira(request):
     try:
         headers = request.headers
         body = json.loads(request.body)
+        account_id = None
+        if "issue" in body["webhookEvent"]:
+            account_id = body["issue"]["fields"]["assignee"]["accountId"]
+        elif "comment" in body["webhookEvent"]:
+            account_id = body["comment"]["author"]["accountId"]
+        else:
+            account_id = body.get("user", {}).get("accountId")
         user_integration = IntegrationRepository.get_user_integrations(
             filters={
                 "integration__name": "Jira",
-                "account_id": body["user"]["accountId"],
+                "account_id": account_id,
             },
             first=True,
         )
+        if not user_integration:
+            return HttpResponse(status=200)
         disabled_events = (
             DisabledUserIntegrationEventRepository.get_disabled_user_integration_events(
                 user_integration_id=user_integration["id"]
