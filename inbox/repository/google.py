@@ -1,19 +1,15 @@
-from inbox.repository import InboxRepository
 from inbox.services.google import GoogleMailService
-
-REQUIRED_LABELS = {"UNREAD", "INBOX"}
-EXCLUDED_LABELS = {
-    "SPAM",
-    "TRASH",
-}
 
 
 class GoogleMailRepository:
     @staticmethod
     def _has_valid_labels(mail):
         labels = set(mail["labelIds"])
-        return REQUIRED_LABELS.issubset(labels) and not labels.intersection(
-            EXCLUDED_LABELS
+        return not labels.intersection(
+            {
+                "SPAM",
+                "TRASH",
+            }
         )
 
     @staticmethod
@@ -25,25 +21,25 @@ class GoogleMailRepository:
         inbox_items = []
         attachments = {}
         has_attachments = False
+        if user_integration_configuration is None:
+            return [], [], False
         for mail in mails:
-            sender = GoogleMailService._get_mail_header(
+            sender = GoogleMailService.get_mail_header(
                 "From", mail["payload"]["headers"]
             )
             if not sender:
                 continue
             sender_email = sender.split("<")[-1].split(">")[0]
-            if not GoogleMailRepository._has_valid_labels(mail):
-                continue
-            if (
-                user_integration_configuration is not None
-                and sender_email
-                not in user_integration_configuration.get("whitelisted_emails", [])
+            if not GoogleMailRepository._has_valid_labels(
+                mail
+            ) or sender_email not in user_integration_configuration.get(
+                "whitelisted_emails", []
             ):
                 continue
-            body, files = GoogleMailService._get_mail_body(mail["payload"], mail["id"])
+            body, files = GoogleMailService.get_mail_body(mail["payload"], mail["id"])
             inbox_items.append(
                 {
-                    "title": GoogleMailService._get_mail_header(
+                    "title": GoogleMailService.get_mail_header(
                         "Subject", mail["payload"]["headers"]
                     )
                     or "No Subject",

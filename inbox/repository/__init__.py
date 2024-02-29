@@ -11,12 +11,20 @@ class InboxRepository:
     """
 
     @staticmethod
+    def filter(query: Q) -> list[Inbox]:
+        """
+        Filter inbox items.
+        """
+        return Inbox.objects.filter(query)
+
+    @staticmethod
     def add_item(item: dict) -> None:
         """
         Add an item to the inbox.
         """
         Inbox.objects.get_or_create(**item)
 
+    @staticmethod
     def add_items(items: list[dict]) -> None:
         """
         Add items to the inbox.
@@ -48,10 +56,3 @@ class InboxRepository:
         Archive an item in the inbox.
         """
         return Inbox.objects.filter(id__in=item_ids).delete()
-
-    @staticmethod
-    def filter(query: Q) -> list[Inbox]:
-        """
-        Filter inbox items.
-        """
-        return Inbox.objects.filter(query)

@@ -1,13 +1,13 @@
 class GoogleMailService:
     @staticmethod
-    def _get_mail_header(field: str, headers: list):
+    def get_mail_header(field: str, headers: list):
         for header in headers:
             if header["name"] == field:
                 return header["value"]
         return None
 
     @staticmethod
-    def _get_mail_body(payload: dict, message_id: str) -> tuple[str, list[dict]]:
+    def get_mail_body(payload: dict, message_id: str) -> tuple[str, list[dict]]:
         if "parts" not in payload:
             return payload.get("body", {}).get("data", "-"), []
         html_part = None
@@ -35,7 +35,7 @@ class GoogleMailService:
             return text_part, attachments
         if alternate_part:
             return (
-                GoogleMailService._get_mail_body(alternate_part, message_id),
+                GoogleMailService.get_mail_body(alternate_part, message_id),
                 attachments,
             )
         return "Could not find message body.", attachments
