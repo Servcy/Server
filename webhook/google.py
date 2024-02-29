@@ -49,9 +49,9 @@ def google(request):
             )
             if (
                 decoded_authorization_token["azp"]
-                == google_service_credentials["client_id"]
+                != google_service_credentials["client_id"]
                 or decoded_authorization_token["email"]
-                == google_service_credentials["client_email"]
+                != google_service_credentials["client_email"]
             ):
                 logger.warning(
                     "Authorization token is not valid.",
