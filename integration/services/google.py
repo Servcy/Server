@@ -25,6 +25,7 @@ GOOGLE_TOKEN_URI = "https://oauth2.googleapis.com/token"
 GOOGLE_SCOPES = settings.GOOGLE_OAUTH2_SCOPES
 GOOGLE_USER_INFO_URI = "https://www.googleapis.com/oauth2/v3/userinfo"
 GOOGLE_PUB_SUB_TOPIC = settings.GOOGLE_PUB_SUB_TOPIC
+GOOGLE_REDIRECT_URI = settings.GOOGLE_OAUTH2_REDIRECT_URI
 
 
 class GoogleService(BaseService):
