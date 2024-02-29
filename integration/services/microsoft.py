@@ -13,7 +13,6 @@ logger = logging.getLogger(__name__)
 
 MICROSOFT_CLIENT_ID = settings.MICROSOFT_APP_CLIENT_ID
 MICROSOFT_CLIENT_SECRET = settings.MICROSOFT_APP_CLIENT_SECRET
-MICROSOFT_SCOPES = settings.MICROSOFT_OAUTH2_SCOPES
 MICROSOFT_REDIRECT_URI = settings.MICROSOFT_APP_REDIRECT_URI
 MICROSOFT_READ_MAIL_URI = "https://graph.microsoft.com/v1.0/me/messages/"
 MICROSOFT_SUBSCRIPTION_URI = "https://graph.microsoft.com/v1.0/subscriptions/"
@@ -30,7 +29,7 @@ class MicrosoftService:
         :param refresh_token: Refresh token
         :param scopes: List of scopes for token fetching
         """
-        self._scopes = settings.MICROSOFT_OAUTH2_SCOPES
+        self._scopes = ["User.Read", "Mail.Read"]
         self._app = msal.ConfidentialClientApplication(
             client_id=MICROSOFT_CLIENT_ID,
             client_credential=MICROSOFT_CLIENT_SECRET,

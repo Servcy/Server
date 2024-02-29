@@ -275,7 +275,6 @@ GOOGLE_APPLICATION_CREDENTIALS = BASE_DIR / "config/servcy-gcp-service-account-k
 GOOGLE_OAUTH2_REDIRECT_URI = f"{FRONTEND_URL}/{config.get('google', 'redirect_uri')}"
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = str(GOOGLE_APPLICATION_CREDENTIALS)
 # microsoft
-MICROSOFT_OAUTH2_SCOPES = ["User.Read", "Mail.Read", "openid", "profile", "email"]
 MICROSOFT_APP_NAME = config.get("microsoft", "display_name")
 MICROSOFT_APP_CLIENT_ID = config.get("microsoft", "client_id")
 MICROSOFT_APP_CLIENT_SECRET_ID = config.get("microsoft", "client_secret_id")
