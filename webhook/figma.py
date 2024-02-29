@@ -46,7 +46,7 @@ def figma(request):
         )
         disabled_events = (
             DisabledUserIntegrationEventRepository.get_disabled_user_integration_events(
-                user_integration_id=user_integration.id
+                user_integration_id=user_integration["id"]
             )
         )
         if is_event_and_action_disabled(disabled_events, body["event_type"], None):
@@ -55,7 +55,7 @@ def figma(request):
         if body["event_type"] == "FILE_COMMENT":
             for comment in body["comments"]:
                 for mention in comment["mentions"]:
-                    if mention["id"] == user_integration.account_id:
+                    if mention["id"] == user_integration["account_id"]:
                         i_am_mentioned = True
                         break
         InboxRepository.add_item(
@@ -64,7 +64,7 @@ def figma(request):
                 "cause": body.get("triggered_by", {}).get("handle", "-"),
                 "body": json.dumps(body),
                 "is_body_html": False,
-                "user_integration_id": user_integration.id,
+                "user_integration_id": user_integration["id"],
                 "uid": body["webhook_id"],
                 "category": (
                     "comment"

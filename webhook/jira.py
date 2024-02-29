@@ -39,7 +39,7 @@ def jira(request):
         )
         disabled_events = (
             DisabledUserIntegrationEventRepository.get_disabled_user_integration_events(
-                user_integration_id=user_integration.id
+                user_integration_id=user_integration["id"]
             )
         )
         if is_event_and_action_disabled(disabled_events, body["webhookEvent"], None):
@@ -56,7 +56,7 @@ def jira(request):
                 "cause": json.dumps(sender),
                 "body": json.dumps(body),
                 "is_body_html": False,
-                "user_integration_id": user_integration.id,
+                "user_integration_id": user_integration["id"],
                 "uid": str(uuid.uuid4()),
                 "category": (
                     "comment" if "comment" in body["webhookEvent"] else "notification"
