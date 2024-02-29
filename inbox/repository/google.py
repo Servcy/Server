@@ -13,6 +13,15 @@ class GoogleMailRepository:
         )
 
     @staticmethod
+    def is_email_white_listed(email: str, whitelisted_emails: list) -> bool:
+        if email in whitelisted_emails:
+            return True
+        elif f"*@{email.split('@')[1]}" in whitelisted_emails:
+            # for wildcard emails e.g. *@domain.com
+            return True
+        return False
+
+    @staticmethod
     def create_mails(
         mails: list,
         user_integration_id: int,
@@ -32,8 +41,9 @@ class GoogleMailRepository:
             sender_email = sender.split("<")[-1].split(">")[0]
             if not GoogleMailRepository._has_valid_labels(
                 mail
-            ) or sender_email not in user_integration_configuration.get(
-                "whitelisted_emails", []
+            ) or not GoogleMailRepository.is_email_white_listed(
+                sender_email,
+                user_integration_configuration.get("whitelisted_emails", []),
             ):
                 continue
             body, files = GoogleMailService.get_mail_body(mail["payload"], mail["id"])

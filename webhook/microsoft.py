@@ -50,9 +50,15 @@ def microsoft(request):
             refresh_token=user_integration["meta_data"]["token"]["refresh_token"]
         )
         mail = service.get_message(message_id)
-        if user_integration["configuration"] is not None and mail["from"][
-            "emailAddress"
-        ]["address"] not in user_integration["configuration"].get(
+        sender_email = (
+            user_integration["configuration"] is not None
+            and mail["from"]["emailAddress"]["address"]
+        )
+        if sender_email not in user_integration["configuration"].get(
+            "whitelisted_emails", []
+        ) and f"*@{sender_email.split('@')[1]}" not in user_integration[
+            "configuration"
+        ].get(
             "whitelisted_emails", []
         ):
             return HttpResponse(status=200)
