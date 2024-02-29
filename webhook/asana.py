@@ -43,9 +43,12 @@ def asana(request, user_integration_id):
                 user_integration_id=user_integration_id
             )
             for event in events:
-                if event.get("action", "") == "sync_error":
+                if (
+                    event.get("action", "") == "sync_error"
+                    or event["user"]["gid"] is None
+                ):
                     continue
-                if user_integration is None and event["user"]["gid"] is not None:
+                if user_integration is None:
                     user_integration = IntegrationRepository.get_user_integration(
                         {
                             "id": user_integration_id,
@@ -62,8 +65,6 @@ def asana(request, user_integration_id):
                     except IntegrationAccessRevokedException:
                         revoked_user_integrations.append({user_integration})
                         continue
-                elif event["user"]["gid"] is None:
-                    continue
                 causing_user = asana_service.get_user(event["user"]["gid"])
                 if event["resource"]["resource_type"] == "project":
                     action = event["action"]

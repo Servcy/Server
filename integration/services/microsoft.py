@@ -83,10 +83,19 @@ class MicrosoftService:
         """
         Function to get new token using refresh token
         """
-        return self._app.acquire_token_by_refresh_token(
+        response = self._app.acquire_token_by_refresh_token(
             refresh_token=refresh_token,
             scopes=self._scopes,
         )
+        if isinstance(response, dict) and "error" in response:
+            raise ExternalIntegrationException(
+                "An error occurred while refreshing access token from Microsoft",
+                extra={
+                    "error": response.get("error"),
+                    "error_description": response.get("error_description"),
+                },
+            )
+        return response
 
     def create_integration(self, user_id: int):
         """

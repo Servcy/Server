@@ -9,6 +9,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from rest_framework import status
 
+from common.exceptions import IntegrationAccessRevokedException
 from common.responses import error_response
 from inbox.repository import InboxRepository
 from integration.repository import IntegrationRepository
@@ -34,11 +35,11 @@ def microsoft(request):
             return HttpResponse(status=401)
         account_id = notificaiton["value"][0]["clientState"]
         message_id = notificaiton["value"][0]["resourceData"]["id"]
-        integration = IntegrationRepository.get_user_integrations(
+        user_integration = IntegrationRepository.get_user_integrations(
             {"integration__name": "Outlook", "account_id": account_id},
             first=True,
         )
-        if integration is None:
+        if user_integration is None:
             logger.warning(f"No integration found for outlook: {account_id}")
             return error_response(
                 logger=logger,
@@ -46,12 +47,14 @@ def microsoft(request):
                 status=status.HTTP_404_NOT_FOUND,
             )
         service = MicrosoftService(
-            refresh_token=integration["meta_data"]["token"]["refresh_token"]
+            refresh_token=user_integration["meta_data"]["token"]["refresh_token"]
         )
         mail = service.get_message(message_id)
-        if integration["configuration"] is not None and mail["from"]["emailAddress"][
-            "address"
-        ] not in integration["configuration"].get("whitelisted_emails", []):
+        if user_integration["configuration"] is not None and mail["from"][
+            "emailAddress"
+        ]["address"] not in user_integration["configuration"].get(
+            "whitelisted_emails", []
+        ):
             return HttpResponse(status=200)
         mail_has_attachments = mail.get("hasAttachments", False)
         if mail_has_attachments:
@@ -73,7 +76,7 @@ def microsoft(request):
                     "cause": f"{mail['from']['emailAddress']['name']} <{mail['from']['emailAddress']['address']}>",
                     "body": mail["body"]["content"],
                     "is_body_html": mail["body"]["contentType"] == "html",
-                    "user_integration_id": integration["id"],
+                    "user_integration_id": user_integration["id"],
                     "uid": mail["id"],
                     "category": "message",
                     "i_am_mentioned": True,
@@ -82,6 +85,14 @@ def microsoft(request):
             )
         return HttpResponse(status=200)
     except IntegrityError:
+        return HttpResponse(status=200)
+    except IntegrationAccessRevokedException:
+        if (
+            user_integration
+            and isinstance(user_integration, dict)
+            and user_integration.get("id")
+        ):
+            IntegrationRepository.revoke_user_integrations(user_integration.get("id"))
         return HttpResponse(status=200)
     except KeyError:
         logger.exception(
