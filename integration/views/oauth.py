@@ -59,8 +59,8 @@ class OauthViewset(viewsets.ViewSet):
             )
         return self._handle_oauth_code(request, GoogleService, "Google")
 
-    @action(detail=False, methods=["put"], url_path="microsoft")
-    def microsoft(self, request):
+    @action(detail=False, methods=["put"], url_path="outlook")
+    def outlook(self, request):
         """Handle OAuth2 authorization flow for Microsoft."""
         return self._handle_oauth_code(request, MicrosoftService, "Microsoft")
 
