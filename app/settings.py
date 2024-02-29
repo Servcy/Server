@@ -267,6 +267,8 @@ GOOGLE_OAUTH2_SCOPES = [
     "https://www.googleapis.com/auth/userinfo.profile",
     "https://www.googleapis.com/auth/userinfo.email",
     "openid",
+    "email",
+    "profile",
 ]
 GOOGLE_PUB_SUB_TOPIC = config.get("google", "pub_sub_topic")
 GOOGLE_PUB_SUB_SUBSCRIPTION = config.get("google", "pub_sub_subscription")

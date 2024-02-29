@@ -53,7 +53,7 @@ class OauthViewset(viewsets.ViewSet):
         if not set(scopes).issubset(set(GOOGLE_SCOPES)):
             return error_response(
                 logger=logger,
-                logger_message=f"User did not grant all permissions for Google. Missing: {urllib.parse.unquote(request.data.get('scope', ''))}.",
+                logger_message=f"User did not grant all permissions for Google.",
                 status=status.HTTP_406_NOT_ACCEPTABLE,
                 error_message="Please grant all permissions, and try again!",
             )
