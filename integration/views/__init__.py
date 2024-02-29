@@ -52,8 +52,7 @@ class IntegrationViewSet(GenericViewSet):
                 success_message="Integrations fetched successfully",
                 results=integrations,
             )
-        except Exception as err:
-            print(err)
+        except Exception:
             return error_response(
                 logger=logger,
                 logger_message="Error while fetching integrations",
@@ -111,8 +110,9 @@ class UserIntegrationViewSet(
         except ExternalIntegrationException:
             return error_response(
                 logger=logger,
-                logger_message=f"An error occurred while configuring Figma integration.",
+                logger_message=f"External error occurred while configuring Figma integration.",
                 status=status.HTTP_400_BAD_REQUEST,
+                error_message="External error occurred while configuring Figma integration.",
             )
         except Exception:
             return error_response(

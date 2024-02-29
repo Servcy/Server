@@ -24,21 +24,6 @@ class FigmaService(BaseService):
         if code or refresh_token:
             self.authenticate(code, refresh_token)
 
-    def authenticate(
-        self, code: str = None, refresh_token: str = None
-    ) -> "FigmaService":
-        """Authenticate using either code or refresh token."""
-        if code:
-            self._fetch_token(code)
-        elif refresh_token:
-            self._refresh_token(refresh_token)
-        else:
-            raise ExternalIntegrationException(
-                "Code/Refresh token is required for fetching access token from Figma."
-            )
-        self._user_info = self._fetch_user_info()
-        return self
-
     def _make_request(self, method: str, endpoint: str, **kwargs) -> dict:
         """Helper function to make requests to Figma API."""
         url = (
@@ -84,6 +69,28 @@ class FigmaService(BaseService):
         }
         self._token = self._make_request("POST", f"{FIGMA_OAUTH_URL}/token", data=data)
 
+    def _fetch_user_info(self) -> dict:
+        """Fetches user info from Figma."""
+        headers = {
+            "Authorization": f"Bearer {self._token['access_token']}",
+        }
+        return self._make_request("GET", "v1/me", headers=headers)
+
+    def authenticate(
+        self, code: str = None, refresh_token: str = None
+    ) -> "FigmaService":
+        """Authenticate using either code or refresh token."""
+        if code:
+            self._fetch_token(code)
+        elif refresh_token:
+            self._refresh_token(refresh_token)
+        else:
+            raise ExternalIntegrationException(
+                "Code/Refresh token is required for fetching access token from Figma."
+            )
+        self._user_info = self._fetch_user_info()
+        return self
+
     def create_integration(self, user_id: int) -> UserIntegration:
         """Creates integration for user."""
         user_integration = IntegrationRepository.create_user_integration(
@@ -97,12 +104,31 @@ class FigmaService(BaseService):
         )
         return user_integration
 
-    def _fetch_user_info(self) -> dict:
-        """Fetches user info from Figma."""
-        headers = {
-            "Authorization": f"Bearer {self._token['access_token']}",
-        }
-        return self._make_request("GET", "v1/me", headers=headers)
+    def is_active(self, meta_data, **kwargs):
+        """
+        Check if the user's integration is active.
+
+        Args:
+        - meta_data: The user integration meta data.
+
+        Returns:
+        - bool: True if integration is active, False otherwise.
+        """
+        self._refresh_token(meta_data["token"]["refresh_token"])
+        IntegrationRepository.update_integraion(
+            user_integration_id=kwargs["user_integration_id"],
+            meta_data=IntegrationRepository.encrypt_meta_data(
+                {
+                    **meta_data,
+                    "token": {
+                        **meta_data["token"],
+                        "access_token": self._token["access_token"],
+                        "expires_in": self._token["expires_in"],
+                    },
+                }
+            ),
+        )
+        return True
 
     def create_webhooks(
         self, team_ids: list[str], user_integration_id: int
@@ -140,32 +166,6 @@ class FigmaService(BaseService):
                 f"Failed to create webhooks for the following teams: {', '.join(failed_webhooks)}"
             )
         return success_webhooks, success_webhook_teams
-
-    def is_active(self, meta_data, **kwargs):
-        """
-        Check if the user's integration is active.
-
-        Args:
-        - meta_data: The user integration meta data.
-
-        Returns:
-        - bool: True if integration is active, False otherwise.
-        """
-        self._refresh_token(meta_data["token"]["refresh_token"])
-        IntegrationRepository.update_integraion(
-            user_integration_id=kwargs["user_integration_id"],
-            meta_data=IntegrationRepository.encrypt_meta_data(
-                {
-                    **meta_data,
-                    "token": {
-                        **meta_data["token"],
-                        "access_token": self._token["access_token"],
-                        "expires_in": self._token["expires_in"],
-                    },
-                }
-            ),
-        )
-        return True
 
     def add_comment(self, file_key: str, comment_id: str, message: str):
         """

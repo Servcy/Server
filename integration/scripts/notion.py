@@ -27,8 +27,10 @@ def poll_new_comments():
                 )
             except Exception:
                 logger.exception(
-                    f"An error occurred while fetching notion comments for user {user_integration['user_id']}",
+                    f"An error occurred while fetching notion comments",
                     extra={
+                        "user_integration_id": user_integration.get("id"),
+                        "user_id": user_integration.get("user_id"),
                         "traceback": traceback.format_exc(),
                     },
                 )

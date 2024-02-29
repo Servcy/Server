@@ -30,12 +30,6 @@ class AsanaService(BaseService):
             self._token = AsanaService._refresh_tokens(kwargs.get("refresh_token"))
             self._user_info = self._fetch_user_info()
 
-    def authenticate(self, code: str) -> "AsanaService":
-        """Authenticate using code."""
-        self._fetch_token(code)
-        self._user_info = self._fetch_user_info()
-        return self
-
     def _fetch_token(self, code: str) -> None:
         """Fetches access token from Asana."""
         data = {
@@ -81,22 +75,11 @@ class AsanaService(BaseService):
             )
         return token_data
 
-    def _establish_webhooks(self) -> None:
-        """Establishes webhook for Asana."""
-        if not self.client:
-            self.client = asana.Client.access_token(self._token["access_token"])
-        for workspace in self._user_info["workspaces"]:
-            self.create_project_monitoring_webhook(workspace["gid"])
-            projects = self.client.projects.get_projects_for_workspace(
-                workspace["gid"], opt_pretty=True
-            )
-            for project in projects:
-                project = self.client.projects.get_project(
-                    project["gid"], opt_pretty=True
-                )
-                self.create_task_monitoring_webhook(
-                    project["gid"], user_integration_id=self.user_integration.id
-                )
+    def authenticate(self, code: str) -> "AsanaService":
+        """Authenticate using code."""
+        self._fetch_token(code)
+        self._user_info = self._fetch_user_info()
+        return self
 
     def create_integration(self, user_id: int) -> UserIntegration:
         """Creates integration for user."""
@@ -111,6 +94,31 @@ class AsanaService(BaseService):
         )
         self._establish_webhooks()
         return self.user_integration
+
+    def is_active(self, meta_data: dict, **kwargs) -> bool:
+        """
+        Check if the user's integration is active.
+
+        Args:
+        - meta_data: The user integration meta data.
+
+        Returns:
+        - bool: True if integration is active, False otherwise.
+        """
+        self._token = AsanaService._refresh_tokens(meta_data["token"]["refresh_token"])
+        IntegrationRepository.update_integraion(
+            user_integration_id=kwargs["user_integration_id"],
+            meta_data=IntegrationRepository.encrypt_meta_data(
+                {
+                    **meta_data,
+                    "token": {
+                        **meta_data["token"],
+                        **self._token,
+                    },
+                }
+            ),
+        )
+        return True
 
     def create_task_monitoring_webhook(self, project_id, user_integration_id):
         if not self.client:
@@ -191,31 +199,6 @@ class AsanaService(BaseService):
             if "duplicate" in str(err.message).lower():
                 return
             raise err
-
-    def is_active(self, meta_data: dict, **kwargs) -> bool:
-        """
-        Check if the user's integration is active.
-
-        Args:
-        - meta_data: The user integration meta data.
-
-        Returns:
-        - bool: True if integration is active, False otherwise.
-        """
-        self._token = AsanaService._refresh_tokens(meta_data["token"]["refresh_token"])
-        IntegrationRepository.update_integraion(
-            user_integration_id=kwargs["user_integration_id"],
-            meta_data=IntegrationRepository.encrypt_meta_data(
-                {
-                    **meta_data,
-                    "token": {
-                        **meta_data["token"],
-                        **self._token,
-                    },
-                }
-            ),
-        )
-        return True
 
     def get_project(self, project_gid: str) -> dict:
         """Get project details."""

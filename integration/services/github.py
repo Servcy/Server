@@ -20,12 +20,6 @@ class GithubService(BaseService):
         if kwargs.get("code"):
             self.authenticate(kwargs.get("code"))
 
-    def authenticate(self, code: str) -> "GithubService":
-        """Authenticate using code."""
-        self._fetch_token(code)
-        self._user_info = self._fetch_user_info()
-        return self
-
     @staticmethod
     def _make_request(method: str, endpoint: str, **kwargs) -> dict:
         """Helper function to make requests to Github API."""
@@ -56,6 +50,23 @@ class GithubService(BaseService):
             response.raise_for_status()
         self._token = token_data
 
+    def _fetch_user_info(self) -> dict:
+        """Fetches user info from Github."""
+        return GithubService._make_request(
+            "GET",
+            "user",
+            headers={
+                "Authorization": f"Bearer {self._token['access_token']}",
+                "Accept": "application/vnd.github+json",
+            },
+        )
+
+    def authenticate(self, code: str) -> "GithubService":
+        """Authenticate using code."""
+        self._fetch_token(code)
+        self._user_info = self._fetch_user_info()
+        return self
+
     def create_integration(self, user_id: int) -> UserIntegration:
         """Creates integration for user."""
         return IntegrationRepository.create_user_integration(
@@ -66,17 +77,6 @@ class GithubService(BaseService):
             account_id=self._user_info["id"],
             meta_data={"token": self._token, "user_info": self._user_info},
             account_display_name=self._user_info["login"],
-        )
-
-    def _fetch_user_info(self) -> dict:
-        """Fetches user info from Github."""
-        return GithubService._make_request(
-            "GET",
-            "user",
-            headers={
-                "Authorization": f"Bearer {self._token['access_token']}",
-                "Accept": "application/vnd.github+json",
-            },
         )
 
     def is_active(self, meta_data, **kwargs):
@@ -120,17 +120,3 @@ class GithubService(BaseService):
                     installation_ids.remove(str(repo["id"]))
         user_integration.configuration = list(installation_ids)
         user_integration.save()
-
-    def is_active(self, meta_data: dict, **kwargs) -> bool:
-        """
-        Check if the user's integration is active.
-
-        Args:
-        - meta_data: The user integration meta data.
-
-        Returns:
-        - bool: True if integration is active, False otherwise.
-        """
-        self._token = meta_data["token"]
-        self._fetch_user_info()
-        return True

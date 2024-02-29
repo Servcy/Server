@@ -102,6 +102,50 @@ class MicrosoftService:
             account_display_name=email,
         )
 
+    def is_active(self, meta_data, **kwargs):
+        """
+        Check if the user's integration is active.
+
+        Args:
+        - meta_data: The user integration meta data.
+
+        Returns:
+        - bool: True if integration is active, False otherwise.
+        """
+        self._token = self._refresh_token(
+            meta_data["token"]["refresh_token"],
+        )
+        subscription = meta_data["subscription"]
+        expiration_date_time = datetime.datetime.strptime(
+            subscription["expirationDateTime"], "%Y-%m-%dT%H:%M:%S.%fZ"
+        )
+        if (expiration_date_time - datetime.datetime.now()).total_seconds() < 86400:
+            self.renew_subscription(subscription["id"])
+
+    def get_message(self, message_id: str) -> dict:
+        """
+        Function to fetch mail from outlook with ID
+        """
+        return self._make_microsoft_request(
+            requests.get,
+            f"{MICROSOFT_READ_MAIL_URI}/{message_id}",
+            headers={
+                "Authorization": "Bearer {}".format(self._token["access_token"]),
+            },
+        )
+
+    def get_attachments(self, message_id: str) -> dict:
+        """
+        Function to fetch attachments from outlook with ID
+        """
+        return self._make_microsoft_request(
+            requests.get,
+            f"{MICROSOFT_READ_MAIL_URI}/{message_id}/attachments",
+            headers={
+                "Authorization": "Bearer {}".format(self._token["access_token"]),
+            },
+        )
+
     def create_subscription(self) -> str:
         """
         Create subscription for user to receive notifications for new emails.
@@ -140,18 +184,6 @@ class MicrosoftService:
             },
         )
 
-    def get_message(self, message_id: str) -> dict:
-        """
-        Function to fetch mail from outlook with ID
-        """
-        return self._make_microsoft_request(
-            requests.get,
-            f"{MICROSOFT_READ_MAIL_URI}/{message_id}",
-            headers={
-                "Authorization": "Bearer {}".format(self._token["access_token"]),
-            },
-        )
-
     def remove_subscription(self, subscription_id: str) -> None:
         """
         Remove subscription for user.
@@ -162,37 +194,5 @@ class MicrosoftService:
             headers={
                 "Authorization": f"Bearer {self._token['access_token']}",
                 "Content-Type": "application/json",
-            },
-        )
-
-    def is_active(self, meta_data, **kwargs):
-        """
-        Check if the user's integration is active.
-
-        Args:
-        - meta_data: The user integration meta data.
-
-        Returns:
-        - bool: True if integration is active, False otherwise.
-        """
-        self._token = self._refresh_token(
-            meta_data["token"]["refresh_token"],
-        )
-        subscription = meta_data["subscription"]
-        expiration_date_time = datetime.datetime.strptime(
-            subscription["expirationDateTime"], "%Y-%m-%dT%H:%M:%S.%fZ"
-        )
-        if (expiration_date_time - datetime.datetime.now()).total_seconds() < 86400:
-            self.renew_subscription(subscription["id"])
-
-    def get_attachments(self, message_id: str) -> dict:
-        """
-        Function to fetch attachments from outlook with ID
-        """
-        return self._make_microsoft_request(
-            requests.get,
-            f"{MICROSOFT_READ_MAIL_URI}/{message_id}/attachments",
-            headers={
-                "Authorization": "Bearer {}".format(self._token["access_token"]),
             },
         )

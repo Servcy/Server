@@ -48,21 +48,6 @@ class GoogleService(BaseService):
             self._user_info = kwargs["user_info"]
         self._initialize_google_service()
 
-    def refresh_tokens(self):
-        """Refresh tokens"""
-        response = requests.post(
-            GOOGLE_TOKEN_URI,
-            data={
-                "client_id": GOOGLE_CLIENT_ID,
-                "client_secret": GOOGLE_CLIENT_SECRET,
-                "refresh_token": self._token["refresh_token"],
-                "grant_type": "refresh_token",
-            },
-        )
-        if "error" in response.json():
-            response.raise_for_status()
-        return response.json()
-
     def _initialize_google_service(self):
         """Initialize google service"""
         try:
@@ -202,6 +187,21 @@ class GoogleService(BaseService):
             ),
         )
         return True
+
+    def refresh_tokens(self):
+        """Refresh tokens"""
+        response = requests.post(
+            GOOGLE_TOKEN_URI,
+            data={
+                "client_id": GOOGLE_CLIENT_ID,
+                "client_secret": GOOGLE_CLIENT_SECRET,
+                "refresh_token": self._token["refresh_token"],
+                "grant_type": "refresh_token",
+            },
+        )
+        if "error" in response.json():
+            response.raise_for_status()
+        return response.json()
 
     def get_latest_unread_primary_inbox(self, last_history_id: int) -> list[str]:
         """Get latest unread primary inbox messages"""
