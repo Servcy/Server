@@ -46,8 +46,8 @@ class OauthViewset(viewsets.ViewSet):
                 logger_message="An unexpected error occurred processing oauth request.",
             )
 
-    @action(detail=False, methods=["put"], url_path="google")
-    def google(self, request):
+    @action(detail=False, methods=["put"], url_path="gmail")
+    def gmail(self, request):
         """Handle OAuth2 authorization flow for Google."""
         scopes = urllib.parse.unquote(request.data.get("scope", "")).split(" ")
         if not set(scopes).issubset(set(GOOGLE_SCOPES)):
