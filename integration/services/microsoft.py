@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 MICROSOFT_CLIENT_ID = settings.MICROSOFT_APP_CLIENT_ID
 MICROSOFT_CLIENT_SECRET = settings.MICROSOFT_APP_CLIENT_SECRET
 MICROSOFT_SCOPES = settings.MICROSOFT_OAUTH2_SCOPES
+MICROSOFT_REDIRECT_URI = settings.MICROSOFT_APP_REDIRECT_URI
 MICROSOFT_READ_MAIL_URI = "https://graph.microsoft.com/v1.0/me/messages/"
 MICROSOFT_SUBSCRIPTION_URI = "https://graph.microsoft.com/v1.0/subscriptions/"
 MICROSOFT_AUTHORITY_URI = "https://login.microsoftonline.com/common"
