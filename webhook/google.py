@@ -111,7 +111,13 @@ def google(request):
         InboxRepository.add_items(inbox_items)
         return HttpResponse(status=200)
     except IntegrationAccessRevokedException:
-        IntegrationRepository.revoke_user_integrations(user_integration.get("id", 0))
+        try:
+            GoogleService.remove_publisher_from_topic(account_id)
+            IntegrationRepository.revoke_user_integrations(
+                user_integration.get("id", 0)
+            )
+        except:
+            pass
         return HttpResponse(status=200)
     except ExternalAPIRateLimitException:
         return HttpResponse(status=200)
