@@ -53,7 +53,7 @@ class OauthViewset(viewsets.ViewSet):
         if not set(scopes).issubset(set(GOOGLE_SCOPES)):
             return error_response(
                 logger=logger,
-                logger_message="An error occurred processing oauth request.",
+                logger_message=f"User did not grant all permissions for Google. Missing: {set(GOOGLE_SCOPES) - set(scopes)}.",
                 status=status.HTTP_406_NOT_ACCEPTABLE,
                 error_message="Please grant all permissions, and try again!",
             )
