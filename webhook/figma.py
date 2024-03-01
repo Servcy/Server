@@ -17,15 +17,15 @@ logger = logging.getLogger(__name__)
 def get_title(event: dict):
     event_type = event["event_type"]
     if event_type == "FILE_UPDATE":
-        return f"{event['file_name']} file was updated"
+        return f"{event['file_name']} [Updated]"
     elif event_type == "FILE_DELETE":
-        return f"{event['file_name']} file was deleted"
+        return f"{event['file_name']} [Deleted]"
     elif event_type == "FILE_VERSION_UPDATE":
-        return f"{event['file_name']} file version was updated"
+        return f"{event['file_name']} [Version Updated]"
     elif event_type == "FILE_COMMENT":
-        return f"{event['file_name']} file was commented on"
+        return f"{event['file_name']} [Comment Added]"
     elif event_type == "LIBRARY_PUBLISH":
-        return f"{event['library_name']} library was published"
+        return f"{event['library_name']} [Library Published]"
     else:
         raise ValueError(f"Unknown event type: {event_type}")
 
