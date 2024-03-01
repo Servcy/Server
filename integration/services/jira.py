@@ -1,8 +1,9 @@
+import datetime
 import logging
-import traceback
 
 import requests
 from django.conf import settings
+from django.utils import timezone
 
 from integration.models import UserIntegration
 from integration.repository import IntegrationRepository
@@ -171,7 +172,15 @@ class JiraService(BaseService):
         Extend webhook for Jira integration.
         """
         webhooks = self.fetch_webhooks()
-        webhook_ids = [webhook["id"] for webhook in webhooks]
+        webhook_ids = []
+        for webhook in webhooks:
+            expiration_date = datetime.datetime.strptime(
+                webhooks[0]["expirationDate"], "%Y-%m-%dT%H:%M:%S.%f%z"
+            )
+            if expiration_date < timezone.now():
+                webhook_ids.append(webhook["id"])
+        if not webhook_ids:
+            return {}
         response = requests.put(
             f"{self._jira_api_url}/ex/jira/{self.cloud_id}/rest/api/3/webhook/refresh",
             headers={
@@ -184,14 +193,8 @@ class JiraService(BaseService):
             },
         )
         if response.status_code != 200:
-            logger.exception(
-                f"An error occurred while extending webhooks.",
-                extra={
-                    "traceback": traceback.format_exc(),
-                    "response_status_code": response.status_code,
-                    "response_message": str(response),
-                },
-            )
+            response.raise_for_status()
+        return response.json()
 
     def refresh_token(self):
         """
