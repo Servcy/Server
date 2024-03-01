@@ -101,3 +101,4 @@ class SlackService(BaseService):
         IntegrationRepository.update_integraion(
             kwargs.get("user_integration_id"), configuration=configuration
         )
+        return True
