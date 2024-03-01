@@ -39,6 +39,7 @@ openai = "^1.8.0"
 tiktoken = "^0.5.2"
 redis = "^5.0.2"
 celery = "^5.3.6"
+uvicorn = "^0.27.1"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.3.0"
