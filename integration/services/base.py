@@ -19,7 +19,7 @@ class BaseService(ABC):
         Returns:
         - bool: True if integration is active, False otherwise.
         """
-        pass
+        return False
 
     @abstractmethod
     def create_integration(self, user_id: int) -> UserIntegration:
