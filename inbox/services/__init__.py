@@ -15,7 +15,7 @@ class InboxService(DataTableBase):
         self.user = user
         self.queryset = None
         self.filters = {}
-        self.search = {}
+        self.search = ""
         self.sort_by = []
         self.sort_desc = []
         self.page = 1
@@ -83,3 +83,9 @@ class InboxService(DataTableBase):
         Archive an item.
         """
         return InboxRepository.delete_items(item_ids=item_ids)
+
+    def apply_searching(self: "DataTableBase") -> "DataTableBase":
+        self.queryset = self.queryset.filter(
+            Q(title__icontains=self.search) | Q(body__icontains=self.search)
+        )
+        return self

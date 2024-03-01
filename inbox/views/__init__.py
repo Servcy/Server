@@ -20,7 +20,7 @@ class InboxViewSet(ViewSet):
             table_settings = request.data.get("pagination", {})
             items, details = inbox_service.get_paginated_items(
                 filters=request.data.get("filters", {}),
-                search=request.data.get("search", {}),
+                search=request.data.get("search", ""),
                 sort_by=table_settings.get("sort_by", []),
                 sort_desc=table_settings.get("sort_desc", []),
                 page=table_settings.get("page", 1),
