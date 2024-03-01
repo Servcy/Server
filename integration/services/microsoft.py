@@ -96,7 +96,7 @@ class MicrosoftService:
             )
         return response
 
-    def create_integration(self, user_id: int):
+    def create_integration(self, user_id: int) -> None:
         """
         Create integration for user.
         """
@@ -110,7 +110,7 @@ class MicrosoftService:
             account_display_name=email,
         )
 
-    def is_active(self, meta_data, **kwargs):
+    def is_active(self, meta_data, **kwargs) -> bool:
         """
         Check if the user's integration is active.
 
@@ -129,6 +129,7 @@ class MicrosoftService:
         )
         if (expiration_date_time - datetime.datetime.now()).total_seconds() < 86400:
             self.renew_subscription(subscription["id"])
+        return True
 
     def get_message(self, message_id: str) -> dict:
         """
