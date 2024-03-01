@@ -15,12 +15,12 @@ from integration.utils.events import is_event_and_action_disabled
 logger = logging.getLogger(__name__)
 
 EVENT_MAP = {
-    "jira:issue_created": "An issue was created on Jira",
-    "jira:issue_updated": "An issue was updated on Jira",
-    "jira:issue_deleted": "An issue was deleted on Jira",
-    "comment_created": "A comment was added on Jira",
-    "comment_updated": "A comment was updated on Jira",
-    "comment_deleted": "A comment was deleted on Jira",
+    "jira:issue_created": "Issue: {issue_name} [Created]",
+    "jira:issue_updated": "Issue: {issue_name} [Updated]",
+    "jira:issue_deleted": "Issue: {issue_name} [Deleted]",
+    "comment_created": "Comment: {comment_summary} Issue: {issue_name} [Created]",
+    "comment_updated": "Comment: {comment_summary} Issue: {issue_name} [Updated]",
+    "comment_deleted": "Comment: {comment_summary} Issue: {issue_name} [Deleted]",
 }
 
 
@@ -31,6 +31,8 @@ def jira(request):
         headers = request.headers
         body = json.loads(request.body)
         account_id = None
+        if body.get("webhookEvent") not in EVENT_MAP.keys():
+            return HttpResponse(status=200)
         if "issue" in body["webhookEvent"]:
             account_id = body["issue"]["fields"]["assignee"]["accountId"]
         elif "comment" in body["webhookEvent"]:
@@ -54,14 +56,28 @@ def jira(request):
         if is_event_and_action_disabled(disabled_events, body["webhookEvent"], None):
             return HttpResponse(status=200)
         if "issue" in body["webhookEvent"]:
+            issue_name = (
+                body.get("issue", {}).get("fields", {}).get("summary", "Unknown")
+            )
             sender = body["user"]
+            title = EVENT_MAP[body["webhookEvent"]].format(issue_name=issue_name)
         elif "comment" in body["webhookEvent"]:
+            issue_name = (
+                body.get("issue", {}).get("fields", {}).get("summary", "Unknown")
+            )
+            comment_summary = (
+                body.get("comment", {}).get("body", "Unknown")[:50] + "..."
+            )
+            title = EVENT_MAP[body["webhookEvent"]].format(
+                issue_name=issue_name, comment_summary=comment_summary
+            )
             sender = body["comment"]["author"]
         else:
+            title = "Jira event"
             sender = body.get("user")
         InboxRepository.add_item(
             {
-                "title": EVENT_MAP.get(body["webhookEvent"], "Jira event"),
+                "title": title,
                 "cause": json.dumps(sender),
                 "body": json.dumps(body),
                 "is_body_html": False,
