@@ -22,7 +22,7 @@ class TrelloService(BaseService):
         Initializes TrelloService.
         """
         self._token = kwargs.get("code")
-        self._user_info = self._fetch_user_info()
+        self._user_info = self._fetch_user_info() if self._token else {}
         self.user_integration = None
 
     def _fetch_user_info(self) -> dict:
