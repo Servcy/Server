@@ -122,6 +122,8 @@ CORS_ALLOWED_ORIGINS = [
 
 WSGI_APPLICATION = "app.wsgi.application"
 
+ASGI_APPLICATION = "app.asgi.application"
+
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": datetime.timedelta(days=3),
     "REFRESH_TOKEN_LIFETIME": datetime.timedelta(days=7),
