@@ -45,7 +45,8 @@ class GoogleService(BaseService):
             self._fetch_token(code)
             self._fetch_user_info()
             GoogleService.add_publisher_to_topic(self._user_info["email"])
-        self._initialize_google_service()
+        if self._token:
+            self._initialize_google_service()
         if code:
             self._add_watcher_to_inbox_pub_sub(self._user_info["email"])
 
@@ -173,8 +174,9 @@ class GoogleService(BaseService):
             **meta_data["token"],
             **GoogleService.refresh_tokens(meta_data["token"]["refresh_token"]),
         }
+        self._initialize_google_service()
         watcher_expiration = meta_data.get("watcher_expiration")
-        if watcher_expiration and watcher_expiration - 86400 < time.time():
+        if watcher_expiration and int(watcher_expiration) - 86400 < time.time():
             self._add_watcher_to_inbox_pub_sub(self._user_info["email"])
         IntegrationRepository.update_integraion(
             user_integration_id=kwargs["user_integration_id"],
