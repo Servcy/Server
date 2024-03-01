@@ -23,6 +23,7 @@ class JiraService(BaseService):
     def __init__(self, **kwargs) -> None:
         self.user_integration = None
         self.cloud_id = None
+        self._token = None
         if kwargs.get("token"):
             self._token = kwargs.get("token")
         elif kwargs.get("code"):
