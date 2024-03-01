@@ -90,8 +90,14 @@ def github(request):
             disabled_events, event, payload.get("action", None)
         ):
             return HttpResponse(status=200)
-        title = f"{' '.join(event.split('_'))} {' '.join(payload.get('action', '').split('_'))}"
-        title = title[0].upper() + title[1:]
+        if "pull_request" in event and payload.get("pull_request", {}).get("title"):
+            pull_request_name = payload.get("pull_request", {}).get("title")
+            title = f"{pull_request_name} [{' '.join(payload.get('action', '').split('_'))}]"
+        elif "issue" in event and payload.get("issue", {}).get("title"):
+            issue_name = payload.get("issue", {}).get("title")
+            title = f"{issue_name} [{' '.join(payload.get('action', '').split('_'))}]"
+        else:
+            title = f"{' '.join(event.split('_'))} {' '.join(payload.get('action', '').split('_'))}"
         payload["event"] = event
         i_am_mentioned = False
         if (
