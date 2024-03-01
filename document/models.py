@@ -1,14 +1,16 @@
+from django.conf import settings
 from django.db import models
 
 from app.models import TimeStampedModel
-from iam.models import User
 from integration.models import UserIntegration
 
 
 class Document(TimeStampedModel):
     file = models.FileField(upload_to="Documents", null=True, blank=False, default=None)
     name = models.CharField(max_length=100, null=False, blank=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=False, blank=False)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=False, blank=False
+    )
     link = models.CharField(max_length=5000, null=True, blank=False, default=None)
     user_integration = models.ForeignKey(
         UserIntegration, null=True, blank=False, on_delete=models.CASCADE, default=None

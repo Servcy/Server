@@ -1,7 +1,7 @@
+from django.conf import settings
 from django.db import models
 
 from app.models import TimeStampedModel
-from iam.models import User
 
 
 class Integration(models.Model):
@@ -23,7 +23,9 @@ class UserIntegration(TimeStampedModel):
     account_display_name = models.CharField(
         max_length=250, null=False, blank=True, default=""
     )
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=False, blank=False)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=False, blank=False
+    )
     integration = models.ForeignKey(
         Integration,
         on_delete=models.CASCADE,

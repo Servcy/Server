@@ -1,4 +1,4 @@
-from iam.models import User
+from django.conf import settings
 
 
 class AccountsRepository:
@@ -6,10 +6,10 @@ class AccountsRepository:
         self.input = input
         self.input_type = input_type
 
-    def create(self, input: str = None, input_type: str = None) -> User:
+    def create(self, input: str = None, input_type: str = None):
         input = input or self.input
         input_type = input_type or self.input_type
-        user = User.objects.create_user(
+        user = settings.AUTH_USER_MODEL.objects.create_user(
             email=input if input_type == "email" else None,
             phone_number=f"+{input}" if input_type == "phone_number" else None,
             username=input if input_type == "email" else f"+{input}",
@@ -17,13 +17,13 @@ class AccountsRepository:
         )
         return user
 
-    def get(self, input: str = None, input_type: str = None) -> User:
+    def get(self, input: str = None, input_type: str = None):
         try:
             input = input or self.input
             input_type = input_type or self.input_type
-            user = User.objects.get(
+            user = settings.AUTH_USER_MODEL.objects.get(
                 username=input if input_type == "email" else f"+{input}"
             )
-        except User.DoesNotExist:
+        except settings.AUTH_USER_MODEL.DoesNotExist:
             user = None
         return user

@@ -1,7 +1,6 @@
 from django.db.models import Q
 
 from common.datatable import DataTableBase
-from iam.models import User
 from inbox.models import Inbox
 from inbox.repository import InboxRepository
 from inbox.serializers import InboxSerializer
@@ -10,7 +9,7 @@ from inbox.serializers import InboxSerializer
 class InboxService(DataTableBase):
     serializer_class = InboxSerializer
 
-    def __init__(self, user: User, user_id: int) -> None:
+    def __init__(self, user, user_id: int) -> None:
         self.user_id = user_id
         self.user = user
         self.queryset = None
