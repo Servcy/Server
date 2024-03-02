@@ -3,7 +3,7 @@ from django.core.validators import RegexValidator
 from django.db import models
 
 from app.models import TimeStampedModel
-from common.utils.file_field import file_size_validator, upload_path
+from common.file_field import file_size_validator, upload_path
 from iam.managers import UserAccountManager
 
 

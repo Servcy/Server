@@ -3,7 +3,7 @@
 import django.db.models.deletion
 from django.db import migrations, models
 
-import common.utils.file_field
+import common.file_field
 
 
 class Migration(migrations.Migration):
@@ -43,8 +43,8 @@ class Migration(migrations.Migration):
             field=models.FileField(
                 default=None,
                 null=True,
-                upload_to=common.utils.file_field.upload_path,
-                validators=[common.utils.file_field.file_size_validator],
+                upload_to=common.file_field.upload_path,
+                validators=[common.file_field.file_size_validator],
             ),
         ),
         migrations.AlterField(

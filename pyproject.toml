@@ -38,6 +38,7 @@ sendgrid = "^6.11.0"
 openai = "^1.8.0"
 tiktoken = "^0.5.2"
 uvicorn = "^0.27.1"
+mistune = "^3.0.2"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.3.0"

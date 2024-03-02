@@ -159,9 +159,9 @@ class ServcyDynamicBaseSerializer(ServcyBaseSerializer):
 
         for field in allowed:
             if field not in self.fields:
-                from . import (
+                from iam.serializers import UserLiteSerializer, WorkspaceLiteSerializer
+                from project.serializers import (
                     CycleIssueSerializer,
-                    InboxIssueLiteSerializer,
                     IssueAttachmentLiteSerializer,
                     IssueLinkLiteSerializer,
                     IssueLiteSerializer,
@@ -171,8 +171,6 @@ class ServcyDynamicBaseSerializer(ServcyBaseSerializer):
                     LabelSerializer,
                     ProjectLiteSerializer,
                     StateLiteSerializer,
-                    UserLiteSerializer,
-                    WorkspaceLiteSerializer,
                 )
 
                 # Expansion mapper
@@ -193,7 +191,6 @@ class ServcyDynamicBaseSerializer(ServcyBaseSerializer):
                     "issue_cycle": CycleIssueSerializer,
                     "parent": IssueLiteSerializer,
                     "issue_relation": IssueRelationSerializer,
-                    "issue_inbox": InboxIssueLiteSerializer,
                     "issue_reactions": IssueReactionLiteSerializer,
                     "issue_attachment": IssueAttachmentLiteSerializer,
                     "issue_link": IssueLinkLiteSerializer,

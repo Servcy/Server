@@ -86,7 +86,6 @@ urlpatterns = [
         WorkspaceJoinEndpoint.as_view(),
         name="workspace-join",
     ),
-    # user join workspace
     path(
         "workspaces/<int:id>/members/",
         WorkSpaceMemberViewSet.as_view({"get": "list"}),
