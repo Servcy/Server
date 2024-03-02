@@ -145,8 +145,6 @@ class ServcyDynamicBaseSerializer(ServcyBaseSerializer):
                 for key, value in field_name.items():
                     if isinstance(value, list):
                         self._filter_fields(self.fields[key], value)
-
-        # Create a list to store allowed fields.
         allowed = []
         for item in fields:
             # If the item is a string, it directly represents a field's name.
@@ -156,7 +154,6 @@ class ServcyDynamicBaseSerializer(ServcyBaseSerializer):
             # Add the key of this dictionary to the allowed list.
             elif isinstance(item, dict):
                 allowed.append(list(item.keys())[0])
-
         for field in allowed:
             if field not in self.fields:
                 from iam.serializers import UserLiteSerializer, WorkspaceLiteSerializer
@@ -216,7 +213,6 @@ class ServcyDynamicBaseSerializer(ServcyBaseSerializer):
                         else False
                     )
                 )
-
         return self.fields
 
     def to_representation(self, instance):
@@ -224,58 +220,55 @@ class ServcyDynamicBaseSerializer(ServcyBaseSerializer):
         Overriding the default to_representation method to handle the expansion of fields.
         """
         response = super().to_representation(instance)
-        if self.expand:
-            for expand in self.expand:
-                if expand in self.fields:
-                    from iam.serializers import (
-                        UserLiteSerializer,
-                        WorkspaceLiteSerializer,
-                    )
-                    from project.serializers import (
-                        CycleIssueSerializer,
-                        IssueAttachmentLiteSerializer,
-                        IssueLinkLiteSerializer,
-                        IssueLiteSerializer,
-                        IssueReactionLiteSerializer,
-                        IssueRelationSerializer,
-                        IssueSerializer,
-                        LabelSerializer,
-                        ProjectLiteSerializer,
-                        StateLiteSerializer,
-                    )
+        if not self.expand:
+            return response
+        for expand in self.expand:
+            if expand not in self.fields:
+                continue
+            from iam.serializers import UserLiteSerializer, WorkspaceLiteSerializer
+            from project.serializers import (
+                CycleIssueSerializer,
+                IssueAttachmentLiteSerializer,
+                IssueLinkLiteSerializer,
+                IssueLiteSerializer,
+                IssueReactionLiteSerializer,
+                IssueRelationSerializer,
+                IssueSerializer,
+                LabelSerializer,
+                ProjectLiteSerializer,
+                StateLiteSerializer,
+            )
 
-                    expansion = {
-                        "user": UserLiteSerializer,
-                        "workspace": WorkspaceLiteSerializer,
-                        "project": ProjectLiteSerializer,
-                        "default_assignee": UserLiteSerializer,
-                        "project_lead": UserLiteSerializer,
-                        "state": StateLiteSerializer,
-                        "created_by": UserLiteSerializer,
-                        "issue": IssueSerializer,
-                        "actor": UserLiteSerializer,
-                        "owned_by": UserLiteSerializer,
-                        "members": UserLiteSerializer,
-                        "assignees": UserLiteSerializer,
-                        "labels": LabelSerializer,
-                        "issue_cycle": CycleIssueSerializer,
-                        "parent": IssueLiteSerializer,
-                        "issue_relation": IssueRelationSerializer,
-                        "issue_reactions": IssueReactionLiteSerializer,
-                        "issue_attachment": IssueAttachmentLiteSerializer,
-                        "issue_link": IssueLinkLiteSerializer,
-                        "sub_issues": IssueLiteSerializer,
-                    }
-                    if expand in expansion:
-                        if isinstance(response.get(expand), list):
-                            exp_serializer = expansion[expand](
-                                getattr(instance, expand), many=True
-                            )
-                        else:
-                            exp_serializer = expansion[expand](
-                                getattr(instance, expand)
-                            )
-                        response[expand] = exp_serializer.data
-                    else:
-                        response[expand] = getattr(instance, f"{expand}_id", None)
+            expansion = {
+                "user": UserLiteSerializer,
+                "workspace": WorkspaceLiteSerializer,
+                "project": ProjectLiteSerializer,
+                "default_assignee": UserLiteSerializer,
+                "project_lead": UserLiteSerializer,
+                "state": StateLiteSerializer,
+                "created_by": UserLiteSerializer,
+                "issue": IssueSerializer,
+                "actor": UserLiteSerializer,
+                "owned_by": UserLiteSerializer,
+                "members": UserLiteSerializer,
+                "assignees": UserLiteSerializer,
+                "labels": LabelSerializer,
+                "issue_cycle": CycleIssueSerializer,
+                "parent": IssueLiteSerializer,
+                "issue_relation": IssueRelationSerializer,
+                "issue_reactions": IssueReactionLiteSerializer,
+                "issue_attachment": IssueAttachmentLiteSerializer,
+                "issue_link": IssueLinkLiteSerializer,
+                "sub_issues": IssueLiteSerializer,
+            }
+            if expand in expansion:
+                if isinstance(response.get(expand), list):
+                    exp_serializer = expansion[expand](
+                        getattr(instance, expand), many=True
+                    )
+                else:
+                    exp_serializer = expansion[expand](getattr(instance, expand))
+                response[expand] = exp_serializer.data
+            else:
+                response[expand] = getattr(instance, f"{expand}_id", None)
         return response

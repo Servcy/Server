@@ -1,8 +1,10 @@
 import logging
+import zoneinfo
 
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import IntegrityError
 from django.urls import resolve
+from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 from rest_framework.exceptions import APIException
@@ -17,7 +19,21 @@ from common.responses import error_response
 logger = logging.getLogger(__name__)
 
 
-class BaseViewSet(ModelViewSet, BasePaginator):
+class TimezoneMixin:
+    """
+    This enables timezone conversion according
+    to the user set timezone
+    """
+
+    def initial(self, request, *args, **kwargs):
+        super().initial(request, *args, **kwargs)
+        if request.user.is_authenticated:
+            timezone.activate(zoneinfo.ZoneInfo(request.user.user_timezone))
+        else:
+            timezone.deactivate()
+
+
+class BaseViewSet(TimezoneMixin, ModelViewSet, BasePaginator):
     """
     Base ViewSet for all the viewsets, this will handle:
     -  timezone conversion
@@ -91,8 +107,8 @@ class BaseViewSet(ModelViewSet, BasePaginator):
             return exc
 
     @property
-    def workspace_id(self):
-        return self.kwargs.get("workspace_id", None)
+    def workspace_slug(self):
+        return self.kwargs.get("slug", None)
 
     @property
     def project_id(self):
@@ -117,7 +133,7 @@ class BaseViewSet(ModelViewSet, BasePaginator):
         return expand if expand else None
 
 
-class BaseAPIView(APIView, BasePaginator):
+class BaseAPIView(TimezoneMixin, APIView, BasePaginator):
     """
     Base APIView for all the views, this will handle:
     -  timezone conversion
@@ -190,8 +206,8 @@ class BaseAPIView(APIView, BasePaginator):
             return exc
 
     @property
-    def workspace_id(self):
-        return self.kwargs.get("workspace_id", None)
+    def workspace_slug(self):
+        return self.kwargs.get("slug", None)
 
     @property
     def project_id(self):

@@ -48,7 +48,6 @@ class Project(TimeStampedModel, CreatorUpdaterModel):
     cycle_view = models.BooleanField(default=True)
     issue_views_view = models.BooleanField(default=True)
     page_view = models.BooleanField(default=True)
-    inbox_view = models.BooleanField(default=False)
     access = models.PositiveSmallIntegerField(
         default=1, choices=((0, "Private"), (1, "Public"))
     )
@@ -120,6 +119,7 @@ class ProjectMemberInvite(ProjectBaseModel):
         default=10,
     )
     message = models.TextField(null=True)
+    responded_at = models.DateTimeField(null=True)
 
     class Meta:
         verbose_name = "Project Member Invite"

@@ -32,7 +32,7 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from common.issue_filters import issue_filters
+from common.paginator import BasePaginator
 from common.permissions import (
     WorkSpaceAdminPermission,
     WorkSpaceBasePermission,
@@ -43,7 +43,9 @@ from common.permissions import (
 from common.responses import error_response
 from common.views import BaseAPIView, BaseViewSet
 from iam.models import (
+    Team,
     User,
+    UserNotificationPreference,
     Workspace,
     WorkspaceMember,
     WorkspaceMemberInvite,
@@ -51,6 +53,12 @@ from iam.models import (
     WorkspaceUserProperties,
 )
 from iam.serializers import (
+    TeamSerializer,
+    UserLiteSerializer,
+    UserMeSerializer,
+    UserMeSettingsSerializer,
+    UserNotificationPreferenceSerializer,
+    UserSerializer,
     WorkspaceMemberAdminSerializer,
     WorkSpaceMemberInviteSerializer,
     WorkspaceMemberMeSerializer,
@@ -88,6 +96,7 @@ from project.serializers import (
     ProjectMemberSerializer,
     StateSerializer,
 )
+from project.utils.filters import issue_filters
 
 logger = logging.getLogger(__name__)
 
@@ -108,7 +117,7 @@ class WorkSpaceViewSet(BaseViewSet):
     filterset_fields = [
         "owner",
     ]
-    lookup_field = "id"
+    lookup_field = "slug"
 
     def get_queryset(self):
         member_count = (
@@ -142,16 +151,16 @@ class WorkSpaceViewSet(BaseViewSet):
     def create(self, request):
         try:
             serializer = WorkSpaceSerializer(data=request.data)
-            workspace_id = request.data.get("workspace_id", False)
+            slug = request.data.get("slug", False)
             name = request.data.get("name", False)
-            if not name or not workspace_id:
+            if not name or not slug:
                 return Response(
-                    {"error": "Both name and workspace_id are required"},
+                    {"error": "Both name and slug are required"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            if len(name) > 80:
+            if len(name) > 80 and len(slug) > 48:
                 return Response(
-                    {"error": "The maximum length for name is 80"},
+                    {"error": "The maximum length for name is 80 and for slug is 48"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             if serializer.is_valid():
@@ -171,7 +180,7 @@ class WorkSpaceViewSet(BaseViewSet):
         except IntegrityError as e:
             if "already exists" in str(e):
                 return error_response(
-                    "The workspace with the workspace_id already exists",
+                    "The workspace with the slug already exists",
                     logger=logger,
                     status=status.HTTP_410_GONE,
                 )
@@ -251,11 +260,11 @@ class WorkspaceInvitationsViewset(BaseViewSet):
         return self.filter_queryset(
             super()
             .get_queryset()
-            .filter(workspace_id=self.kwargs.get("workspace_id"))
+            .filter(workspace__slug=self.kwargs.get("slug"))
             .select_related("workspace", "workspace__owner", "created_by")
         )
 
-    def create(self, request, workspace_id):
+    def create(self, request, slug):
         emails = request.data.get("emails", [])
         # Check if email is provided
         if not emails:
@@ -266,7 +275,7 @@ class WorkspaceInvitationsViewset(BaseViewSet):
 
         # check for role level of the requesting user
         requesting_user = WorkspaceMember.objects.get(
-            workspace_id=workspace_id,
+            workspace__slug=slug,
             member=request.user,
             is_active=True,
         )
@@ -285,11 +294,11 @@ class WorkspaceInvitationsViewset(BaseViewSet):
             )
 
         # Get the workspace object
-        workspace = Workspace.objects.get(workspace_id=workspace_id)
+        workspace = Workspace.objects.get(slug=slug)
 
         # Check if user is already a member of workspace
         workspace_members = WorkspaceMember.objects.filter(
-            workspace_id=workspace.id,
+            workspace=workspace,
             member__email__in=[email.get("email") for email in emails],
             is_active=True,
         ).select_related("member", "workspace", "workspace__owner")
@@ -312,7 +321,7 @@ class WorkspaceInvitationsViewset(BaseViewSet):
                 workspace_invitations.append(
                     WorkspaceMemberInvite(
                         email=email.get("email").strip().lower(),
-                        workspace_id=workspace.id,
+                        workspace=workspace,
                         token=jwt.encode(
                             {
                                 "email": email,
@@ -342,7 +351,7 @@ class WorkspaceInvitationsViewset(BaseViewSet):
             SendGridEmail(to_email=invitation.email).send_workspace_invitation(
                 workspace_name=workspace.name,
                 user_name=request.user.first_name or request.user.email,
-                invite_link=f"{settings.FRONTEND_URL}/workspace-invitations/?invitation_id={invitation.id}&email={invitation.email}&workspace_id={workspace_id}",
+                invite_link=f"{settings.FRONTEND_URL}/workspace-invitations/?invitation_id={invitation.id}&email={invitation.email}&workspace__slug={slug}",
             )
 
         return Response(
@@ -352,9 +361,9 @@ class WorkspaceInvitationsViewset(BaseViewSet):
             status=status.HTTP_200_OK,
         )
 
-    def destroy(self, _, workspace_id, pk):
+    def destroy(self, _, slug, pk):
         workspace_member_invite = WorkspaceMemberInvite.objects.get(
-            pk=pk, workspace_id=workspace_id
+            pk=pk, workspace__slug=slug
         )
         workspace_member_invite.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -371,9 +380,9 @@ class WorkspaceJoinEndpoint(BaseAPIView):
         AllowAny,
     ]
 
-    def post(self, request, workspace_id, pk):
+    def post(self, request, slug, pk):
         workspace_invite = WorkspaceMemberInvite.objects.get(
-            pk=pk, workspace_id=workspace_id
+            pk=pk, workspace__slug=slug
         )
 
         email = request.data.get("email", "")
@@ -436,12 +445,36 @@ class WorkspaceJoinEndpoint(BaseAPIView):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    def get(self, request, workspace_id, pk):
+    def get(self, request, slug, pk):
         workspace_invitation = WorkspaceMemberInvite.objects.get(
-            workspace_id=workspace_id, pk=pk
+            workspace__slug=slug, pk=pk
         )
         serializer = WorkSpaceMemberInviteSerializer(workspace_invitation)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class UserNotificationPreferenceEndpoint(BaseAPIView):
+    model = UserNotificationPreference
+    serializer_class = UserNotificationPreferenceSerializer
+
+    def get(self, request):
+        user_notification_preference = UserNotificationPreference.objects.get(
+            user=request.user
+        )
+        serializer = UserNotificationPreferenceSerializer(user_notification_preference)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def patch(self, request):
+        user_notification_preference = UserNotificationPreference.objects.get(
+            user=request.user
+        )
+        serializer = UserNotificationPreferenceSerializer(
+            user_notification_preference, data=request.data, partial=True
+        )
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserWorkspaceInvitationsViewSet(BaseViewSet):
@@ -535,17 +568,17 @@ class WorkSpaceMemberViewSet(BaseViewSet):
             super()
             .get_queryset()
             .filter(
-                workspace_id=self.kwargs.get("workspace_id"),
+                workspace__slug=self.kwargs.get("slug"),
                 is_active=True,
             )
             .select_related("workspace", "workspace__owner")
             .select_related("member")
         )
 
-    def list(self, request, workspace_id):
+    def list(self, request, slug):
         workspace_member = WorkspaceMember.objects.get(
             member=request.user,
-            workspace_id=workspace_id,
+            workspace__slug=slug,
             is_active=True,
         )
 
@@ -566,10 +599,10 @@ class WorkSpaceMemberViewSet(BaseViewSet):
             )
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def partial_update(self, request, workspace_id, pk):
+    def partial_update(self, request, slug, pk):
         workspace_member = WorkspaceMember.objects.get(
             pk=pk,
-            workspace_id=workspace_id,
+            workspace__slug=slug,
             is_active=True,
         )
         if request.user.id == workspace_member.member_id:
@@ -580,7 +613,7 @@ class WorkSpaceMemberViewSet(BaseViewSet):
 
         # Get the requested user role
         requested_workspace_member = WorkspaceMember.objects.get(
-            workspace_id=workspace_id,
+            workspace__slug=slug,
             member=request.user,
             is_active=True,
         )
@@ -605,17 +638,17 @@ class WorkSpaceMemberViewSet(BaseViewSet):
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def destroy(self, request, workspace_id, pk):
+    def destroy(self, request, slug, pk):
         # Check the user role who is deleting the user
         workspace_member = WorkspaceMember.objects.get(
-            workspace_id=workspace_id,
             pk=pk,
+            workspace__slug=slug,
             is_active=True,
         )
 
         # check requesting user role
         requesting_workspace_member = WorkspaceMember.objects.get(
-            workspace_id=workspace_id,
+            workspace__slug=slug,
             member=request.user,
             is_active=True,
         )
@@ -645,7 +678,7 @@ class WorkSpaceMemberViewSet(BaseViewSet):
                     ),
                 ),
             )
-            .filter(total_members=1, member_with_role=1, workspace_id=workspace_id)
+            .filter(total_members=1, member_with_role=1, workspace__slug=slug)
             .exists()
         ):
             return Response(
@@ -657,7 +690,7 @@ class WorkSpaceMemberViewSet(BaseViewSet):
 
         # Deactivate the users from the projects where the user is part of
         _ = ProjectMember.objects.filter(
-            workspace_id=workspace_id,
+            workspace__slug=slug,
             member_id=workspace_member.member_id,
             is_active=True,
         ).update(is_active=False)
@@ -666,9 +699,9 @@ class WorkSpaceMemberViewSet(BaseViewSet):
         workspace_member.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    def leave(self, request, workspace_id):
+    def leave(self, request, slug):
         workspace_member = WorkspaceMember.objects.get(
-            workspace_id=workspace_id,
+            workspace__slug=slug,
             member=request.user,
             is_active=True,
         )
@@ -677,7 +710,7 @@ class WorkSpaceMemberViewSet(BaseViewSet):
         if (
             workspace_member.role == 20
             and not WorkspaceMember.objects.filter(
-                workspace_id=workspace_id,
+                workspace__slug=slug,
                 role=20,
                 is_active=True,
             ).count()
@@ -701,7 +734,7 @@ class WorkSpaceMemberViewSet(BaseViewSet):
                     ),
                 ),
             )
-            .filter(total_members=1, member_with_role=1, workspace_id=workspace_id)
+            .filter(total_members=1, member_with_role=1, workspace__slug=slug)
             .exists()
         ):
             return Response(
@@ -713,7 +746,7 @@ class WorkSpaceMemberViewSet(BaseViewSet):
 
         # # Deactivate the users from the projects where the user is part of
         _ = ProjectMember.objects.filter(
-            workspace_id=workspace_id,
+            workspace__slug=slug,
             member_id=workspace_member.member_id,
             is_active=True,
         ).update(is_active=False)
@@ -735,7 +768,7 @@ class WorkspaceProjectMemberEndpoint(BaseAPIView):
         WorkspaceEntityPermission,
     ]
 
-    def get(self, request, workspace_id):
+    def get(self, request, slug):
         # Fetch all project IDs where the user is involved
         project_ids = (
             ProjectMember.objects.filter(
@@ -748,7 +781,7 @@ class WorkspaceProjectMemberEndpoint(BaseAPIView):
 
         # Get all the project members in which the user is involved
         project_members = ProjectMember.objects.filter(
-            workspace_id=workspace_id,
+            workspace__slug=slug,
             project_id__in=project_ids,
             is_active=True,
         ).select_related("project", "member", "workspace")
@@ -808,10 +841,10 @@ class WorkspaceMemberUserEndpoint(BaseAPIView):
     This endpoint returns the workspace member details of the user
     """
 
-    def get(self, request, workspace_id):
+    def get(self, request, slug):
         workspace_member = WorkspaceMember.objects.get(
             member=request.user,
-            workspace_id=workspace_id,
+            workspace__slug=slug,
             is_active=True,
         )
         serializer = WorkspaceMemberMeSerializer(workspace_member)
@@ -823,9 +856,9 @@ class WorkspaceMemberUserViewsEndpoint(BaseAPIView):
     This endpoint returns the workspace member views of the user
     """
 
-    def post(self, request, workspace_id):
+    def post(self, request, slug):
         workspace_member = WorkspaceMember.objects.get(
-            workspace_id=workspace_id,
+            workspace__slug=slug,
             member=request.user,
             is_active=True,
         )
@@ -840,11 +873,11 @@ class UserActivityGraphEndpoint(BaseAPIView):
     This endpoint returns the user activity graph
     """
 
-    def get(self, request, workspace_id):
+    def get(self, request, slug):
         issue_activities = (
             IssueActivity.objects.filter(
                 actor=request.user,
-                workspace_id=workspace_id,
+                workspace__slug=slug,
                 created_at__date__gte=date.today() + relativedelta(months=-6),
             )
             .annotate(created_date=Cast("created_at", DateField()))
@@ -861,13 +894,13 @@ class UserIssueCompletedGraphEndpoint(BaseAPIView):
     This endpoint returns the user issue completed graph
     """
 
-    def get(self, request, workspace_id):
+    def get(self, request, slug):
         month = request.GET.get("month", 1)
 
         issues = (
             Issue.issue_objects.filter(
                 assignees__in=[request.user],
-                workspace_id=workspace_id,
+                workspace__slug=slug,
                 completed_at__month=month,
                 completed_at__isnull=False,
             )
@@ -895,11 +928,11 @@ class UserWorkspaceDashboardEndpoint(BaseAPIView):
     This endpoint returns the user workspace dashboard details
     """
 
-    def get(self, request, workspace_id):
+    def get(self, request, slug):
         issue_activities = (
             IssueActivity.objects.filter(
                 actor=request.user,
-                workspace_id=workspace_id,
+                workspace__slug=slug,
                 created_at__date__gte=date.today() + relativedelta(months=-3),
             )
             .annotate(created_date=Cast("created_at", DateField()))
@@ -913,7 +946,7 @@ class UserWorkspaceDashboardEndpoint(BaseAPIView):
         completed_issues = (
             Issue.issue_objects.filter(
                 assignees__in=[request.user],
-                workspace_id=workspace_id,
+                workspace__slug=slug,
                 completed_at__month=month,
                 completed_at__isnull=False,
             )
@@ -925,24 +958,24 @@ class UserWorkspaceDashboardEndpoint(BaseAPIView):
         )
 
         assigned_issues = Issue.issue_objects.filter(
-            workspace_id=workspace_id, assignees__in=[request.user]
+            workspace__slug=slug, assignees__in=[request.user]
         ).count()
 
         pending_issues_count = Issue.issue_objects.filter(
             ~Q(state__group__in=["completed", "cancelled"]),
-            workspace_id=workspace_id,
+            workspace__slug=slug,
             assignees__in=[request.user],
         ).count()
 
         completed_issues_count = Issue.issue_objects.filter(
-            workspace_id=workspace_id,
+            workspace__slug=slug,
             assignees__in=[request.user],
             state__group="completed",
         ).count()
 
         issues_due_week = (
             Issue.issue_objects.filter(
-                workspace_id=workspace_id,
+                workspace__slug=slug,
                 assignees__in=[request.user],
             )
             .annotate(target_week=ExtractWeek("target_date"))
@@ -952,7 +985,7 @@ class UserWorkspaceDashboardEndpoint(BaseAPIView):
 
         state_distribution = (
             Issue.issue_objects.filter(
-                workspace_id=workspace_id, assignees__in=[request.user]
+                workspace__slug=slug, assignees__in=[request.user]
             )
             .annotate(state_group=F("state__group"))
             .values("state_group")
@@ -962,19 +995,19 @@ class UserWorkspaceDashboardEndpoint(BaseAPIView):
 
         overdue_issues = Issue.issue_objects.filter(
             ~Q(state__group__in=["completed", "cancelled"]),
-            workspace_id=workspace_id,
+            workspace__slug=slug,
             assignees__in=[request.user],
             target_date__lt=timezone.now(),
             completed_at__isnull=True,
-        ).values("id", "name", "workspace_id", "project_id", "target_date")
+        ).values("id", "name", "workspace__slug", "project_id", "target_date")
 
         upcoming_issues = Issue.issue_objects.filter(
             ~Q(state__group__in=["completed", "cancelled"]),
             start_date__gte=timezone.now(),
-            workspace_id=workspace_id,
+            workspace__slug=slug,
             assignees__in=[request.user],
             completed_at__isnull=True,
-        ).values("id", "name", "workspace_id", "project_id", "start_date")
+        ).values("id", "name", "workspace__slug", "project_id", "start_date")
 
         return Response(
             {
@@ -1004,12 +1037,10 @@ class WorkspaceThemeViewSet(BaseViewSet):
     serializer_class = WorkspaceThemeSerializer
 
     def get_queryset(self):
-        return (
-            super().get_queryset().filter(workspace_id=self.kwargs.get("workspace_id"))
-        )
+        return super().get_queryset().filter(workspace__slug=self.kwargs.get("slug"))
 
-    def create(self, request, workspace_id):
-        workspace = Workspace.objects.get(workspace_id=workspace_id)
+    def create(self, request, slug):
+        workspace = Workspace.objects.get(slug=slug)
         serializer = WorkspaceThemeSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(workspace=workspace, actor=request.user)
@@ -1022,12 +1053,12 @@ class WorkspaceUserProfileStatsEndpoint(BaseAPIView):
     This endpoint returns the user profile stats
     """
 
-    def get(self, request, workspace_id, user_id):
+    def get(self, request, slug, user_id):
         filters = issue_filters(request.query_params, "GET")
 
         state_distribution = (
             Issue.issue_objects.filter(
-                workspace_id=workspace_id,
+                workspace__slug=slug,
                 assignees__in=[user_id],
                 project__project_projectmember__member=request.user,
                 project__project_projectmember__is_active=True,
@@ -1043,7 +1074,7 @@ class WorkspaceUserProfileStatsEndpoint(BaseAPIView):
 
         priority_distribution = (
             Issue.issue_objects.filter(
-                workspace_id=workspace_id,
+                workspace__slug=slug,
                 assignees__in=[user_id],
                 project__project_projectmember__member=request.user,
                 project__project_projectmember__is_active=True,
@@ -1067,7 +1098,7 @@ class WorkspaceUserProfileStatsEndpoint(BaseAPIView):
 
         created_issues = (
             Issue.issue_objects.filter(
-                workspace_id=workspace_id,
+                workspace__slug=slug,
                 project__project_projectmember__member=request.user,
                 project__project_projectmember__is_active=True,
                 created_by_id=user_id,
@@ -1078,7 +1109,7 @@ class WorkspaceUserProfileStatsEndpoint(BaseAPIView):
 
         assigned_issues_count = (
             Issue.issue_objects.filter(
-                workspace_id=workspace_id,
+                workspace__slug=slug,
                 assignees__in=[user_id],
                 project__project_projectmember__member=request.user,
                 project__project_projectmember__is_active=True,
@@ -1090,7 +1121,7 @@ class WorkspaceUserProfileStatsEndpoint(BaseAPIView):
         pending_issues_count = (
             Issue.issue_objects.filter(
                 ~Q(state__group__in=["completed", "cancelled"]),
-                workspace_id=workspace_id,
+                workspace__slug=slug,
                 assignees__in=[user_id],
                 project__project_projectmember__member=request.user,
                 project__project_projectmember__is_active=True,
@@ -1101,7 +1132,7 @@ class WorkspaceUserProfileStatsEndpoint(BaseAPIView):
 
         completed_issues_count = (
             Issue.issue_objects.filter(
-                workspace_id=workspace_id,
+                workspace__slug=slug,
                 assignees__in=[user_id],
                 state__group="completed",
                 project__project_projectmember__member=request.user,
@@ -1113,7 +1144,7 @@ class WorkspaceUserProfileStatsEndpoint(BaseAPIView):
 
         subscribed_issues_count = (
             IssueSubscriber.objects.filter(
-                workspace_id=workspace_id,
+                workspace__slug=slug,
                 subscriber_id=user_id,
                 project__project_projectmember__member=request.user,
                 project__project_projectmember__is_active=True,
@@ -1123,7 +1154,7 @@ class WorkspaceUserProfileStatsEndpoint(BaseAPIView):
         )
 
         upcoming_cycles = CycleIssue.objects.filter(
-            workspace_id=workspace_id,
+            workspace__slug=slug,
             cycle__start_date__gt=timezone.now().date(),
             issue__assignees__in=[
                 user_id,
@@ -1131,7 +1162,7 @@ class WorkspaceUserProfileStatsEndpoint(BaseAPIView):
         ).values("cycle__name", "cycle__id", "cycle__project_id")
 
         present_cycle = CycleIssue.objects.filter(
-            workspace_id=workspace_id,
+            workspace__slug=slug,
             cycle__start_date__lt=timezone.now().date(),
             cycle__end_date__gt=timezone.now().date(),
             issue__assignees__in=[
@@ -1163,12 +1194,12 @@ class WorkspaceUserActivityEndpoint(BaseAPIView):
         WorkspaceEntityPermission,
     ]
 
-    def get(self, request, workspace_id, user_id):
+    def get(self, request, slug, user_id):
         projects = request.query_params.getlist("project", [])
 
         queryset = IssueActivity.objects.filter(
             ~Q(field__in=["comment", "vote", "reaction", "draft"]),
-            workspace_id=workspace_id,
+            workspace__slug=slug,
             project__project_projectmember__member=request.user,
             project__project_projectmember__is_active=True,
             actor=user_id,
@@ -1191,11 +1222,11 @@ class WorkspaceUserProfileEndpoint(BaseAPIView):
     This endpoint returns the user profile details
     """
 
-    def get(self, request, workspace_id, user_id):
+    def get(self, request, slug, user_id):
         user_data = User.objects.get(pk=user_id)
 
         requesting_workspace_member = WorkspaceMember.objects.get(
-            workspace_id=workspace_id,
+            workspace__slug=slug,
             member=request.user,
             is_active=True,
         )
@@ -1203,7 +1234,7 @@ class WorkspaceUserProfileEndpoint(BaseAPIView):
         if requesting_workspace_member.role >= 10:
             projects = (
                 Project.objects.filter(
-                    workspace_id=workspace_id,
+                    workspace__slug=slug,
                     project_projectmember__member=request.user,
                     project_projectmember__is_active=True,
                 )
@@ -1293,7 +1324,7 @@ class WorkspaceUserProfileIssuesEndpoint(BaseAPIView):
         WorkspaceViewerPermission,
     ]
 
-    def get(self, request, workspace_id, user_id):
+    def get(self, request, slug, user_id):
         fields = [field for field in request.GET.get("fields", "").split(",") if field]
         filters = issue_filters(request.query_params, "GET")
 
@@ -1313,7 +1344,7 @@ class WorkspaceUserProfileIssuesEndpoint(BaseAPIView):
                 Q(assignees__in=[user_id])
                 | Q(created_by_id=user_id)
                 | Q(issue_subscribers__subscriber_id=user_id),
-                workspace_id=workspace_id,
+                workspace__slug=slug,
                 project__project_projectmember__member=request.user,
                 project__project_projectmember__is_active=True,
             )
@@ -1439,9 +1470,9 @@ class WorkspaceLabelsEndpoint(BaseAPIView):
         WorkspaceViewerPermission,
     ]
 
-    def get(self, request, workspace_id):
+    def get(self, request, slug):
         labels = Label.objects.filter(
-            workspace_id=workspace_id,
+            workspace__slug=slug,
             project__project_projectmember__member=request.user,
             project__project_projectmember__is_active=True,
         )
@@ -1458,9 +1489,9 @@ class WorkspaceStatesEndpoint(BaseAPIView):
         WorkspaceEntityPermission,
     ]
 
-    def get(self, request, workspace_id):
+    def get(self, request, slug):
         states = State.objects.filter(
-            workspace_id=workspace_id,
+            workspace__slug=slug,
             project__project_projectmember__member=request.user,
             project__project_projectmember__is_active=True,
         )
@@ -1477,9 +1508,9 @@ class WorkspaceEstimatesEndpoint(BaseAPIView):
         WorkspaceEntityPermission,
     ]
 
-    def get(self, request, workspace_id):
+    def get(self, request, slug):
         estimate_ids = Project.objects.filter(
-            workspace_id=workspace_id, estimate__isnull=False
+            workspace__slug=slug, estimate__isnull=False
         ).values_list("estimate_id", flat=True)
         estimates = Estimate.objects.filter(pk__in=estimate_ids).prefetch_related(
             Prefetch(
@@ -1502,9 +1533,9 @@ class WorkspaceModulesEndpoint(BaseAPIView):
         WorkspaceViewerPermission,
     ]
 
-    def get(self, request, workspace_id):
+    def get(self, request, slug):
         modules = (
-            Module.objects.filter(workspace_id=workspace_id)
+            Module.objects.filter(workspace__slug=slug)
             .select_related("project")
             .select_related("workspace")
             .select_related("lead")
@@ -1590,9 +1621,9 @@ class WorkspaceCyclesEndpoint(BaseAPIView):
         WorkspaceViewerPermission,
     ]
 
-    def get(self, request, workspace_id):
+    def get(self, request, slug):
         cycles = (
-            Cycle.objects.filter(workspace_id=workspace_id)
+            Cycle.objects.filter(workspace__slug=slug)
             .select_related("project")
             .select_related("workspace")
             .select_related("owned_by")
@@ -1683,6 +1714,75 @@ class WorkspaceCyclesEndpoint(BaseAPIView):
         return Response(serializer, status=status.HTTP_200_OK)
 
 
+class TeamMemberViewSet(BaseViewSet):
+    serializer_class = TeamSerializer
+    model = Team
+    permission_classes = [
+        WorkSpaceAdminPermission,
+    ]
+
+    search_fields = [
+        "member__display_name",
+        "member__first_name",
+    ]
+
+    def get_queryset(self):
+        return self.filter_queryset(
+            super()
+            .get_queryset()
+            .filter(workspace__slug=self.kwargs.get("slug"))
+            .select_related("workspace", "workspace__owner")
+            .prefetch_related("members")
+        )
+
+    def create(self, request, slug):
+        members = list(
+            WorkspaceMember.objects.filter(
+                workspace__slug=slug,
+                member__id__in=request.data.get("members", []),
+                is_active=True,
+            )
+            .annotate(member_str_id=Cast("member", output_field=CharField()))
+            .distinct()
+            .values_list("member_str_id", flat=True)
+        )
+
+        if len(members) != len(request.data.get("members", [])):
+            users = list(set(request.data.get("members", [])).difference(members))
+            users = User.objects.filter(pk__in=users)
+
+            serializer = UserLiteSerializer(users, many=True)
+            return Response(
+                {
+                    "error": f"{len(users)} of the member(s) are not a part of the workspace",
+                    "members": serializer.data,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        workspace = Workspace.objects.get(slug=slug)
+
+        serializer = TeamSerializer(data=request.data, context={"workspace": workspace})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class WorkSpaceAvailabilityCheckEndpoint(BaseAPIView):
+    def get(self, request):
+        slug = request.GET.get("slug", False)
+
+        if not slug or slug == "":
+            return Response(
+                {"error": "Workspace Slug is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        workspace = Workspace.objects.filter(slug=slug).exists()
+        return Response({"status": not workspace}, status=status.HTTP_200_OK)
+
+
 class WorkspaceUserPropertiesEndpoint(BaseAPIView):
     """
     This endpoint handles the user properties for the workspace
@@ -1692,10 +1792,10 @@ class WorkspaceUserPropertiesEndpoint(BaseAPIView):
         WorkspaceViewerPermission,
     ]
 
-    def patch(self, request, workspace_id):
+    def patch(self, request, slug):
         workspace_properties = WorkspaceUserProperties.objects.get(
             user=request.user,
-            workspace_id=workspace_id,
+            workspace__slug=slug,
         )
 
         workspace_properties.filters = request.data.get(
@@ -1712,12 +1812,62 @@ class WorkspaceUserPropertiesEndpoint(BaseAPIView):
         serializer = WorkspaceUserPropertiesSerializer(workspace_properties)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    def get(self, request, workspace_id):
+    def get(self, request, slug):
         (
             workspace_properties,
             _,
         ) = WorkspaceUserProperties.objects.get_or_create(
-            user=request.user, workspace_id=workspace_id
+            user=request.user, workspace__slug=slug
         )
         serializer = WorkspaceUserPropertiesSerializer(workspace_properties)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class UserEndpoint(BaseViewSet):
+    serializer_class = UserSerializer
+    model = User
+
+    def get_object(self):
+        return self.request.user
+
+    def retrieve(self, request):
+        serialized_data = UserMeSerializer(request.user).data
+        return Response(
+            serialized_data,
+            status=status.HTTP_200_OK,
+        )
+
+    def retrieve_user_settings(self, request):
+        serialized_data = UserMeSettingsSerializer(request.user).data
+        return Response(serialized_data, status=status.HTTP_200_OK)
+
+
+class UpdateUserOnBoardedEndpoint(BaseAPIView):
+    def patch(self, request):
+        user = User.objects.get(pk=request.user.id, is_active=True)
+        user.is_onboarded = request.data.get("is_onboarded", False)
+        user.save()
+        return Response({"message": "Updated successfully"}, status=status.HTTP_200_OK)
+
+
+class UpdateUserTourCompletedEndpoint(BaseAPIView):
+    def patch(self, request):
+        user = User.objects.get(pk=request.user.id, is_active=True)
+        user.is_tour_completed = request.data.get("is_tour_completed", False)
+        user.save()
+        return Response({"message": "Updated successfully"}, status=status.HTTP_200_OK)
+
+
+class UserActivityEndpoint(BaseAPIView, BasePaginator):
+    def get(self, request):
+        queryset = IssueActivity.objects.filter(actor=request.user).select_related(
+            "actor", "workspace", "issue", "project"
+        )
+
+        return self.paginate(
+            request=request,
+            queryset=queryset,
+            on_results=lambda issue_activities: IssueActivitySerializer(
+                issue_activities, many=True
+            ).data,
+        )

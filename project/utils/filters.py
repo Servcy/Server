@@ -6,18 +6,23 @@ from django.utils import timezone
 
 
 def filter_valid_uuids(uuid_list):
+    """
+    Filter valid uuids from a list of strings
+    """
     valid_uuids = []
     for uuid_str in uuid_list:
         try:
             uuid_obj = uuid.UUID(uuid_str)
             valid_uuids.append(uuid_obj)
         except ValueError:
-            # ignore the invalid uuids
             pass
     return valid_uuids
 
 
 def string_date_filter(filter, duration, subsequent, term, date_filter, offset):
+    """
+    Handle all string date filters
+    """
     now = timezone.now().date()
     if term == "months":
         if subsequent == "after":
@@ -69,7 +74,10 @@ def date_filter(filter, date_term, queries):
                     filter[f"{date_term}__lte"] = date_query[0]
 
 
-def filter_state(params, filter, method):
+def filter_state(params: dict, filter: dict, method: str) -> dict:
+    """
+    Filter issues by state
+    """
     if method == "GET":
         states = [item for item in params.get("state").split(",") if item != "null"]
         states = filter_valid_uuids(states)
@@ -85,7 +93,10 @@ def filter_state(params, filter, method):
     return filter
 
 
-def filter_state_group(params, filter, method):
+def filter_state_group(params: dict, filter: dict, method: str) -> dict:
+    """
+    Filter issues by state group
+    """
     if method == "GET":
         state_group = [
             item for item in params.get("state_group").split(",") if item != "null"
@@ -102,7 +113,10 @@ def filter_state_group(params, filter, method):
     return filter
 
 
-def filter_estimate_point(params, filter, method):
+def filter_estimate_point(params: dict, filter: dict, method: str) -> dict:
+    """
+    Filter issues by estimate point
+    """
     if method == "GET":
         estimate_points = [
             item for item in params.get("estimate_point").split(",") if item != "null"
@@ -119,7 +133,7 @@ def filter_estimate_point(params, filter, method):
     return filter
 
 
-def filter_priority(params, filter, method):
+def filter_priority(params: dict, filter: dict, method: str) -> dict:
     if method == "GET":
         priorities = [
             item for item in params.get("priority").split(",") if item != "null"
@@ -129,7 +143,7 @@ def filter_priority(params, filter, method):
     return filter
 
 
-def filter_parent(params, filter, method):
+def filter_parent(params: dict, filter: dict, method: str) -> dict:
     if method == "GET":
         parents = [item for item in params.get("parent").split(",") if item != "null"]
         parents = filter_valid_uuids(parents)
@@ -145,7 +159,7 @@ def filter_parent(params, filter, method):
     return filter
 
 
-def filter_labels(params, filter, method):
+def filter_labels(params: dict, filter: dict, method: str) -> dict:
     if method == "GET":
         labels = [item for item in params.get("labels").split(",") if item != "null"]
         labels = filter_valid_uuids(labels)
@@ -161,7 +175,7 @@ def filter_labels(params, filter, method):
     return filter
 
 
-def filter_assignees(params, filter, method):
+def filter_assignees(params: dict, filter: dict, method: str) -> dict:
     if method == "GET":
         assignees = [
             item for item in params.get("assignees").split(",") if item != "null"
@@ -179,7 +193,8 @@ def filter_assignees(params, filter, method):
     return filter
 
 
-def filter_mentions(params, filter, method):
+def filter_mentions(params: dict, filter: dict, method: str) -> dict:
+    """Filter issues by mentions"""
     if method == "GET":
         mentions = [
             item for item in params.get("mentions").split(",") if item != "null"
@@ -197,7 +212,8 @@ def filter_mentions(params, filter, method):
     return filter
 
 
-def filter_created_by(params, filter, method):
+def filter_created_by(params: dict, filter: dict, method: str) -> dict:
+    """Filter issues by created by"""
     if method == "GET":
         created_bys = [
             item for item in params.get("created_by").split(",") if item != "null"
@@ -215,13 +231,20 @@ def filter_created_by(params, filter, method):
     return filter
 
 
-def filter_name(params, filter, method):
+def filter_name(params: dict, filter: dict, method: str) -> dict:
+    """
+    Filter issues by name
+    """
     if params.get("name", "") != "":
         filter["name__icontains"] = params.get("name")
     return filter
 
 
-def filter_created_at(params, filter, method):
+def filter_created_at(params: dict, filter: dict, method: str) -> dict:
+    """
+    Filter issues by created at date
+    """
+
     if method == "GET":
         created_ats = params.get("created_at").split(",")
         if len(created_ats) and "" not in created_ats:
@@ -240,7 +263,10 @@ def filter_created_at(params, filter, method):
     return filter
 
 
-def filter_updated_at(params, filter, method):
+def filter_updated_at(params: dict, filter: dict, method: str) -> dict:
+    """
+    Filter issues by updated at date
+    """
     if method == "GET":
         updated_ats = params.get("updated_at").split(",")
         if len(updated_ats) and "" not in updated_ats:
@@ -259,7 +285,10 @@ def filter_updated_at(params, filter, method):
     return filter
 
 
-def filter_start_date(params, filter, method):
+def filter_start_date(params: dict, filter: dict, method: str) -> dict:
+    """
+    Filter issues by start date
+    """
     if method == "GET":
         start_dates = params.get("start_date").split(",")
         if len(start_dates) and "" not in start_dates:
@@ -270,7 +299,10 @@ def filter_start_date(params, filter, method):
     return filter
 
 
-def filter_target_date(params, filter, method):
+def filter_target_date(params: dict, filter: dict, method: str) -> dict:
+    """
+    Filter issues by target date
+    """
     if method == "GET":
         target_dates = params.get("target_date").split(",")
         if len(target_dates) and "" not in target_dates:
@@ -281,7 +313,8 @@ def filter_target_date(params, filter, method):
     return filter
 
 
-def filter_completed_at(params, filter, method):
+def filter_completed_at(params: dict, filter: dict, method: str) -> dict:
+    """Filter issues by completed at date"""
     if method == "GET":
         completed_ats = params.get("completed_at").split(",")
         if len(completed_ats) and "" not in completed_ats:
@@ -300,7 +333,8 @@ def filter_completed_at(params, filter, method):
     return filter
 
 
-def filter_issue_state_type(params, filter, method):
+def filter_issue_state_type(params: dict, filter: dict, method: str) -> dict:
+    """Filter issues by state type"""
     type = params.get("type", "all")
     group = ["backlog", "unstarted", "started", "completed", "cancelled"]
     if type == "backlog":
@@ -312,7 +346,8 @@ def filter_issue_state_type(params, filter, method):
     return filter
 
 
-def filter_project(params, filter, method):
+def filter_project(params: dict, filter: dict, method: str) -> dict:
+    """Filter issues by project"""
     if method == "GET":
         projects = [item for item in params.get("project").split(",") if item != "null"]
         projects = filter_valid_uuids(projects)
@@ -328,7 +363,8 @@ def filter_project(params, filter, method):
     return filter
 
 
-def filter_cycle(params, filter, method):
+def filter_cycle(params: dict, filter: dict, method: str) -> dict:
+    """Filter issues by cycle"""
     if method == "GET":
         cycles = [item for item in params.get("cycle").split(",") if item != "null"]
         cycles = filter_valid_uuids(cycles)
@@ -344,7 +380,8 @@ def filter_cycle(params, filter, method):
     return filter
 
 
-def filter_module(params, filter, method):
+def filter_module(params: dict, filter: dict, method: str) -> dict:
+    """Filter issues by module"""
     if method == "GET":
         modules = [item for item in params.get("module").split(",") if item != "null"]
         modules = filter_valid_uuids(modules)
@@ -360,7 +397,10 @@ def filter_module(params, filter, method):
     return filter
 
 
-def filter_inbox_status(params, filter, method):
+def filter_inbox_status(params: dict, filter: dict, method: str) -> dict:
+    """
+    Filter issues by inbox status
+    """
     if method == "GET":
         status = [
             item for item in params.get("inbox_status").split(",") if item != "null"
@@ -377,7 +417,13 @@ def filter_inbox_status(params, filter, method):
     return filter
 
 
-def filter_sub_issue_toggle(params, filter, method):
+def filter_sub_issue_toggle(params: dict, filter: dict, method: str) -> dict:
+    """
+    Filter sub issues
+    - params: The query parameters
+    - filter: The filter dictionary
+    - method: The request method
+    """
     if method == "GET":
         sub_issue = params.get("sub_issue", "false")
         if sub_issue == "false":
@@ -389,7 +435,13 @@ def filter_sub_issue_toggle(params, filter, method):
     return filter
 
 
-def filter_subscribed_issues(params, filter, method):
+def filter_subscribed_issues(params: dict, filter: dict, method: str) -> dict:
+    """
+    Filter issues by subscribers
+    - params: The query parameters
+    - filter: The filter dictionary
+    - method: The request method
+    """
     if method == "GET":
         subscribers = [
             item for item in params.get("subscriber").split(",") if item != "null"
@@ -407,7 +459,13 @@ def filter_subscribed_issues(params, filter, method):
     return filter
 
 
-def filter_start_target_date_issues(params, filter, method):
+def filter_start_target_date_issues(params: dict, filter: dict, method: str) -> dict:
+    """
+    Filter issues by start and target date
+    - params: The query parameters
+    - filter: The filter dictionary
+    - method: The request method
+    """
     start_target_date = params.get("start_target_date", "false")
     if start_target_date == "true":
         filter["target_date__isnull"] = False
@@ -415,7 +473,12 @@ def filter_start_target_date_issues(params, filter, method):
     return filter
 
 
-def issue_filters(query_params, method):
+def issue_filters(query_params, method: str):
+    """
+    Filter issues
+    - query_params: The query parameters
+    - method: The request method
+    """
     filter = {}
 
     ISSUE_FILTER = {

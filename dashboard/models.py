@@ -3,10 +3,10 @@ import uuid
 from django.conf import settings
 from django.db import models
 
-from app.models import TimeStampedModel
+from app.models import CreatorUpdaterModel, TimeStampedModel
 
 
-class Dashboard(TimeStampedModel):
+class Dashboard(TimeStampedModel, CreatorUpdaterModel):
     name = models.CharField(max_length=255)
     description_html = models.TextField(blank=True, default="<p></p>")
     identifier = models.UUIDField(null=True)
@@ -35,7 +35,7 @@ class Dashboard(TimeStampedModel):
         ordering = ("-created_at",)
 
 
-class Widget(TimeStampedModel):
+class Widget(TimeStampedModel, CreatorUpdaterModel):
     id = models.UUIDField(
         default=uuid.uuid4, unique=True, editable=False, db_index=True, primary_key=True
     )
@@ -49,7 +49,7 @@ class Widget(TimeStampedModel):
         ordering = ("-created_at",)
 
 
-class DashboardWidget(TimeStampedModel):
+class DashboardWidget(TimeStampedModel, CreatorUpdaterModel):
     widget = models.ForeignKey(
         Widget,
         on_delete=models.CASCADE,
@@ -70,4 +70,20 @@ class DashboardWidget(TimeStampedModel):
         verbose_name = "Dashboard Widget"
         verbose_name_plural = "Dashboard Widgets"
         db_table = "dashboard_widget"
+        ordering = ("-created_at",)
+
+
+class Analytic(TimeStampedModel, CreatorUpdaterModel):
+    workspace = models.ForeignKey(
+        "iam.Workspace", related_name="analytics", on_delete=models.CASCADE
+    )
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    query = models.JSONField()
+    query_dict = models.JSONField(default=dict)
+
+    class Meta:
+        verbose_name = "Analytic"
+        verbose_name_plural = "Analytics"
+        db_table = "analytic"
         ordering = ("-created_at",)

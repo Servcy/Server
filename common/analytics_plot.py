@@ -16,17 +16,19 @@ from project.models import Issue
 
 
 def annotate_with_monthly_dimension(queryset, field_name, attribute):
-    # Get the year and the months
+    """
+    Annotate the queryset with a dimension that is the concatenation of the year and the month
+    """
     year = ExtractYear(field_name)
     month = ExtractMonth(field_name)
-    # Concat the year and month
     dimension = Concat(year, Value("-"), month, output_field=CharField())
-    # Annotate the dimension
     return queryset.annotate(**{attribute: dimension})
 
 
 def extract_axis(queryset, x_axis):
-    # Format the dimension when the axis is in date
+    """
+    Extract the x_axis and queryset
+    """
     if x_axis in ["created_at", "start_date", "target_date", "completed_at"]:
         queryset = annotate_with_monthly_dimension(queryset, x_axis, "dimension")
         return queryset, "dimension"
@@ -35,7 +37,9 @@ def extract_axis(queryset, x_axis):
 
 
 def sort_data(data, temp_axis):
-    # When the axis is in priority order by
+    """
+    Sort the data based on the x_axis
+    """
     if temp_axis == "priority":
         order = ["low", "medium", "high", "urgent", "none"]
         return {key: data[key] for key in order if key in data}
@@ -44,21 +48,20 @@ def sort_data(data, temp_axis):
 
 
 def build_graph_plot(queryset, x_axis, y_axis, segment=None):
-    # temp x_axis
+    """
+    Build the graph plot
+    - x_axis: The x-axis of the graph
+    - y_axis: The y-axis of the graph
+    - segment: The segment of the graph
+    """
     temp_axis = x_axis
-    # Extract the x_axis and queryset
     queryset, x_axis = extract_axis(queryset, x_axis)
     if x_axis == "dimension":
         queryset = queryset.exclude(dimension__isnull=True)
-
-    #
     if segment in ["created_at", "start_date", "target_date", "completed_at"]:
         queryset = annotate_with_monthly_dimension(queryset, segment, "segmented")
         segment = "segmented"
-
     queryset = queryset.values(x_axis)
-
-    # Issue count
     if y_axis == "issue_count":
         queryset = queryset.annotate(
             is_null=Case(
@@ -75,8 +78,6 @@ def build_graph_plot(queryset, x_axis, y_axis, segment=None):
             else queryset.values("dimension")
         )
         queryset = queryset.annotate(count=Count("*")).order_by("dimension")
-
-    # Estimate
     else:
         queryset = queryset.annotate(estimate=Sum("estimate_point")).order_by(x_axis)
         queryset = queryset.annotate(segment=F(segment)) if segment else queryset
@@ -85,32 +86,30 @@ def build_graph_plot(queryset, x_axis, y_axis, segment=None):
             if segment
             else queryset.values("dimension", "estimate")
         )
-
     result_values = list(queryset)
     grouped_data = {
         str(key): list(items)
         for key, items in groupby(result_values, key=lambda x: x[str("dimension")])
     }
-
     return sort_data(grouped_data, temp_axis)
 
 
-def burndown_plot(queryset, workspace_id, project_id, cycle_id=None, module_id=None):
-    # Total Issues in Cycle or Module
+def burndown_plot(queryset, slug, project_id, cycle_id=None, module_id=None):
+    """
+    Build the burndown plot
+    - cycle_id: The cycle id
+    - module_id: The module id
+    """
     total_issues = queryset.total_issues
-
     if cycle_id:
-        # Get all dates between the two dates
         date_range = [
             queryset.start_date + timedelta(days=x)
             for x in range((queryset.end_date - queryset.start_date).days + 1)
         ]
-
         chart_data = {str(date): 0 for date in date_range}
-
         completed_issues_distribution = (
             Issue.issue_objects.filter(
-                workspace_id=workspace_id,
+                workspace__slug=slug,
                 project_id=project_id,
                 issue_cycle__cycle_id=cycle_id,
             )
@@ -120,19 +119,15 @@ def burndown_plot(queryset, workspace_id, project_id, cycle_id=None, module_id=N
             .values("date", "total_completed")
             .order_by("date")
         )
-
     if module_id:
-        # Get all dates between the two dates
         date_range = [
             queryset.start_date + timedelta(days=x)
             for x in range((queryset.target_date - queryset.start_date).days + 1)
         ]
-
         chart_data = {str(date): 0 for date in date_range}
-
         completed_issues_distribution = (
             Issue.issue_objects.filter(
-                workspace_id=workspace_id,
+                workspace__slug=slug,
                 project_id=project_id,
                 issue_module__module_id=module_id,
             )
@@ -142,7 +137,6 @@ def burndown_plot(queryset, workspace_id, project_id, cycle_id=None, module_id=N
             .values("date", "total_completed")
             .order_by("date")
         )
-
     for date in date_range:
         cumulative_pending_issues = total_issues
         total_completed = 0
@@ -156,5 +150,4 @@ def burndown_plot(queryset, workspace_id, project_id, cycle_id=None, module_id=N
             chart_data[str(date)] = None
         else:
             chart_data[str(date)] = cumulative_pending_issues
-
     return chart_data

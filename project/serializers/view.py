@@ -1,9 +1,9 @@
 from rest_framework import serializers
 
 from app.serializers import ServcyBaseSerializer, ServcyDynamicBaseSerializer
-from common.issue_filters import issue_filters
 from iam.serializers import WorkspaceLiteSerializer
 from project.models import GlobalView, IssueView, IssueViewFavorite
+from project.utils.filters import issue_filters
 
 from .project import ProjectLiteSerializer
 

@@ -2,6 +2,8 @@ from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.utils import timezone
 
 from common.file_field import file_size_validator, upload_path
@@ -62,9 +64,7 @@ class Issue(ProjectBaseModel):
     completed_at = models.DateTimeField(null=True)
     archived_at = models.DateField(null=True)
     is_draft = models.BooleanField(default=False)
-
-    # default objects manager
-    objects = models.Manager()
+    sequence_id = models.IntegerField(default=1, verbose_name="Issue Sequence ID")
 
     class Meta:
         verbose_name = "Issue"
@@ -486,3 +486,13 @@ class IssueVote(ProjectBaseModel):
         verbose_name_plural = "Issue Votes"
         db_table = "issue_vote"
         ordering = ("-created_at",)
+
+
+@receiver(post_save, sender=Issue)
+def create_issue_sequence(sender, instance, created, **kwargs):
+    if created:
+        IssueSequence.objects.create(
+            issue=instance,
+            sequence=instance.sequence_id,
+            project=instance.project,
+        )
