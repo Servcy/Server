@@ -75,7 +75,7 @@ def google(request):
         )
         if user_integration is None:
             return HttpResponse(status=200)
-        IntegrationRepository.update_integraion(
+        IntegrationRepository.update_user_integraion(
             user_integration_id=user_integration["id"],
             meta_data=IntegrationRepository.encrypt_meta_data(
                 {

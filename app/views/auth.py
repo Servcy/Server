@@ -12,7 +12,7 @@ from app.utils.auth import (
     send_authentication_code_phone,
 )
 from common.responses import error_response, success_response
-from iam.serializers.jwt import JWTTokenSerializer
+from iam.serializers import JWTTokenSerializer
 from iam.services.accounts import AccountsService
 
 logger = logging.getLogger(__name__)

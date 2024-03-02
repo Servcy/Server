@@ -1,7 +1,6 @@
 from django.db import models
 
 from app.models import TimeStampedModel
-from integration.models import UserIntegration
 
 
 class Inbox(TimeStampedModel):
@@ -13,11 +12,31 @@ class Inbox(TimeStampedModel):
     cause = models.CharField(max_length=10000, null=True, blank=False, default=None)
     is_body_html = models.BooleanField(default=False)
     user_integration = models.ForeignKey(
-        UserIntegration, on_delete=models.CASCADE, related_name="inbox_items"
+        "integration.UserIntegration",
+        on_delete=models.CASCADE,
+        related_name="inbox_items",
     )
     category = models.CharField(max_length=255, null=True, blank=False, default=None)
     i_am_mentioned = models.BooleanField(default=False)
     attachments = models.JSONField(null=True, blank=False, default=None)
+    issue = models.ForeignKey(
+        "project.Issue",
+        related_name="issue_inbox",
+        on_delete=models.CASCADE,
+        null=True,
+        default=None,
+    )
+    status = models.IntegerField(
+        choices=(
+            (-2, "Pending"),
+            (-1, "Rejected"),
+            (0, "Snoozed"),
+            (1, "Accepted"),
+            (2, "Duplicate"),
+        ),
+        default=-2,
+    )
+    snoozed_till = models.DateTimeField(null=True)
 
     class Meta:
         db_table = "inbox"

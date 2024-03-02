@@ -15,11 +15,15 @@ class CreatorUpdaterModel(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="%(app_label)s_%(class)s_created_by",
+        null=True,
+        default=None,
     )
     updated_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="%(app_label)s_%(class)s_updated_by",
+        null=True,
+        default=None,
     )
 
     class Meta:

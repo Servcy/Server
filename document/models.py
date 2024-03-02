@@ -2,20 +2,27 @@ from django.conf import settings
 from django.db import models
 
 from app.models import TimeStampedModel
-from integration.models import UserIntegration
+from common.file_field import file_size_validator, upload_path
 
 
 class Document(TimeStampedModel):
-    file = models.FileField(upload_to="Documents", null=True, blank=False, default=None)
-    name = models.CharField(max_length=100, null=False, blank=False)
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=False, blank=False
+    name = models.CharField(max_length=100)
+    file = models.FileField(
+        upload_to=upload_path,
+        validators=[file_size_validator],
+        null=True,
+        default=None,
     )
-    link = models.CharField(max_length=5000, null=True, blank=False, default=None)
-    user_integration = models.ForeignKey(
-        UserIntegration, null=True, blank=False, on_delete=models.CASCADE, default=None
+    link = models.URLField(max_length=200, null=True, default=None)
+    attributes = models.JSONField(default=dict)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    workspace = models.ForeignKey(
+        "iam.Workspace",
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="assets",
+        default=None,
     )
-    uid = models.CharField(max_length=255, unique=True, db_index=True)
 
     class Meta:
         db_table = "document"

@@ -21,6 +21,7 @@ region =
 key = 
 endpoint = 
 verification_template_id = 
+workspace_invitation_template_id = 
 new_signup_template_id =
 from_email = 
 

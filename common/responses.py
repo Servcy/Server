@@ -28,7 +28,7 @@ def error_response(
 ):
     if logger:
         logger.exception(
-            logger_message,
+            logger_message if logger_message else error_message,
             extra={
                 "traceback": traceback.format_exc(),
             },

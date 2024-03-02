@@ -1,0 +1,154 @@
+import uuid
+
+from django.conf import settings
+from django.db import models
+
+from common.html_processor import strip_tags
+
+from .base import ProjectBaseModel
+
+
+class Page(ProjectBaseModel):
+    name = models.CharField(max_length=255)
+    description = models.JSONField(default=dict, blank=True)
+    description_html = models.TextField(blank=True, default="<p></p>")
+    description_stripped = models.TextField(blank=True, null=True)
+    owned_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="pages",
+    )
+    access = models.PositiveSmallIntegerField(
+        choices=((0, "Public"), (1, "Private")), default=0
+    )
+    color = models.CharField(max_length=255, blank=True)
+    labels = models.ManyToManyField(
+        "project.Label", blank=True, related_name="pages", through="project.PageLabel"
+    )
+    parent = models.ForeignKey(
+        "self",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="child_page",
+    )
+    archived_at = models.DateField(null=True)
+    is_locked = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name = "Page"
+        verbose_name_plural = "Pages"
+        db_table = "page"
+        ordering = ("-created_at",)
+
+
+class PageLog(ProjectBaseModel):
+    TYPE_CHOICES = (
+        ("to_do", "To Do"),
+        ("issue", "issue"),
+        ("image", "Image"),
+        ("video", "Video"),
+        ("file", "File"),
+        ("link", "Link"),
+        ("cycle", "Cycle"),
+        ("module", "Module"),
+        ("back_link", "Back Link"),
+        ("forward_link", "Forward Link"),
+        ("page_mention", "Page Mention"),
+        ("user_mention", "User Mention"),
+    )
+    transaction = models.UUIDField(default=uuid.uuid4)
+    page = models.ForeignKey(Page, related_name="page_log", on_delete=models.CASCADE)
+    entity_identifier = models.UUIDField(null=True)
+    entity_name = models.CharField(
+        max_length=30,
+        choices=TYPE_CHOICES,
+        verbose_name="Transaction Type",
+    )
+
+    class Meta:
+        unique_together = ["page", "transaction"]
+        verbose_name = "Page Log"
+        verbose_name_plural = "Page Logs"
+        db_table = "page_log"
+        ordering = ("-created_at",)
+
+
+class PageBlock(ProjectBaseModel):
+    page = models.ForeignKey(
+        "project.Page", on_delete=models.CASCADE, related_name="blocks"
+    )
+    name = models.CharField(max_length=255)
+    description = models.JSONField(default=dict, blank=True)
+    description_html = models.TextField(blank=True, default="<p></p>")
+    description_stripped = models.TextField(blank=True, null=True)
+    issue = models.ForeignKey(
+        "project.Issue", on_delete=models.SET_NULL, related_name="blocks", null=True
+    )
+    completed_at = models.DateTimeField(null=True)
+    sort_order = models.FloatField(default=65535)
+    sync = models.BooleanField(default=True)
+
+    def save(self, *args, **kwargs):
+        if self._state.adding:
+            largest_sort_order = PageBlock.objects.filter(
+                project=self.project, page=self.page
+            ).aggregate(largest=models.Max("sort_order"))["largest"]
+            if largest_sort_order is not None:
+                self.sort_order = largest_sort_order + 10000
+        self.description_stripped = (
+            None
+            if (self.description_html == "" or self.description_html is None)
+            else strip_tags(self.description_html)
+        )
+        if self.completed_at and self.issue:
+            try:
+                from project.models import Issue, State
+
+                completed_state = State.objects.filter(
+                    group="completed", project=self.project
+                ).first()
+                if completed_state is not None:
+                    Issue.objects.update(pk=self.issue_id, state=completed_state)
+            except ImportError:
+                pass
+        super(PageBlock, self).save(*args, **kwargs)
+
+    class Meta:
+        verbose_name = "Page Block"
+        verbose_name_plural = "Page Blocks"
+        db_table = "page_block"
+        ordering = ("-created_at",)
+
+
+class PageFavorite(ProjectBaseModel):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="page_favorites",
+    )
+    page = models.ForeignKey(
+        "project.Page", on_delete=models.CASCADE, related_name="page_favorites"
+    )
+
+    class Meta:
+        unique_together = ["page", "user"]
+        verbose_name = "Page Favorite"
+        verbose_name_plural = "Page Favorites"
+        db_table = "page_favorite"
+        ordering = ("-created_at",)
+
+
+class PageLabel(ProjectBaseModel):
+    label = models.ForeignKey(
+        "project.Label", on_delete=models.CASCADE, related_name="page_labels"
+    )
+    page = models.ForeignKey(
+        "project.Page", on_delete=models.CASCADE, related_name="page_labels"
+    )
+
+    class Meta:
+        verbose_name = "Page Label"
+        verbose_name_plural = "Page Labels"
+        db_table = "page_label"
+        ordering = ("-created_at",)

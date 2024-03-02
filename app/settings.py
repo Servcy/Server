@@ -40,6 +40,8 @@ LOCAL_APPS = [
     "inbox",
     "document",
     "tag",
+    "project",
+    "dashboard",
 ]
 
 OTHER_APPS = ["app", "webhook", "common"]
@@ -235,6 +237,9 @@ SENDGRID_API_KEY = config.get("sendgrid", "key")
 SEND_EMAIL_ENDPOINT = config.get("sendgrid", "endpoint")
 SENDGRID_VERIFICATION_TEMPLATE_ID = config.get("sendgrid", "verification_template_id")
 SENDGRID_NEW_SIGNUP_TEMPLATE_ID = config.get("sendgrid", "new_signup_template_id")
+SENDGRID_WORKSPACE_INVITATION_TEMPLATE_ID = config.get(
+    "sendgrid", "workspace_invitation_template_id"
+)
 SENDGRID_FROM_EMAIL = config.get("sendgrid", "from_email")
 
 # Twilio
