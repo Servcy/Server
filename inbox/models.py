@@ -19,9 +19,13 @@ class Inbox(TimeStampedModel):
     category = models.CharField(max_length=255, null=True, blank=False, default=None)
     i_am_mentioned = models.BooleanField(default=False)
     attachments = models.JSONField(null=True, blank=False, default=None)
-    # issue = models.ForeignKey(
-    #     "project.Issue", related_name="issue_inbox", on_delete=models.CASCADE
-    # )
+    issue = models.ForeignKey(
+        "project.Issue",
+        related_name="issue_inbox",
+        on_delete=models.CASCADE,
+        null=True,
+        default=None,
+    )
     status = models.IntegerField(
         choices=(
             (-2, "Pending"),
