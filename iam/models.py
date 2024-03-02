@@ -122,5 +122,5 @@ class WorkspaceUserProperties(TimeStampedModel):
         unique_together = ["workspace", "user"]
         verbose_name = "Workspace User Property"
         verbose_name_plural = "Workspace User Property"
-        db_table = "Workspace_user_property"
+        db_table = "workspace_user_property"
         ordering = ("-created_at",)
