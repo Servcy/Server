@@ -7,10 +7,8 @@ from django.db import IntegrityError, transaction
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-from rest_framework import status
 
 from common.exceptions import IntegrationAccessRevokedException
-from common.responses import error_response
 from inbox.repository import InboxRepository
 from integration.repository import IntegrationRepository
 from integration.services.microsoft import MicrosoftService
@@ -40,12 +38,7 @@ def microsoft(request):
             first=True,
         )
         if user_integration is None:
-            logger.warning(f"No integration found for outlook: {account_id}")
-            return error_response(
-                logger=logger,
-                logger_message="No integration found for email.",
-                status=status.HTTP_404_NOT_FOUND,
-            )
+            return HttpResponse(status=200)
         service = MicrosoftService(
             refresh_token=user_integration["meta_data"]["token"]["refresh_token"]
         )
