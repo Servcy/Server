@@ -28,10 +28,99 @@ class User(AbstractBaseUser, PermissionsMixin, TimeStampedModel):
     USERNAME_FIELD = "username"
     objects = UserAccountManager()
 
-    def __str__(self):
-        return self.email
-
     class Meta:
         db_table = "user"
         verbose_name = "User"
         verbose_name_plural = "Users"
+
+
+class Workspace(TimeStampedModel):
+    name = models.CharField(max_length=150, verbose_name="Workspace Name")
+    logo = models.FileField(upload_to="WorkspaceLogo", null=True, default=None)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="owner")
+
+    class Meta:
+        db_table = "workspace"
+        verbose_name = "Workspace"
+        verbose_name_plural = "Workspaces"
+        unique_together = ("name", "owner")
+
+
+class WorkspaceInvite(TimeStampedModel):
+    email = models.EmailField()
+    workspace = models.ForeignKey(Workspace, on_delete=models.CASCADE)
+    message = models.TextField(null=True)
+    token = models.CharField(max_length=255)
+    invited_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    is_accepted = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = "workspace_invite"
+        verbose_name = "Workspace Invite"
+        verbose_name_plural = "Workspace Invites"
+
+
+class WorkspaceMember(TimeStampedModel):
+    ROLE_CHOICES = (
+        (3, "Owner"),
+        (2, "Admin"),
+        (1, "Member"),
+        (0, "Guest"),
+    )
+    member = models.ForeignKey(User, on_delete=models.CASCADE)
+    workspace = models.ForeignKey(Workspace, on_delete=models.CASCADE)
+    invite = models.ForeignKey(WorkspaceInvite, on_delete=models.CASCADE)
+    role = models.PositiveSmallIntegerField(choices=ROLE_CHOICES, default=1)
+    company_role = models.TextField(null=True, blank=True)
+    view_props = models.JSONField(default=dict)
+    default_props = models.JSONField(default=dict)
+    issue_props = models.JSONField(default=dict)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        db_table = "workspace_member"
+        verbose_name = "Workspace Member"
+        verbose_name_plural = "Workspace Members"
+
+
+class WorkspaceTheme(TimeStampedModel):
+    workspace = models.ForeignKey(
+        Workspace, on_delete=models.CASCADE, related_name="themes"
+    )
+    name = models.CharField(max_length=300)
+    actor = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="themes",
+    )
+    colors = models.JSONField(default=dict)
+
+    class Meta:
+        unique_together = ["workspace", "name"]
+        verbose_name = "Workspace Theme"
+        verbose_name_plural = "Workspace Themes"
+        db_table = "workspace_theme"
+        ordering = ("-created_at",)
+
+
+class WorkspaceUserProperties(TimeStampedModel):
+    workspace = models.ForeignKey(
+        Workspace,
+        on_delete=models.CASCADE,
+        related_name="workspace_user_properties",
+    )
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="workspace_user_properties",
+    )
+    filters = models.JSONField(default=dict)
+    display_filters = models.JSONField(default=dict)
+    display_properties = models.JSONField(default=dict)
+
+    class Meta:
+        unique_together = ["workspace", "user"]
+        verbose_name = "Workspace User Property"
+        verbose_name_plural = "Workspace User Property"
+        db_table = "Workspace_user_property"
+        ordering = ("-created_at",)

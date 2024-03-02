@@ -40,6 +40,8 @@ LOCAL_APPS = [
     "inbox",
     "document",
     "tag",
+    "project",
+    "dashboard",
 ]
 
 OTHER_APPS = ["app", "webhook", "common"]
