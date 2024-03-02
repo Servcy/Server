@@ -3,6 +3,7 @@ from django.core.validators import RegexValidator
 from django.db import models
 
 from app.models import TimeStampedModel
+from common.utils.file_field import file_size_validator, upload_path
 from iam.managers import UserAccountManager
 
 
@@ -17,7 +18,9 @@ class User(AbstractBaseUser, PermissionsMixin, TimeStampedModel):
     )
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=False)
-    profile_image = models.FileField(upload_to="ProfileImages", null=True)
+    profile_image = models.FileField(
+        upload_to=upload_path, null=True, default=None, validators=[file_size_validator]
+    )
     invited_by = models.ForeignKey(
         "self",
         default=None,
@@ -36,7 +39,9 @@ class User(AbstractBaseUser, PermissionsMixin, TimeStampedModel):
 
 class Workspace(TimeStampedModel):
     name = models.CharField(max_length=150, verbose_name="Workspace Name")
-    logo = models.FileField(upload_to="WorkspaceLogo", null=True, default=None)
+    logo = models.FileField(
+        upload_to=upload_path, null=True, default=None, validators=[file_size_validator]
+    )
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="owner")
 
     class Meta:

@@ -242,7 +242,10 @@ class IssueActivity(ProjectBaseModel):
     new_value = models.TextField(verbose_name="New Value", blank=True, null=True)
     comment = models.TextField(verbose_name="Comment", blank=True)
     attachments = ArrayField(
-        models.FileField(upload_to="IssueActivityAttachment"),
+        models.FileField(
+            upload_to=upload_path,
+            validators=[file_size_validator],
+        ),
         size=10,
         blank=True,
         default=list,
@@ -275,7 +278,10 @@ class IssueComment(ProjectBaseModel):
     comment_json = models.JSONField(blank=True, default=dict)
     comment_html = models.TextField(blank=True, default="<p></p>")
     attachments = ArrayField(
-        models.FileField(upload_to="IssueCommentAttachment"),
+        models.FileField(
+            upload_to=upload_path,
+            validators=[file_size_validator],
+        ),
         size=10,
         default=list,
         blank=True,

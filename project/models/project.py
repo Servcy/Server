@@ -3,6 +3,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from app.models import CreatorUpdaterModel, TimeStampedModel
+from common.utils.file_field import file_size_validator, upload_path
 from project.models.base import ProjectBaseModel
 
 
@@ -48,7 +49,12 @@ class Project(TimeStampedModel, CreatorUpdaterModel):
     access = models.PositiveSmallIntegerField(
         default=1, choices=((0, "Private"), (1, "Public"))
     )
-    cover_image = models.FileField(upload_to="ProjectCoverImage", null=True, blank=True)
+    cover_image = models.FileField(
+        upload_to=upload_path,
+        default=None,
+        null=True,
+        validators=[file_size_validator],
+    )
     estimate = models.ForeignKey(
         "project.Estimate",
         on_delete=models.SET_NULL,
