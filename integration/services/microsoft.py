@@ -5,8 +5,8 @@ import msal
 import requests
 from django.conf import settings
 
+from common.datetime import future_date_in_iso_formate
 from common.exceptions import ExternalIntegrationException
-from common.utils.datetime import future_date_in_iso_formate
 from integration.repository import IntegrationRepository
 
 logger = logging.getLogger(__name__)
