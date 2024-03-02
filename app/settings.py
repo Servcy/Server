@@ -117,10 +117,14 @@ CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOW_ALL_ORIGINS = False
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "https://web.servcy.com",
-]
+if DEBUG:
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost:3000",
+    ]
+else:
+    CORS_ALLOWED_ORIGINS = [
+        "https://web.servcy.com",
+    ]
 
 WSGI_APPLICATION = "app.wsgi.application"
 
