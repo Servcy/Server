@@ -137,7 +137,10 @@ class JiraService(BaseService):
         """
         existing_webhooks = self.fetch_webhooks()
         for webhook in existing_webhooks:
-            if webhook["url"] == f"{settings.BACKEND_URL}/webhook/jira":
+            expiration_date = datetime.datetime.strptime(
+                webhook["expirationDate"], "%Y-%m-%dT%H:%M:%S.%f%z"
+            )
+            if expiration_date < timezone.now():
                 return
         response = requests.post(
             f"{self._jira_api_url}/ex/jira/{self.cloud_id}/rest/api/3/webhook",
