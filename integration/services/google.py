@@ -178,7 +178,7 @@ class GoogleService(BaseService):
         watcher_expiration = meta_data.get("watcher_expiration")
         if watcher_expiration and int(watcher_expiration) - 86400 < time.time():
             self._add_watcher_to_inbox_pub_sub(self._user_info["email"])
-        IntegrationRepository.update_integraion(
+        IntegrationRepository.update_user_integraion(
             user_integration_id=kwargs["user_integration_id"],
             meta_data=IntegrationRepository.encrypt_meta_data(
                 {

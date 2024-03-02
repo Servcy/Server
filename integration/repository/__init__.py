@@ -90,7 +90,7 @@ class IntegrationRepository:
         return user_integration
 
     @staticmethod
-    def update_integraion(user_integration_id: int, **kwargs):
+    def update_user_integraion(user_integration_id: int, **kwargs):
         UserIntegration.objects.filter(id=user_integration_id, is_revoked=False).update(
             updated_at=timezone.now(),
             **kwargs,

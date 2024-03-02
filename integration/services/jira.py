@@ -85,7 +85,7 @@ class JiraService(BaseService):
         self._user_info = meta_data["user_info"]
         self._token = self.refresh_token()
         self.extend_webhook()
-        IntegrationRepository.update_integraion(
+        IntegrationRepository.update_user_integraion(
             user_integration_id=kwargs["user_integration_id"],
             meta_data=IntegrationRepository.encrypt_meta_data(
                 {

@@ -98,7 +98,7 @@ class SlackService(BaseService):
         """
         self._token = meta_data["token"]
         configuration = self._fetch_team_members()
-        IntegrationRepository.update_integraion(
+        IntegrationRepository.update_user_integraion(
             kwargs.get("user_integration_id"), configuration=configuration
         )
         return True

@@ -115,7 +115,7 @@ class FigmaService(BaseService):
         - bool: True if integration is active, False otherwise.
         """
         self._refresh_token(meta_data["token"]["refresh_token"])
-        IntegrationRepository.update_integraion(
+        IntegrationRepository.update_user_integraion(
             user_integration_id=kwargs["user_integration_id"],
             meta_data=IntegrationRepository.encrypt_meta_data(
                 {
