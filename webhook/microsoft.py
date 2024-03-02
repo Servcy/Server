@@ -40,12 +40,7 @@ def microsoft(request):
             first=True,
         )
         if user_integration is None:
-            logger.warning(f"No integration found for outlook: {account_id}")
-            return error_response(
-                logger=logger,
-                logger_message="No integration found for email.",
-                status=status.HTTP_404_NOT_FOUND,
-            )
+            return HttpResponse(status=200)
         service = MicrosoftService(
             refresh_token=user_integration["meta_data"]["token"]["refresh_token"]
         )
