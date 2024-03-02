@@ -17,6 +17,8 @@ class User(AbstractBaseUser, PermissionsMixin, TimeStampedModel):
         validators=[phone_regex], max_length=17, null=True, default=None
     )
     is_staff = models.BooleanField(default=False)
+    first_name = models.CharField(max_length=255, blank=True)
+    last_name = models.CharField(max_length=255, blank=True)
     is_active = models.BooleanField(default=False)
     profile_image = models.FileField(
         upload_to=upload_path, null=True, default=None, validators=[file_size_validator]
@@ -56,6 +58,15 @@ class WorkspaceInvite(TimeStampedModel):
     workspace = models.ForeignKey(Workspace, on_delete=models.CASCADE)
     message = models.TextField(null=True)
     token = models.CharField(max_length=255)
+    role = models.PositiveSmallIntegerField(
+        choices=(
+            (3, "Owner"),
+            (2, "Admin"),
+            (1, "Member"),
+            (0, "Guest"),
+        ),
+        default=10,
+    )
     invited_by = models.ForeignKey(User, on_delete=models.CASCADE)
     is_accepted = models.BooleanField(default=False)
 
@@ -66,16 +77,18 @@ class WorkspaceInvite(TimeStampedModel):
 
 
 class WorkspaceMember(TimeStampedModel):
-    ROLE_CHOICES = (
-        (3, "Owner"),
-        (2, "Admin"),
-        (1, "Member"),
-        (0, "Guest"),
-    )
     member = models.ForeignKey(User, on_delete=models.CASCADE)
     workspace = models.ForeignKey(Workspace, on_delete=models.CASCADE)
     invite = models.ForeignKey(WorkspaceInvite, on_delete=models.CASCADE)
-    role = models.PositiveSmallIntegerField(choices=ROLE_CHOICES, default=1)
+    role = models.PositiveSmallIntegerField(
+        choices=(
+            (3, "Owner"),
+            (2, "Admin"),
+            (1, "Member"),
+            (0, "Guest"),
+        ),
+        default=1,
+    )
     company_role = models.TextField(null=True, blank=True)
     view_props = models.JSONField(default=dict)
     default_props = models.JSONField(default=dict)

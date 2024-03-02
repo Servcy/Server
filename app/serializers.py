@@ -10,6 +10,7 @@ from django.db.models import (
     SmallIntegerField,
     TextField,
 )
+from rest_framework import serializers
 from serpy import BoolField, FloatField, IntField, Serializer, StrField
 from serpy.serializer import SerializerBase, SerializerMeta
 
@@ -113,3 +114,171 @@ class ServcyMeta(SerializerBase, SerializerMeta):
 
 class ServcyReadSerializer(Serializer, metaclass=ServcyMeta):
     pass
+
+
+class ServcyBaseSerializer(serializers.ModelSerializer):
+    id = serializers.PrimaryKeyRelatedField(read_only=True)
+
+
+class ServcyDynamicBaseSerializer(ServcyBaseSerializer):
+    def __init__(self, *args, **kwargs):
+        """
+        If 'fields' is provided in the arguments, remove it and store it separately.
+        This is done so as not to pass this custom argument up to the superclass.
+        """
+        fields = kwargs.pop("fields", [])
+        self.expand = kwargs.pop("expand", []) or []
+        fields = self.expand
+        super().__init__(*args, **kwargs)
+        if fields is not None:
+            self.fields = self._filter_fields(fields)
+
+    def _filter_fields(self, fields):
+        """
+        Adjust the serializer's fields based on the provided 'fields' list.
+
+        :param fields: List or dictionary specifying which fields to include in the serializer.
+        :return: The updated fields for the serializer.
+        """
+        for field_name in fields:
+            if isinstance(field_name, dict):
+                for key, value in field_name.items():
+                    if isinstance(value, list):
+                        self._filter_fields(self.fields[key], value)
+
+        # Create a list to store allowed fields.
+        allowed = []
+        for item in fields:
+            # If the item is a string, it directly represents a field's name.
+            if isinstance(item, str):
+                allowed.append(item)
+            # If the item is a dictionary, it represents a nested field.
+            # Add the key of this dictionary to the allowed list.
+            elif isinstance(item, dict):
+                allowed.append(list(item.keys())[0])
+
+        for field in allowed:
+            if field not in self.fields:
+                from . import (
+                    CycleIssueSerializer,
+                    InboxIssueLiteSerializer,
+                    IssueAttachmentLiteSerializer,
+                    IssueLinkLiteSerializer,
+                    IssueLiteSerializer,
+                    IssueReactionLiteSerializer,
+                    IssueRelationSerializer,
+                    IssueSerializer,
+                    LabelSerializer,
+                    ProjectLiteSerializer,
+                    StateLiteSerializer,
+                    UserLiteSerializer,
+                    WorkspaceLiteSerializer,
+                )
+
+                # Expansion mapper
+                expansion = {
+                    "user": UserLiteSerializer,
+                    "workspace": WorkspaceLiteSerializer,
+                    "project": ProjectLiteSerializer,
+                    "default_assignee": UserLiteSerializer,
+                    "project_lead": UserLiteSerializer,
+                    "state": StateLiteSerializer,
+                    "created_by": UserLiteSerializer,
+                    "issue": IssueSerializer,
+                    "actor": UserLiteSerializer,
+                    "owned_by": UserLiteSerializer,
+                    "members": UserLiteSerializer,
+                    "assignees": UserLiteSerializer,
+                    "labels": LabelSerializer,
+                    "issue_cycle": CycleIssueSerializer,
+                    "parent": IssueLiteSerializer,
+                    "issue_relation": IssueRelationSerializer,
+                    "issue_inbox": InboxIssueLiteSerializer,
+                    "issue_reactions": IssueReactionLiteSerializer,
+                    "issue_attachment": IssueAttachmentLiteSerializer,
+                    "issue_link": IssueLinkLiteSerializer,
+                    "sub_issues": IssueLiteSerializer,
+                }
+
+                self.fields[field] = expansion[field](
+                    many=(
+                        True
+                        if field
+                        in [
+                            "members",
+                            "assignees",
+                            "labels",
+                            "issue_cycle",
+                            "issue_relation",
+                            "issue_inbox",
+                            "issue_reactions",
+                            "issue_attachment",
+                            "issue_link",
+                            "sub_issues",
+                        ]
+                        else False
+                    )
+                )
+
+        return self.fields
+
+    def to_representation(self, instance):
+        """
+        Overriding the default to_representation method to handle the expansion of fields.
+        """
+        response = super().to_representation(instance)
+        if self.expand:
+            for expand in self.expand:
+                if expand in self.fields:
+                    from iam.serializers import (
+                        UserLiteSerializer,
+                        WorkspaceLiteSerializer,
+                    )
+                    from project.serializers import (
+                        CycleIssueSerializer,
+                        IssueAttachmentLiteSerializer,
+                        IssueLinkLiteSerializer,
+                        IssueLiteSerializer,
+                        IssueReactionLiteSerializer,
+                        IssueRelationSerializer,
+                        IssueSerializer,
+                        LabelSerializer,
+                        ProjectLiteSerializer,
+                        StateLiteSerializer,
+                    )
+
+                    expansion = {
+                        "user": UserLiteSerializer,
+                        "workspace": WorkspaceLiteSerializer,
+                        "project": ProjectLiteSerializer,
+                        "default_assignee": UserLiteSerializer,
+                        "project_lead": UserLiteSerializer,
+                        "state": StateLiteSerializer,
+                        "created_by": UserLiteSerializer,
+                        "issue": IssueSerializer,
+                        "actor": UserLiteSerializer,
+                        "owned_by": UserLiteSerializer,
+                        "members": UserLiteSerializer,
+                        "assignees": UserLiteSerializer,
+                        "labels": LabelSerializer,
+                        "issue_cycle": CycleIssueSerializer,
+                        "parent": IssueLiteSerializer,
+                        "issue_relation": IssueRelationSerializer,
+                        "issue_reactions": IssueReactionLiteSerializer,
+                        "issue_attachment": IssueAttachmentLiteSerializer,
+                        "issue_link": IssueLinkLiteSerializer,
+                        "sub_issues": IssueLiteSerializer,
+                    }
+                    if expand in expansion:
+                        if isinstance(response.get(expand), list):
+                            exp_serializer = expansion[expand](
+                                getattr(instance, expand), many=True
+                            )
+                        else:
+                            exp_serializer = expansion[expand](
+                                getattr(instance, expand)
+                            )
+                        response[expand] = exp_serializer.data
+                    else:
+                        response[expand] = getattr(instance, f"{expand}_id", None)
+        return response
