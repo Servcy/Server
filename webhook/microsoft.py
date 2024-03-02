@@ -7,10 +7,8 @@ from django.db import IntegrityError, transaction
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-from rest_framework import status
 
 from common.exceptions import IntegrationAccessRevokedException
-from common.responses import error_response
 from inbox.repository import InboxRepository
 from integration.repository import IntegrationRepository
 from integration.services.microsoft import MicrosoftService
