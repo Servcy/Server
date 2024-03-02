@@ -480,7 +480,7 @@ def track_archive_at(
             )
         else:
             if requested_data.get("automation"):
-                comment = "Plane has archived the issue"
+                comment = "Servcy has archived the issue"
                 new_value = "archive"
             else:
                 comment = "Actor has archived the issue"

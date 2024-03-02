@@ -17,26 +17,26 @@ from django.db.models import (
 from django.db.models.functions import Coalesce
 from django.utils.decorators import method_decorator
 from django.views.decorators.gzip import gzip_page
-from plane.db.models import (
-    Issue,
-    IssueAttachment,
-    IssueLink,
-    IssueView,
-    IssueViewFavorite,
-    Workspace,
-)
-from plane.utils.issue_filters import issue_filters
 from rest_framework import status
 
 # Third party imports
 from rest_framework.response import Response
 
-from project.permissions import ProjectEntityPermission, WorkspaceEntityPermission
+from common.permissions import ProjectEntityPermission, WorkspaceEntityPermission
+from iam.models import Workspace
+from project.models import (
+    Issue,
+    IssueAttachment,
+    IssueLink,
+    IssueView,
+    IssueViewFavorite,
+)
 from project.serializers import (
     IssueSerializer,
     IssueViewFavoriteSerializer,
     IssueViewSerializer,
 )
+from project.utils.filters import issue_filters
 
 # Module imports
 from . import BaseViewSet
