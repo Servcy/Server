@@ -1,4 +1,3 @@
-# Django imports
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.contrib.postgres.fields import ArrayField
 from django.db.models import (
@@ -18,11 +17,10 @@ from django.db.models.functions import Coalesce
 from django.utils.decorators import method_decorator
 from django.views.decorators.gzip import gzip_page
 from rest_framework import status
-
-# Third party imports
 from rest_framework.response import Response
 
 from common.permissions import ProjectEntityPermission, WorkspaceEntityPermission
+from common.views import BaseViewSet
 from iam.models import Workspace
 from project.models import (
     Issue,
@@ -37,9 +35,6 @@ from project.serializers import (
     IssueViewSerializer,
 )
 from project.utils.filters import issue_filters
-
-# Module imports
-from . import BaseViewSet
 
 
 class GlobalViewViewSet(BaseViewSet):

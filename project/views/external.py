@@ -8,8 +8,9 @@ from rest_framework.response import Response
 from common.permissions import ProjectEntityPermission
 from common.views import BaseAPIView
 from iam.models import Workspace
-from project.models import Project, Workspace
-from project.serializers import ProjectLiteSerializer, WorkspaceLiteSerializer
+from iam.serializers import WorkspaceLiteSerializer
+from project.models import Project
+from project.serializers import ProjectLiteSerializer
 
 
 class GPTIntegrationEndpoint(BaseAPIView):
