@@ -14,7 +14,7 @@ class Document(TimeStampedModel):
         default=None,
     )
     link = models.URLField(max_length=200, null=True, default=None)
-    attributes = models.JSONField(default=dict)
+    meta_data = models.JSONField(default=dict)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     workspace = models.ForeignKey(
         "iam.Workspace",

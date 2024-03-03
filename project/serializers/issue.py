@@ -468,7 +468,7 @@ class IssueAttachmentLiteSerializer(ServcyDynamicBaseSerializer):
         fields = [
             "id",
             "asset",
-            "attributes",
+            "meta_data",
             "issue_id",
             "updated_at",
             "updated_by_id",
