@@ -39,7 +39,6 @@ LOCAL_APPS = [
     "integration",
     "inbox",
     "document",
-    "tag",
     "project",
     "dashboard",
 ]
