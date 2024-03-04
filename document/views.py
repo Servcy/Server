@@ -15,6 +15,10 @@ logger = logging.getLogger(__name__)
 
 
 class DocumentViewSet(ModelViewSet):
+    """
+    DocumentViewSet allows to perform CRUD operations on Document model
+    """
+
     serializer_class = DocumentSerializer
     queryset = DocumentSerializer.Meta.model.objects.all()
     ordering_fields = ["name"]

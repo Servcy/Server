@@ -38,6 +38,10 @@ from project.utils.filters import issue_filters
 
 
 class DashboardEndpoint(BaseAPIView):
+    """
+    DashboardEndpoint allows to perform CRUD operations on Dashboard model
+    """
+
     def create(self, request, **kwargs):
         serializer = DashboardSerializer(data=request.data)
         if serializer.is_valid():
@@ -172,6 +176,10 @@ class DashboardEndpoint(BaseAPIView):
 
 
 class WidgetsEndpoint(BaseAPIView):
+    """
+    WidgetsEndpoint allows to get the widgets for the workspace
+    """
+
     def patch(self, request, dashboard_id, widget_id):
         dashboard_widget = DashboardWidget.objects.filter(
             widget_id=widget_id,
@@ -189,6 +197,10 @@ class WidgetsEndpoint(BaseAPIView):
 
 
 class AnalyticsEndpoint(BaseAPIView):
+    """
+    AnalyticsEndpoint allows to get the analytics for the workspace
+    """
+
     permission_classes = [
         WorkSpaceAdminPermission,
     ]
@@ -348,6 +360,10 @@ class AnalyticsEndpoint(BaseAPIView):
 
 
 class AnalyticViewViewset(BaseViewSet):
+    """
+    AnalyticViewViewset allows to perform CRUD operations on Analytic model
+    """
+
     permission_classes = [
         WorkSpaceAdminPermission,
     ]
@@ -365,6 +381,10 @@ class AnalyticViewViewset(BaseViewSet):
 
 
 class SavedAnalyticEndpoint(BaseAPIView):
+    """
+    Get the saved analytic details
+    """
+
     permission_classes = [
         WorkSpaceAdminPermission,
     ]
@@ -396,6 +416,10 @@ class SavedAnalyticEndpoint(BaseAPIView):
 
 
 class DefaultAnalyticsEndpoint(BaseAPIView):
+    """
+    Get the default analytics for the workspace
+    """
+
     permission_classes = [
         WorkSpaceAdminPermission,
     ]
