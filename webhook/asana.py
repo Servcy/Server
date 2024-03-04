@@ -25,6 +25,12 @@ logger = logging.getLogger(__name__)
 @csrf_exempt
 @require_POST
 def asana(request, user_integration_id):
+    """
+    Asana webhook endpoint:
+    - Receives a request from Asana
+    - Validates the request
+    - Saves the request to the inbox
+    """
     try:
         body = json.loads(request.body)
         headers = request.headers

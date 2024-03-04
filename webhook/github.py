@@ -58,6 +58,12 @@ def verify_signature(payload_body, signature_header):
 @csrf_exempt
 @require_POST
 def github(request):
+    """
+    Github webhook endpoint:
+    - Receives a request from Github
+    - Validates the request
+    - Saves the request to the inbox
+    """
     try:
         payload = json.loads(request.body)
         event = request.headers.get("X-GitHub-Event", "ping")

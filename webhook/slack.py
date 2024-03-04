@@ -114,6 +114,12 @@ EVENT_MAP = {
 @csrf_exempt
 @require_POST
 def slack(request):
+    """
+    Slack webhook:
+    - Receives a request from Slack
+    - Validates the request
+    - Saves the request to the inbox
+    """
     try:
         body = json.loads(request.body)
         headers = request.headers

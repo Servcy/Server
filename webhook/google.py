@@ -26,6 +26,12 @@ logger = logging.getLogger(__name__)
 @csrf_exempt
 @require_POST
 def google(request):
+    """
+    Google webhook endpoint:
+    - Receives a request from Google
+    - Validates the request
+    - Saves the request to the inbox
+    """
     try:
         authorization = request.headers.get("Authorization", "")
         authorization_token = authorization.split("Bearer ")[-1]

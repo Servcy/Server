@@ -19,6 +19,12 @@ logger = logging.getLogger(__name__)
 @csrf_exempt
 @require_POST
 def microsoft(request):
+    """
+    Microsoft webhook endpoint:
+    - Receives a request from Microsoft
+    - Validates the request
+    - Saves the request to the inbox
+    """
     try:
         validation_token = request.GET.get("validationToken", "")
         if validation_token:
