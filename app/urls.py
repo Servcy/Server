@@ -14,4 +14,5 @@ urlpatterns = [
     path("document/", include("document.urls")),
     path("dashboard/", include("dashboard.urls")),
     path("project/", include("project.urls")),
+    path("notification/", include("notification.urls")),
 ]
