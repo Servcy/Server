@@ -7,7 +7,6 @@ from iam.models import (
     Team,
     TeamMember,
     User,
-    UserNotificationPreference,
     Workspace,
     WorkspaceMember,
     WorkspaceMemberInvite,
@@ -197,12 +196,6 @@ class TeamSerializer(ServcyBaseSerializer):
             TeamMember.objects.bulk_create(team_members, batch_size=10)
             return super().update(instance, validated_data)
         return super().update(instance, validated_data)
-
-
-class UserNotificationPreferenceSerializer(ServcyBaseSerializer):
-    class Meta:
-        model = UserNotificationPreference
-        fields = "__all__"
 
 
 class UserSerializer(ServcyBaseSerializer):

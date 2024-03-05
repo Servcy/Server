@@ -230,34 +230,3 @@ class TeamMember(TimeStampedModel, CreatorUpdaterModel):
         verbose_name_plural = "Team Members"
         db_table = "team_member"
         ordering = ("-created_at",)
-
-
-class UserNotificationPreference(TimeStampedModel, CreatorUpdaterModel):
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name="notification_preferences",
-    )
-    workspace = models.ForeignKey(
-        "iam.Workspace",
-        on_delete=models.CASCADE,
-        related_name="workspace_notification_preferences",
-        null=True,
-    )
-    project = models.ForeignKey(
-        "project.Project",
-        on_delete=models.CASCADE,
-        related_name="project_notification_preferences",
-        null=True,
-    )
-    property_change = models.BooleanField(default=True)
-    state_change = models.BooleanField(default=True)
-    comment = models.BooleanField(default=True)
-    mention = models.BooleanField(default=True)
-    issue_completed = models.BooleanField(default=True)
-
-    class Meta:
-        verbose_name = "UserNotificationPreference"
-        verbose_name_plural = "UserNotificationPreferences"
-        db_table = "user_notification_preference"
-        ordering = ("-created_at",)

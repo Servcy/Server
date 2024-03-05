@@ -45,7 +45,6 @@ from common.views import BaseAPIView, BaseViewSet
 from iam.models import (
     Team,
     User,
-    UserNotificationPreference,
     Workspace,
     WorkspaceMember,
     WorkspaceMemberInvite,
@@ -57,7 +56,6 @@ from iam.serializers import (
     UserLiteSerializer,
     UserMeSerializer,
     UserMeSettingsSerializer,
-    UserNotificationPreferenceSerializer,
     UserSerializer,
     WorkspaceMemberAdminSerializer,
     WorkSpaceMemberInviteSerializer,
@@ -451,30 +449,6 @@ class WorkspaceJoinEndpoint(BaseAPIView):
         )
         serializer = WorkSpaceMemberInviteSerializer(workspace_invitation)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-class UserNotificationPreferenceEndpoint(BaseAPIView):
-    model = UserNotificationPreference
-    serializer_class = UserNotificationPreferenceSerializer
-
-    def get(self, request):
-        user_notification_preference = UserNotificationPreference.objects.get(
-            user=request.user
-        )
-        serializer = UserNotificationPreferenceSerializer(user_notification_preference)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def patch(self, request):
-        user_notification_preference = UserNotificationPreference.objects.get(
-            user=request.user
-        )
-        serializer = UserNotificationPreferenceSerializer(
-            user_notification_preference, data=request.data, partial=True
-        )
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserWorkspaceInvitationsViewSet(BaseViewSet):

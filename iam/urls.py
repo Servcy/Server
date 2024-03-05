@@ -10,7 +10,6 @@ from iam.views import (
     UserEndpoint,
     UserIssueCompletedGraphEndpoint,
     UserLastProjectWithWorkspaceEndpoint,
-    UserNotificationPreferenceEndpoint,
     UserWorkspaceDashboardEndpoint,
     UserWorkspaceInvitationsViewSet,
     UserWorkSpacesEndpoint,
@@ -239,11 +238,6 @@ urlpatterns = [
         "workspaces/<str:slug>/cycles/",
         WorkspaceCyclesEndpoint.as_view(),
         name="workspace-cycles",
-    ),
-    path(
-        "users/me/notification-preferences/",
-        UserNotificationPreferenceEndpoint.as_view(),
-        name="user-notification-preferences",
     ),
     path(
         "users/me/",
