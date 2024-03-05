@@ -1,6 +1,8 @@
 import logging
 import traceback
 
+from django.conf import settings
+
 from iam.repositories.accounts import AccountsRepository
 from mails import SendGridEmail
 
@@ -17,6 +19,8 @@ class AccountsService:
         user = self.account_repository.get()
         if not user:
             user = self.account_repository.create()
+            if settings.DEBUG:
+                return user
             try:
                 sendgrid_email = SendGridEmail("megham@servcy.com")
                 sendgrid_email.send_new_signup_notification(
