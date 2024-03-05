@@ -27,6 +27,12 @@ EVENT_MAP = {
 @csrf_exempt
 @require_POST
 def jira(request):
+    """
+    Jira webhook endpoint:
+    - Receives a request from Jira
+    - Validates the request
+    - Saves the request to the inbox
+    """
     try:
         headers = request.headers
         body = json.loads(request.body)

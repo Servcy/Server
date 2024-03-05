@@ -33,6 +33,12 @@ def get_title(event: dict):
 @csrf_exempt
 @require_POST
 def figma(request):
+    """
+    Figma webhook endpoint:
+    - Receives a request from Figma
+    - Validates the request
+    - Saves the request to the inbox
+    """
     try:
         body = json.loads(request.body)
         if body["event_type"] == "PING":

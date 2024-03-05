@@ -76,7 +76,10 @@ def is_from_trello(header, request_body, user_integration_id):
 @require_http_methods(["POST", "HEAD"])
 def trello(request, user_integration_id):
     """
-    Trello webhook.
+    Trello webhook:
+    - Receives a request from Trello
+    - Validates the request
+    - Saves the request to the inbox
     """
     try:
         headers = request.headers
