@@ -1,6 +1,6 @@
 # Servcy - One For All Platform
 
-[Servcy](https://servcy.com) is an open-source software tool kit for all your business needs. We're going on an Open Source spree of creating business solutions.
+[Servcy](https://servcy.com) is a software tool kit for all your business needs.
 
 > Servcy is still in its early days, not everything will be perfect yet, and hiccups may happen. Please let us know of any suggestions, ideas, or bugs that you encounter using GitHub issues, and we will use your feedback to improve on our upcoming releases.
 
