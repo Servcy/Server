@@ -216,7 +216,7 @@ class ProjectViewSet(BaseViewSet):
                     },
                     {
                         "name": "Done",
-                        "color": "#16A34A",
+                        "color": "#4D7E3E",
                         "sequence": 45000,
                         "group": "completed",
                     },
