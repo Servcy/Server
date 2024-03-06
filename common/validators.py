@@ -4,14 +4,13 @@ INVALID_SLUGS = [
     "404",
     "accounts",
     "api",
-    "create-workspace",
     "god-mode",
     "installations",
     "invitations",
     "onboarding",
     "profile",
     "spaces",
-    "workspace-invitations",
+    "workspace",
     "password",
 ]
 

@@ -349,7 +349,7 @@ class WorkspaceInvitationsViewset(BaseViewSet):
             SendGridEmail(to_email=invitation.email).send_workspace_invitation(
                 workspace_name=workspace.name,
                 user_name=request.user.first_name or request.user.email,
-                invite_link=f"{settings.FRONTEND_URL}/workspace-invitations/?invitation_id={invitation.id}&email={invitation.email}&workspace__slug={slug}",
+                invite_link=f"{settings.FRONTEND_URL}/workspace/invite/?invitation_id={invitation.id}&email={invitation.email}&workspace__slug={slug}",
             )
 
         return Response(
