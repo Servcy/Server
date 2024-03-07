@@ -1,6 +1,6 @@
-import traceback
 import json
 import logging
+import traceback
 
 from celery import shared_task
 from django.core.serializers.json import DjangoJSONEncoder

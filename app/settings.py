@@ -247,6 +247,9 @@ SENDGRID_WORKSPACE_INVITATION_TEMPLATE_ID = config.get(
 SENDGRID_ISSUE_ACTIVITY_TEMPLATE_ID = config.get(
     "sendgrid", "issue_activity_template_id"
 )
+SENDGRID_ANALYTICS_EXPORT_TEMPLATE_ID = config.get(
+    "sendgrid", "analytics_export_template_id"
+)
 SENDGRID_FROM_EMAIL = config.get("sendgrid", "from_email")
 
 # Twilio
@@ -338,5 +341,9 @@ CRONJOBS = [
     (
         "0 * * * *",
         "integration.scripts.notion.poll_new_comments",
+    ),
+    (
+        "*/5 * * * *",
+        "notification.scripts.stack_email_notification.main",
     ),
 ]

@@ -1,6 +1,6 @@
-import traceback
 import json
 import logging
+import traceback
 import uuid
 
 from bs4 import BeautifulSoup

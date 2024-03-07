@@ -6,6 +6,7 @@ from dashboard.views import (
     AnalyticViewViewset,
     DashboardEndpoint,
     DefaultAnalyticsEndpoint,
+    ExportAnalyticsEndpoint,
     SavedAnalyticEndpoint,
     WidgetsEndpoint,
 )
@@ -28,6 +29,11 @@ urlpatterns = [
         "dashboard/<int:dashboard_id>/widgets/<int:widget_id>/",
         WidgetsEndpoint.as_view(),
         name="widgets",
+    ),
+    path(
+        "workspaces/<str:slug>/export-analytics/",
+        ExportAnalyticsEndpoint.as_view(),
+        name="export-analytics",
     ),
     path(
         "workspaces/<str:slug>/analytics/",
