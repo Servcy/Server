@@ -1,10 +1,10 @@
 import datetime
 import os
 import ssl
-import certifi
 from configparser import RawConfigParser
 from pathlib import Path
 
+import certifi
 from newrelic.agent import NewRelicContextFormatter
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.

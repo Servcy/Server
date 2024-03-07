@@ -65,3 +65,16 @@ class SendGridEmail:
         )
         response = self.client.send(message)
         return response.status_code
+
+    def send_issue_activity(self, subject, body, media_type="text/html"):
+        """
+        Send an email with the issue activity
+        """
+        message = Mail(
+            from_email=self.from_email,
+            to_emails=self.to_email,
+            subject=subject,
+            html_content=body,
+        )
+        response = self.client.send(message)
+        return response.status_code
