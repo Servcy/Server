@@ -63,9 +63,7 @@ class IssueProjectLiteSerializer(ServcyBaseSerializer):
         read_only_fields = fields
 
 
-##TODO: Find a better way to save manytomany
 class IssueCreateSerializer(ServcyBaseSerializer):
-    # ids
     state_id = serializers.PrimaryKeyRelatedField(
         source="state",
         queryset=State.objects.all(),

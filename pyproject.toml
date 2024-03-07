@@ -39,6 +39,7 @@ openai = "^1.8.0"
 tiktoken = "^0.5.2"
 uvicorn = "^0.27.1"
 mistune = "^3.0.2"
+beautifulsoup4 = "^4.12.3"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.3.0"

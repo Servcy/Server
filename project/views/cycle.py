@@ -629,7 +629,6 @@ class CycleViewSet(BaseViewSet):
             current_instance=None,
             epoch=int(timezone.now().timestamp()),
             notification=True,
-            origin=request.META.get("HTTP_ORIGIN"),
         )
         # Delete the cycle
         cycle.delete()
@@ -858,7 +857,6 @@ class CycleIssueViewSet(BaseViewSet):
             ),
             epoch=int(timezone.now().timestamp()),
             notification=True,
-            origin=request.META.get("HTTP_ORIGIN"),
         )
         return Response({"message": "success"}, status=status.HTTP_201_CREATED)
 
@@ -883,7 +881,6 @@ class CycleIssueViewSet(BaseViewSet):
             current_instance=None,
             epoch=int(timezone.now().timestamp()),
             notification=True,
-            origin=request.META.get("HTTP_ORIGIN"),
         )
         cycle_issue.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

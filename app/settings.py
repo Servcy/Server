@@ -244,6 +244,9 @@ SENDGRID_NEW_SIGNUP_TEMPLATE_ID = config.get("sendgrid", "new_signup_template_id
 SENDGRID_WORKSPACE_INVITATION_TEMPLATE_ID = config.get(
     "sendgrid", "workspace_invitation_template_id"
 )
+SENDGRID_ISSUE_ACTIVITY_TEMPLATE_ID = config.get(
+    "sendgrid", "issue_activity_template_id"
+)
 SENDGRID_FROM_EMAIL = config.get("sendgrid", "from_email")
 
 # Twilio

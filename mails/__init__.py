@@ -7,6 +7,7 @@ SEND_EMAIL_ENDPOINT = settings.SEND_EMAIL_ENDPOINT
 SENDGRID_WORKSPACE_INVITATION_TEMPLATE_ID = (
     settings.SENDGRID_WORKSPACE_INVITATION_TEMPLATE_ID
 )
+SENDGRID_ISSUE_ACTIVITY_TEMPLATE_ID = settings.SENDGRID_ISSUE_ACTIVITY_TEMPLATE_ID
 SENDGRID_NEW_SIGNUP_TEMPLATE_ID = settings.SENDGRID_NEW_SIGNUP_TEMPLATE_ID
 SENDGRID_FROM_EMAIL = settings.SENDGRID_FROM_EMAIL
 
@@ -39,5 +40,15 @@ class SendGridEmail:
             "invite_link": invite_link,
         }
         message.template_id = SENDGRID_WORKSPACE_INVITATION_TEMPLATE_ID
+        response = self.client.send(message)
+        return response.status_code
+
+    def send_issue_activity(self, **kwargs):
+        message = Mail(
+            from_email=self.from_email,
+            to_emails=self.to_email,
+        )
+        message.dynamic_template_data = {**kwargs}
+        message.template_id = SENDGRID_ISSUE_ACTIVITY_TEMPLATE_ID
         response = self.client.send(message)
         return response.status_code

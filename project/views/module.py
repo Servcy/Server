@@ -415,7 +415,6 @@ class ModuleViewSet(BaseViewSet):
                 current_instance=json.dumps({"module_name": str(module.name)}),
                 epoch=int(timezone.now().timestamp()),
                 notification=True,
-                origin=request.META.get("HTTP_ORIGIN"),
             )
             for issue in module_issues
         ]
@@ -568,7 +567,6 @@ class ModuleIssueViewSet(BaseViewSet):
                 current_instance=None,
                 epoch=int(timezone.now().timestamp()),
                 notification=True,
-                origin=request.META.get("HTTP_ORIGIN"),
             )
             for issue in issues
         ]
@@ -610,7 +608,6 @@ class ModuleIssueViewSet(BaseViewSet):
                 current_instance=None,
                 epoch=int(timezone.now().timestamp()),
                 notification=True,
-                origin=request.META.get("HTTP_ORIGIN"),
             )
             for module in modules
         ]
@@ -633,7 +630,6 @@ class ModuleIssueViewSet(BaseViewSet):
             current_instance=json.dumps({"module_name": module_issue.module.name}),
             epoch=int(timezone.now().timestamp()),
             notification=True,
-            origin=request.META.get("HTTP_ORIGIN"),
         )
         module_issue.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
