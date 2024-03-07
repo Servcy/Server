@@ -1,14 +1,12 @@
-# Python imports
+import traceback
 import json
+import logging
 
-import requests
-
-# Django imports
-from django.conf import settings
+from celery import shared_task
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import timezone
 
-# Module imports
+from common.celery.notifications_task import notifications
 from iam.models import User
 from project.models import (
     CommentReaction,
@@ -25,10 +23,9 @@ from project.models import (
 )
 from project.serializers import IssueActivitySerializer
 
-# from mails.notification_task import notifications
+logger = logging.getLogger(__name__)
 
 
-# Track Changes in name
 def track_name(
     requested_data,
     current_instance,
@@ -56,7 +53,6 @@ def track_name(
         )
 
 
-# Track issue description
 def track_description(
     requested_data,
     current_instance,
@@ -99,7 +95,6 @@ def track_description(
             )
 
 
-# Track changes in parent issue
 def track_parent(
     requested_data,
     current_instance,
@@ -148,7 +143,6 @@ def track_parent(
         )
 
 
-# Track changes in priority
 def track_priority(
     requested_data,
     current_instance,
@@ -176,7 +170,6 @@ def track_priority(
         )
 
 
-# Track changes in state of the issue
 def track_state(
     requested_data,
     current_instance,
@@ -209,7 +202,6 @@ def track_state(
         )
 
 
-# Track changes in issue target date
 def track_target_date(
     requested_data,
     current_instance,
@@ -245,7 +237,6 @@ def track_target_date(
         )
 
 
-# Track changes in issue start date
 def track_start_date(
     requested_data,
     current_instance,
@@ -256,6 +247,7 @@ def track_start_date(
     issue_activities,
     epoch,
 ):
+    """Track changes in issue start date"""
     if current_instance.get("start_date") != requested_data.get("start_date"):
         issue_activities.append(
             IssueActivity(
@@ -281,7 +273,6 @@ def track_start_date(
         )
 
 
-# Track changes in issue labels
 def track_labels(
     requested_data,
     current_instance,
@@ -292,6 +283,7 @@ def track_labels(
     issue_activities,
     epoch,
 ):
+    """Track changes in issue labels"""
     requested_labels = set([str(lab) for lab in requested_data.get("label_ids", [])])
     current_labels = set([str(lab) for lab in current_instance.get("label_ids", [])])
 
@@ -339,7 +331,6 @@ def track_labels(
         )
 
 
-# Track changes in issue assignees
 def track_assignees(
     requested_data,
     current_instance,
@@ -350,6 +341,7 @@ def track_assignees(
     issue_activities,
     epoch,
 ):
+    """Track changes in issue assignees"""
     requested_assignees = (
         set([str(asg) for asg in requested_data.get("assignee_ids", [])])
         if requested_data is not None
@@ -1491,6 +1483,7 @@ def delete_draft_issue_activity(
     )
 
 
+@shared_task
 def issue_activity(
     type,
     requested_data,
@@ -1501,23 +1494,59 @@ def issue_activity(
     epoch,
     subscriber=True,
     notification=False,
-    origin=None,
-):
+) -> None:
+    """
+    Issue activity task:
+    - Create issue activity
+    - Update issue activity
+    - Delete issue activity
+    - Create comment activity
+    - Update comment activity
+    - Delete comment activity
+    - Create cycle issue activity
+    - Delete cycle issue activity
+    - Create module issue activity
+    - Delete module issue activity
+    - Create link activity
+    - Update link activity
+    - Delete link activity
+    - Create attachment activity
+    - Delete attachment activity
+    - Create issue relation activity
+    - Delete issue relation activity
+    - Create issue reaction activity
+    - Delete issue reaction activity
+    - Create comment reaction activity
+    - Delete comment reaction activity
+    - Create issue vote activity
+    - Delete issue vote activity
+    - Create draft issue activity
+    - Update draft issue activity
+    - Delete draft issue activity
+
+    :param type: activity type
+    :param requested_data: requested data
+    :param current_instance: current instance
+    :param issue_id: issue id
+    :param actor_id: actor id
+    :param project_id: project id
+    :param epoch: epoch
+    :param subscriber: subscriber
+    :param notification: notification
+    :return: None
+    """
     try:
         issue_activities = []
-
         project = Project.objects.get(pk=project_id)
         workspace_id = project.workspace_id
-
         if issue_id is not None:
             issue = Issue.objects.filter(pk=issue_id).first()
             if issue:
                 try:
                     issue.updated_at = timezone.now()
                     issue.save(update_fields=["updated_at"])
-                except Exception as e:
+                except Exception:
                     pass
-
         ACTIVITY_MAPPER = {
             "issue.activity.created": create_issue_activity,
             "issue.activity.updated": update_issue_activity,
@@ -1546,7 +1575,6 @@ def issue_activity(
             "issue_draft.activity.updated": update_draft_issue_activity,
             "issue_draft.activity.deleted": delete_draft_issue_activity,
         }
-
         func = ACTIVITY_MAPPER.get(type)
         if func is not None:
             func(
@@ -1559,46 +1587,33 @@ def issue_activity(
                 issue_activities=issue_activities,
                 epoch=epoch,
             )
-
-        # Save all the values to database
         issue_activities_created = IssueActivity.objects.bulk_create(issue_activities)
-        # Post the updates to segway for integrations and webhooks
-        if len(issue_activities_created):
-            # Don't send activities if the actor is a bot
-            try:
-                if settings.PROXY_BASE_URL:
-                    for issue_activity in issue_activities_created:
-                        headers = {"Content-Type": "application/json"}
-                        issue_activity_json = json.dumps(
-                            IssueActivitySerializer(issue_activity).data,
-                            cls=DjangoJSONEncoder,
-                        )
-                        _ = requests.post(
-                            f"{settings.PROXY_BASE_URL}/hooks/workspaces/{str(issue_activity.workspace_id)}/projects/{str(issue_activity.project_id)}/issues/{str(issue_activity.issue_id)}/issue-activity-hooks/",
-                            json=issue_activity_json,
-                            headers=headers,
-                        )
-            except Exception as e:
-                pass
-
-        # if notification:
-        #     notifications.delay(
-        #         type=type,
-        #         issue_id=issue_id,
-        #         actor_id=actor_id,
-        #         project_id=project_id,
-        #         subscriber=subscriber,
-        #         issue_activities_created=json.dumps(
-        #             IssueActivitySerializer(issue_activities_created, many=True).data,
-        #             cls=DjangoJSONEncoder,
-        #         ),
-        #         requested_data=requested_data,
-        #         current_instance=current_instance,
-        #     )
-
-        return
-    except Exception as e:
-        # Print logs if in DEBUG mode
-        if settings.DEBUG:
-            print(e)
-        return
+        if notification:
+            notifications.delay(
+                type=type,
+                issue_id=issue_id,
+                actor_id=actor_id,
+                project_id=project_id,
+                subscriber=subscriber,
+                issue_activities_created=json.dumps(
+                    IssueActivitySerializer(issue_activities_created, many=True).data,
+                    cls=DjangoJSONEncoder,
+                ),
+                requested_data=requested_data,
+                current_instance=current_instance,
+            )
+    except Exception:
+        logger.exception(
+            f"Error occurred while creating issue activity for issue_id: {issue_id}",
+            exc_info=True,
+            extra={
+                "type": type,
+                "requested_data": requested_data,
+                "current_instance": current_instance,
+                "issue_id": issue_id,
+                "actor_id": actor_id,
+                "project_id": project_id,
+                "epoch": epoch,
+                "traceback": traceback.format_exc(),
+            },
+        )
