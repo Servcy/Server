@@ -55,8 +55,6 @@ class CycleSerializer(ServcyBaseSerializer):
             "owned_by_id",
             "view_props",
             "sort_order",
-            "external_source",
-            "external_id",
             "progress_snapshot",
             # meta fields
             "is_favorite",

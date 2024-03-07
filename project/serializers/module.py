@@ -191,8 +191,6 @@ class ModuleSerializer(ServcyDynamicBaseSerializer):
             "member_ids",
             "view_props",
             "sort_order",
-            "external_source",
-            "external_id",
             # computed fields
             "is_favorite",
             "total_issues",
