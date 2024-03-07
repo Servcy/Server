@@ -1,34 +1,39 @@
 [main]
-secret_key = 
-fernet_key = 
-host_type = development
-frontend_url = http://localhost:3000
+secret_key=
+fernet_key=
+host_type=
+frontend_url=
+
+[redis]
+url=
 
 [database]
-host = 
-name = 
-user = 
-password = 
-port = 5432
+host=
+name=
+user=
+password=
+port=5432
 
 [aws]
-bucket = 
-access = 
-secret = 
-region = 
+bucket=
+access=
+secret=
+region=
 
 [sendgrid]
-key = 
-endpoint = 
-verification_template_id = 
-new_signup_template_id =
-from_email = 
+key=
+endpoint=
+verification_template_id=
+workspace_invitation_template_id=
+analytics_export_template_id=
+new_signup_template_id=
+from_email=
 
 [twilio]
-account_sid = 
-auth_token = 
-verify_service_id = 
-from_number = 
+account_sid=
+auth_token=
+verify_service_id=
+from_number=
 
 [google]
 client_id=
@@ -76,7 +81,7 @@ redirect_uri=
 [asana]
 client_id=
 client_secret=
-redirect_uri=integrations/asana/oauth
+redirect_uri=
 
 [trello]
 api_key=
@@ -84,10 +89,10 @@ client_secret=
 redirect_uri=
 
 [openai]
-api_key = 
-model_id = 
-organization_id = 
-max_tokens =
+api_key=
+model_id=
+organization_id=
+max_tokens=
 
 [jira]
 client_id=

@@ -1,8 +1,10 @@
 import datetime
 import os
+import ssl
 from configparser import RawConfigParser
 from pathlib import Path
 
+import certifi
 from newrelic.agent import NewRelicContextFormatter
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -228,6 +230,46 @@ AWS_SECRET_ACCESS_KEY = config.get("aws", "secret")
 AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com"
 DEFAULT_FILE_STORAGE = "storage.MediaS3BotoStorage"
 MEDIAFILES_LOCATION = "media"
+
+# Redis Config
+REDIS_URL = config.get("redis", "url")
+REDIS_SSL = REDIS_URL and "rediss" in REDIS_URL
+
+if REDIS_SSL:
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": REDIS_URL,
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+                "CONNECTION_POOL_KWARGS": {"ssl_cert_reqs": False},
+            },
+        }
+    }
+else:
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": REDIS_URL,
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            },
+        }
+    }
+
+# Celery Configuration
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_TASK_SERIALIZER = "json"
+CELERY_ACCEPT_CONTENT = ["application/json"]
+
+if REDIS_SSL:
+    redis_url = config.get("redis", "url")
+    broker_url = (
+        f"{redis_url}?ssl_cert_reqs={ssl.CERT_NONE.name}&ssl_ca_certs={certifi.where()}"
+    )
+    CELERY_BROKER_URL = broker_url
+else:
+    CELERY_BROKER_URL = REDIS_URL
 
 # Sendgrid
 SENDGRID_API_KEY = config.get("sendgrid", "key")
