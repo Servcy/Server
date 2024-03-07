@@ -42,7 +42,6 @@ mistune = "^3.0.2"
 beautifulsoup4 = "^4.12.3"
 celery = "^5.3.6"
 redis = "^5.0.2"
-django-celery-beat = "^2.6.0"
 django-redis = "^5.4.0"
 
 [tool.poetry.group.dev.dependencies]

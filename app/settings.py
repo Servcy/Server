@@ -34,7 +34,6 @@ THIRD_PARTY_APPS = [
     "rest_framework_simplejwt.token_blacklist",  # required for jwt
     "django_crontab",  # required for cron jobs
     "django_filters",  # required for filtering
-    "django_celery_beat",  # required for celery beat
 ]
 
 LOCAL_APPS = [
