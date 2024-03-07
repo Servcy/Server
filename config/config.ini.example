@@ -4,6 +4,9 @@ fernet_key=
 host_type=
 frontend_url=
 
+[redis]
+url=
+
 [database]
 host=
 name=
