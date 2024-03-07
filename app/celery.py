@@ -6,7 +6,7 @@ from app.utils.redis import create_redis_instance
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "app.settings")
 
-ri = create_redis_instance()
+redis_instance = create_redis_instance()
 
 app = Celery("servcy")
 

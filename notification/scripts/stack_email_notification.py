@@ -126,8 +126,8 @@ def send_email_notification(
     try:
         if acquire_lock(lock_id=lock_id):
             # get the redis instance
-            ri = create_redis_instance()
-            base_api = ri.get(str(issue_id)).decode()
+            redis_instance = create_redis_instance()
+            base_api = redis_instance.get(str(issue_id)).decode()
             data = create_payload(notification_data=notification_data)
             receiver = User.objects.get(pk=receiver_id)
             issue = Issue.objects.get(pk=issue_id)
