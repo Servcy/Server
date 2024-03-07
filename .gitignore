@@ -21,3 +21,4 @@ env/
 static/
 servcy-gcp-service-account-key.json
 *.db
+dump.rdb
