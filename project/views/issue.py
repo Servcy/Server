@@ -29,15 +29,13 @@ from rest_framework import status
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 
+from common.celery.issue_activites_task import issue_activity
 from common.permissions import (
     ProjectEntityPermission,
     ProjectLitePermission,
     ProjectMemberPermission,
 )
 from common.views import BaseAPIView, BaseViewSet
-
-# TODO: refactor issue activity @gargmegham
-from mails.issue_activites_task import issue_activity
 from project.models import (
     CommentReaction,
     Issue,

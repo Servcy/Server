@@ -21,11 +21,9 @@ from rest_framework import status
 from rest_framework.response import Response
 
 from common.analytics_plot import burndown_plot
+from common.celery.issue_activites_task import issue_activity
 from common.permissions import ProjectEntityPermission, ProjectLitePermission
 from common.views import BaseAPIView, BaseViewSet
-
-# TODO: refactor issue activity @gargmegham
-from mails.issue_activites_task import issue_activity
 from project.models import (
     Issue,
     IssueAttachment,
