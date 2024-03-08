@@ -43,6 +43,7 @@ class DocumentViewSet(ModelViewSet):
         try:
             files = request.FILES.getlist("file")
             meta_data = request.data.get("meta_data", {})
+            workspace_id = request.data.get("workspace_id", None)
             user_id = request.user.id
             file_ids = []
             for file in files:
@@ -52,6 +53,7 @@ class DocumentViewSet(ModelViewSet):
                     file=file,
                     meta_data=meta_data,
                     user_id=user_id,
+                    workspace_id=workspace_id,
                     name=file_name,
                 )
                 file_ids.append(document.id)
