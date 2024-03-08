@@ -245,6 +245,7 @@ urlpatterns = [
             {
                 "get": "retrieve",
                 "patch": "partial_update",
+                "delete": "deactivate",
             }
         ),
         name="users",
