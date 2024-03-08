@@ -240,12 +240,11 @@ urlpatterns = [
         name="workspace-cycles",
     ),
     path(
-        "users/me/",
+        "users/me",
         UserEndpoint.as_view(
             {
                 "get": "retrieve",
                 "patch": "partial_update",
-                "delete": "deactivate",
             }
         ),
         name="users",

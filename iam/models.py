@@ -57,6 +57,8 @@ class User(AbstractBaseUser, PermissionsMixin, TimeStampedModel):
     onboarding_step = models.JSONField(default=get_onboarding_step)
     last_workspace_id = models.UUIDField(null=True)
 
+    date_joined = models.DateTimeField(auto_now_add=True)
+
     USERNAME_FIELD = "username"
 
     objects = UserAccountManager()

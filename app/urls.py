@@ -11,6 +11,7 @@ urlpatterns = [
     path("integration/", include("integration.urls")),
     path("inbox/", include("inbox.urls")),
     path("webhook/", include("webhook.urls")),
+    path("iam/", include("iam.urls")),
     path("document/", include("document.urls")),
     path("dashboard/", include("dashboard.urls")),
     path("project/", include("project.urls")),
