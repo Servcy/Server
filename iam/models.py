@@ -134,7 +134,6 @@ class WorkspaceMember(TimeStampedModel, CreatorUpdaterModel):
         on_delete=models.CASCADE,
         related_name="workspace_member",
     )
-    invite = models.ForeignKey(WorkspaceMemberInvite, on_delete=models.CASCADE)
     role = models.PositiveSmallIntegerField(
         choices=(
             (3, "Owner"),
