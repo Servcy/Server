@@ -55,7 +55,7 @@ class User(AbstractBaseUser, PermissionsMixin, TimeStampedModel):
     display_name = models.CharField(max_length=255, default="")
     use_case = models.TextField(blank=True, null=True)
     onboarding_step = models.JSONField(default=get_onboarding_step)
-    last_workspace_id = models.UUIDField(null=True)
+    last_workspace_id = models.IntegerField(null=True, default=None)
 
     USERNAME_FIELD = "username"
 
