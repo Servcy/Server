@@ -16,7 +16,7 @@ from django.db.models import (
     OuterRef,
     Prefetch,
     Q,
-    UUIDField,
+    BigIntegerField,
     Value,
     When,
 )
@@ -180,7 +180,7 @@ class CycleViewSet(BaseViewSet):
                         distinct=True,
                         filter=~Q(issue_cycle__issue__assignees__id__isnull=True),
                     ),
-                    Value([], output_field=ArrayField(UUIDField())),
+                    Value([], output_field=ArrayField(BigIntegerField())),
                 )
             )
             .order_by("-is_favorite", "name")
@@ -709,7 +709,7 @@ class CycleIssueViewSet(BaseViewSet):
                         distinct=True,
                         filter=~Q(labels__id__isnull=True),
                     ),
-                    Value([], output_field=ArrayField(UUIDField())),
+                    Value([], output_field=ArrayField(BigIntegerField())),
                 ),
                 assignee_ids=Coalesce(
                     ArrayAgg(
@@ -717,7 +717,7 @@ class CycleIssueViewSet(BaseViewSet):
                         distinct=True,
                         filter=~Q(assignees__id__isnull=True),
                     ),
-                    Value([], output_field=ArrayField(UUIDField())),
+                    Value([], output_field=ArrayField(BigIntegerField())),
                 ),
                 module_ids=Coalesce(
                     ArrayAgg(
@@ -725,7 +725,7 @@ class CycleIssueViewSet(BaseViewSet):
                         distinct=True,
                         filter=~Q(issue_module__module_id__isnull=True),
                     ),
-                    Value([], output_field=ArrayField(UUIDField())),
+                    Value([], output_field=ArrayField(BigIntegerField())),
                 ),
             )
             .order_by(order_by)

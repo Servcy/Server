@@ -10,7 +10,7 @@ from django.db.models import (
     OuterRef,
     Prefetch,
     Q,
-    UUIDField,
+    BigIntegerField,
     Value,
 )
 from django.db.models.functions import Coalesce
@@ -151,7 +151,7 @@ class ModuleViewSet(BaseViewSet):
                         distinct=True,
                         filter=~Q(members__id__isnull=True),
                     ),
-                    Value([], output_field=ArrayField(UUIDField())),
+                    Value([], output_field=ArrayField(BigIntegerField())),
                 )
             )
             .order_by("-is_favorite", "-created_at")
@@ -464,7 +464,7 @@ class ModuleIssueViewSet(BaseViewSet):
                         distinct=True,
                         filter=~Q(labels__id__isnull=True),
                     ),
-                    Value([], output_field=ArrayField(UUIDField())),
+                    Value([], output_field=ArrayField(BigIntegerField())),
                 ),
                 assignee_ids=Coalesce(
                     ArrayAgg(
@@ -472,7 +472,7 @@ class ModuleIssueViewSet(BaseViewSet):
                         distinct=True,
                         filter=~Q(assignees__id__isnull=True),
                     ),
-                    Value([], output_field=ArrayField(UUIDField())),
+                    Value([], output_field=ArrayField(BigIntegerField())),
                 ),
                 module_ids=Coalesce(
                     ArrayAgg(
@@ -480,7 +480,7 @@ class ModuleIssueViewSet(BaseViewSet):
                         distinct=True,
                         filter=~Q(issue_module__module_id__isnull=True),
                     ),
-                    Value([], output_field=ArrayField(UUIDField())),
+                    Value([], output_field=ArrayField(BigIntegerField())),
                 ),
             )
         ).distinct()

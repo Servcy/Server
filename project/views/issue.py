@@ -17,7 +17,7 @@ from django.db.models import (
     OuterRef,
     Prefetch,
     Q,
-    UUIDField,
+    BigIntegerField,
     Value,
     When,
 )
@@ -121,7 +121,7 @@ class IssueListEndpoint(BaseAPIView):
                         distinct=True,
                         filter=~Q(labels__id__isnull=True),
                     ),
-                    Value([], output_field=ArrayField(UUIDField())),
+                    Value([], output_field=ArrayField(BigIntegerField())),
                 ),
                 assignee_ids=Coalesce(
                     ArrayAgg(
@@ -129,7 +129,7 @@ class IssueListEndpoint(BaseAPIView):
                         distinct=True,
                         filter=~Q(assignees__id__isnull=True),
                     ),
-                    Value([], output_field=ArrayField(UUIDField())),
+                    Value([], output_field=ArrayField(BigIntegerField())),
                 ),
                 module_ids=Coalesce(
                     ArrayAgg(
@@ -137,7 +137,7 @@ class IssueListEndpoint(BaseAPIView):
                         distinct=True,
                         filter=~Q(issue_module__module_id__isnull=True),
                     ),
-                    Value([], output_field=ArrayField(UUIDField())),
+                    Value([], output_field=ArrayField(BigIntegerField())),
                 ),
             )
         ).distinct()
@@ -305,7 +305,7 @@ class IssueViewSet(BaseViewSet):
                         distinct=True,
                         filter=~Q(labels__id__isnull=True),
                     ),
-                    Value([], output_field=ArrayField(UUIDField())),
+                    Value([], output_field=ArrayField(BigIntegerField())),
                 ),
                 assignee_ids=Coalesce(
                     ArrayAgg(
@@ -313,7 +313,7 @@ class IssueViewSet(BaseViewSet):
                         distinct=True,
                         filter=~Q(assignees__id__isnull=True),
                     ),
-                    Value([], output_field=ArrayField(UUIDField())),
+                    Value([], output_field=ArrayField(BigIntegerField())),
                 ),
                 module_ids=Coalesce(
                     ArrayAgg(
@@ -321,7 +321,7 @@ class IssueViewSet(BaseViewSet):
                         distinct=True,
                         filter=~Q(issue_module__module_id__isnull=True),
                     ),
-                    Value([], output_field=ArrayField(UUIDField())),
+                    Value([], output_field=ArrayField(BigIntegerField())),
                 ),
             )
         ).distinct()
@@ -891,7 +891,7 @@ class SubIssuesEndpoint(BaseAPIView):
                         distinct=True,
                         filter=~Q(labels__id__isnull=True),
                     ),
-                    Value([], output_field=ArrayField(UUIDField())),
+                    Value([], output_field=ArrayField(BigIntegerField())),
                 ),
                 assignee_ids=Coalesce(
                     ArrayAgg(
@@ -899,7 +899,7 @@ class SubIssuesEndpoint(BaseAPIView):
                         distinct=True,
                         filter=~Q(assignees__id__isnull=True),
                     ),
-                    Value([], output_field=ArrayField(UUIDField())),
+                    Value([], output_field=ArrayField(BigIntegerField())),
                 ),
                 module_ids=Coalesce(
                     ArrayAgg(
@@ -907,7 +907,7 @@ class SubIssuesEndpoint(BaseAPIView):
                         distinct=True,
                         filter=~Q(issue_module__module_id__isnull=True),
                     ),
-                    Value([], output_field=ArrayField(UUIDField())),
+                    Value([], output_field=ArrayField(BigIntegerField())),
                 ),
             )
             .annotate(state_group=F("state__group"))
@@ -1231,7 +1231,7 @@ class IssueArchiveViewSet(BaseViewSet):
                         distinct=True,
                         filter=~Q(labels__id__isnull=True),
                     ),
-                    Value([], output_field=ArrayField(UUIDField())),
+                    Value([], output_field=ArrayField(BigIntegerField())),
                 ),
                 assignee_ids=Coalesce(
                     ArrayAgg(
@@ -1239,7 +1239,7 @@ class IssueArchiveViewSet(BaseViewSet):
                         distinct=True,
                         filter=~Q(assignees__id__isnull=True),
                     ),
-                    Value([], output_field=ArrayField(UUIDField())),
+                    Value([], output_field=ArrayField(BigIntegerField())),
                 ),
                 module_ids=Coalesce(
                     ArrayAgg(
@@ -1247,7 +1247,7 @@ class IssueArchiveViewSet(BaseViewSet):
                         distinct=True,
                         filter=~Q(issue_module__module_id__isnull=True),
                     ),
-                    Value([], output_field=ArrayField(UUIDField())),
+                    Value([], output_field=ArrayField(BigIntegerField())),
                 ),
             )
         )
@@ -1925,7 +1925,7 @@ class IssueDraftViewSet(BaseViewSet):
                         distinct=True,
                         filter=~Q(labels__id__isnull=True),
                     ),
-                    Value([], output_field=ArrayField(UUIDField())),
+                    Value([], output_field=ArrayField(BigIntegerField())),
                 ),
                 assignee_ids=Coalesce(
                     ArrayAgg(
@@ -1933,7 +1933,7 @@ class IssueDraftViewSet(BaseViewSet):
                         distinct=True,
                         filter=~Q(assignees__id__isnull=True),
                     ),
-                    Value([], output_field=ArrayField(UUIDField())),
+                    Value([], output_field=ArrayField(BigIntegerField())),
                 ),
                 module_ids=Coalesce(
                     ArrayAgg(
@@ -1941,7 +1941,7 @@ class IssueDraftViewSet(BaseViewSet):
                         distinct=True,
                         filter=~Q(issue_module__module_id__isnull=True),
                     ),
-                    Value([], output_field=ArrayField(UUIDField())),
+                    Value([], output_field=ArrayField(BigIntegerField())),
                 ),
             )
         ).distinct()

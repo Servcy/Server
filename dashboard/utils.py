@@ -9,7 +9,7 @@ from django.db.models import (
     OuterRef,
     Prefetch,
     Q,
-    UUIDField,
+    BigIntegerField,
     Value,
     When,
 )
@@ -123,7 +123,7 @@ def dashboard_assigned_issues(self, request, slug):
                     distinct=True,
                     filter=~Q(labels__id__isnull=True),
                 ),
-                Value([], output_field=ArrayField(UUIDField())),
+                Value([], output_field=ArrayField(BigIntegerField())),
             ),
             assignee_ids=Coalesce(
                 ArrayAgg(
@@ -131,7 +131,7 @@ def dashboard_assigned_issues(self, request, slug):
                     distinct=True,
                     filter=~Q(assignees__id__isnull=True),
                 ),
-                Value([], output_field=ArrayField(UUIDField())),
+                Value([], output_field=ArrayField(BigIntegerField())),
             ),
             module_ids=Coalesce(
                 ArrayAgg(
@@ -139,7 +139,7 @@ def dashboard_assigned_issues(self, request, slug):
                     distinct=True,
                     filter=~Q(issue_module__module_id__isnull=True),
                 ),
-                Value([], output_field=ArrayField(UUIDField())),
+                Value([], output_field=ArrayField(BigIntegerField())),
             ),
         )
     )
@@ -270,7 +270,7 @@ def dashboard_created_issues(self, request, slug):
                     distinct=True,
                     filter=~Q(labels__id__isnull=True),
                 ),
-                Value([], output_field=ArrayField(UUIDField())),
+                Value([], output_field=ArrayField(BigIntegerField())),
             ),
             assignee_ids=Coalesce(
                 ArrayAgg(
@@ -278,7 +278,7 @@ def dashboard_created_issues(self, request, slug):
                     distinct=True,
                     filter=~Q(assignees__id__isnull=True),
                 ),
-                Value([], output_field=ArrayField(UUIDField())),
+                Value([], output_field=ArrayField(BigIntegerField())),
             ),
             module_ids=Coalesce(
                 ArrayAgg(
@@ -286,7 +286,7 @@ def dashboard_created_issues(self, request, slug):
                     distinct=True,
                     filter=~Q(issue_module__module_id__isnull=True),
                 ),
-                Value([], output_field=ArrayField(UUIDField())),
+                Value([], output_field=ArrayField(BigIntegerField())),
             ),
         )
         .order_by("created_at")

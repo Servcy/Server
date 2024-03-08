@@ -285,7 +285,7 @@ class IssueLabelSerializer(ServcyBaseSerializer):
 
 
 class IssueRelationSerializer(ServcyBaseSerializer):
-    id = serializers.UUIDField(source="related_issue.id", read_only=True)
+    id = serializers.IntegerField(source="related_issue.id", read_only=True)
     project_id = serializers.PrimaryKeyRelatedField(
         source="related_issue.project_id", read_only=True
     )
@@ -311,7 +311,7 @@ class IssueRelationSerializer(ServcyBaseSerializer):
 
 
 class RelatedIssueSerializer(ServcyBaseSerializer):
-    id = serializers.UUIDField(source="issue.id", read_only=True)
+    id = serializers.IntegerField(source="issue.id", read_only=True)
     project_id = serializers.PrimaryKeyRelatedField(
         source="issue.project_id", read_only=True
     )
@@ -577,17 +577,17 @@ class IssueSerializer(ServcyDynamicBaseSerializer):
     # ids
     cycle_id = serializers.PrimaryKeyRelatedField(read_only=True)
     module_ids = serializers.ListField(
-        child=serializers.UUIDField(),
+        child=serializers.IntegerField(),
         required=False,
     )
 
     # Many to many
     label_ids = serializers.ListField(
-        child=serializers.UUIDField(),
+        child=serializers.IntegerField(),
         required=False,
     )
     assignee_ids = serializers.ListField(
-        child=serializers.UUIDField(),
+        child=serializers.IntegerField(),
         required=False,
     )
 

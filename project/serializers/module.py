@@ -162,7 +162,7 @@ class ModuleLinkSerializer(ServcyBaseSerializer):
 
 class ModuleSerializer(ServcyDynamicBaseSerializer):
     member_ids = serializers.ListField(
-        child=serializers.UUIDField(), required=False, allow_null=True
+        child=serializers.IntegerField(), required=False, allow_null=True
     )
     is_favorite = serializers.BooleanField(read_only=True)
     total_issues = serializers.IntegerField(read_only=True)

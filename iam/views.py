@@ -21,7 +21,7 @@ from django.db.models import (
     Prefetch,
     Q,
     Sum,
-    UUIDField,
+    BigIntegerField,
     Value,
     When,
 )
@@ -1351,7 +1351,7 @@ class WorkspaceUserProfileIssuesEndpoint(BaseAPIView):
                         distinct=True,
                         filter=~Q(labels__id__isnull=True),
                     ),
-                    Value([], output_field=ArrayField(UUIDField())),
+                    Value([], output_field=ArrayField(BigIntegerField())),
                 ),
                 assignee_ids=Coalesce(
                     ArrayAgg(
@@ -1359,7 +1359,7 @@ class WorkspaceUserProfileIssuesEndpoint(BaseAPIView):
                         distinct=True,
                         filter=~Q(assignees__id__isnull=True),
                     ),
-                    Value([], output_field=ArrayField(UUIDField())),
+                    Value([], output_field=ArrayField(BigIntegerField())),
                 ),
                 module_ids=Coalesce(
                     ArrayAgg(
@@ -1367,7 +1367,7 @@ class WorkspaceUserProfileIssuesEndpoint(BaseAPIView):
                         distinct=True,
                         filter=~Q(issue_module__module_id__isnull=True),
                     ),
-                    Value([], output_field=ArrayField(UUIDField())),
+                    Value([], output_field=ArrayField(BigIntegerField())),
                 ),
             )
             .order_by("created_at")

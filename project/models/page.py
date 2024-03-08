@@ -57,9 +57,9 @@ class PageLog(ProjectBaseModel):
         ("page_mention", "Page Mention"),
         ("user_mention", "User Mention"),
     )
-    transaction = models.UUIDField(default=uuid.uuid4)
+    transaction = models.BigIntegerField(default=uuid.uuid4)
     page = models.ForeignKey(Page, related_name="page_log", on_delete=models.CASCADE)
-    entity_identifier = models.UUIDField(null=True)
+    entity_identifier = models.BigIntegerField(null=True)
     entity_name = models.CharField(
         max_length=30,
         choices=TYPE_CHOICES,

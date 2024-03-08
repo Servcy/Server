@@ -9,7 +9,7 @@ from django.db.models import (
     Max,
     OuterRef,
     Q,
-    UUIDField,
+    BigIntegerField,
     Value,
     When,
 )
@@ -106,7 +106,7 @@ class GlobalViewIssuesViewSet(BaseViewSet):
                         distinct=True,
                         filter=~Q(labels__id__isnull=True),
                     ),
-                    Value([], output_field=ArrayField(UUIDField())),
+                    Value([], output_field=ArrayField(BigIntegerField())),
                 ),
                 assignee_ids=Coalesce(
                     ArrayAgg(
@@ -114,7 +114,7 @@ class GlobalViewIssuesViewSet(BaseViewSet):
                         distinct=True,
                         filter=~Q(assignees__id__isnull=True),
                     ),
-                    Value([], output_field=ArrayField(UUIDField())),
+                    Value([], output_field=ArrayField(BigIntegerField())),
                 ),
                 module_ids=Coalesce(
                     ArrayAgg(
@@ -122,7 +122,7 @@ class GlobalViewIssuesViewSet(BaseViewSet):
                         distinct=True,
                         filter=~Q(issue_module__module_id__isnull=True),
                     ),
-                    Value([], output_field=ArrayField(UUIDField())),
+                    Value([], output_field=ArrayField(BigIntegerField())),
                 ),
             )
         )

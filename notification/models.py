@@ -15,7 +15,7 @@ class Notification(TimeStampedModel, CreatorUpdaterModel):
         null=True,
     )
     data = models.JSONField(null=True)
-    entity_identifier = models.UUIDField(null=True)
+    entity_identifier = models.BigIntegerField(null=True)
     entity_name = models.CharField(max_length=255)
     title = models.TextField()
     message = models.JSONField(null=True)
@@ -57,7 +57,7 @@ class EmailNotificationLog(TimeStampedModel, CreatorUpdaterModel):
         related_name="triggered_emails",
     )
     # entity - can be issues, pages, etc.
-    entity_identifier = models.UUIDField(null=True)
+    entity_identifier = models.BigIntegerField(null=True)
     entity_name = models.CharField(max_length=255)
     # data
     data = models.JSONField(null=True)

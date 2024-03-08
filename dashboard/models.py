@@ -9,7 +9,7 @@ from app.models import CreatorUpdaterModel, TimeStampedModel
 class Dashboard(TimeStampedModel, CreatorUpdaterModel):
     name = models.CharField(max_length=255)
     description_html = models.TextField(blank=True, default="<p></p>")
-    identifier = models.UUIDField(null=True)
+    identifier = models.BigIntegerField(null=True)
     owned_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -36,9 +36,6 @@ class Dashboard(TimeStampedModel, CreatorUpdaterModel):
 
 
 class Widget(TimeStampedModel, CreatorUpdaterModel):
-    id = models.UUIDField(
-        default=uuid.uuid4, unique=True, editable=False, db_index=True, primary_key=True
-    )
     key = models.CharField(max_length=255)
     filters = models.JSONField(default=dict)
 
