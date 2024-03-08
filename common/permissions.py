@@ -17,7 +17,7 @@ class ProjectBasePermission(BasePermission):
         ## Safe Methods -> Handle the filtering logic in queryset
         if request.method in SAFE_METHODS:
             return WorkspaceMember.objects.filter(
-                workspace_id=view.workspace_id,
+                workspace__slug=view.workspace__slug,
                 member=request.user,
                 is_active=True,
             ).exists()
@@ -25,7 +25,7 @@ class ProjectBasePermission(BasePermission):
         ## Only workspace owners or admins can create the projects
         if request.method == "POST":
             return WorkspaceMember.objects.filter(
-                workspace_id=view.workspace_id,
+                workspace__slug=view.workspace__slug,
                 member=request.user,
                 role__in=[Admin, Member],
                 is_active=True,
@@ -33,7 +33,7 @@ class ProjectBasePermission(BasePermission):
 
         ## Only Project Admins can update project attributes
         return ProjectMember.objects.filter(
-            workspace_id=view.workspace_id,
+            workspace__slug=view.workspace__slug,
             member=request.user,
             role=Admin,
             project_id=view.project_id,
@@ -49,14 +49,14 @@ class ProjectMemberPermission(BasePermission):
         ## Safe Methods -> Handle the filtering logic in queryset
         if request.method in SAFE_METHODS:
             return ProjectMember.objects.filter(
-                workspace_id=view.workspace_id,
+                workspace__slug=view.workspace__slug,
                 member=request.user,
                 is_active=True,
             ).exists()
         ## Only workspace owners or admins can create the projects
         if request.method == "POST":
             return WorkspaceMember.objects.filter(
-                workspace_id=view.workspace_id,
+                workspace__slug=view.workspace__slug,
                 member=request.user,
                 role__in=[Admin, Member],
                 is_active=True,
@@ -64,7 +64,7 @@ class ProjectMemberPermission(BasePermission):
 
         ## Only Project Admins can update project attributes
         return ProjectMember.objects.filter(
-            workspace_id=view.workspace_id,
+            workspace__slug=view.workspace__slug,
             member=request.user,
             role__in=[Admin, Member],
             project_id=view.project_id,
@@ -80,7 +80,7 @@ class ProjectEntityPermission(BasePermission):
         ## Safe Methods -> Handle the filtering logic in queryset
         if request.method in SAFE_METHODS:
             return ProjectMember.objects.filter(
-                workspace_id=view.workspace_id,
+                workspace__slug=view.workspace__slug,
                 member=request.user,
                 project_id=view.project_id,
                 is_active=True,
@@ -88,7 +88,7 @@ class ProjectEntityPermission(BasePermission):
 
         ## Only project members or admins can create and edit the project attributes
         return ProjectMember.objects.filter(
-            workspace_id=view.workspace_id,
+            workspace__slug=view.workspace__slug,
             member=request.user,
             role__in=[Admin, Member],
             project_id=view.project_id,
@@ -102,7 +102,7 @@ class ProjectLitePermission(BasePermission):
             return False
 
         return ProjectMember.objects.filter(
-            workspace_id=view.workspace_id,
+            workspace__slug=view.workspace__slug,
             member=request.user,
             project_id=view.project_id,
             is_active=True,
@@ -126,7 +126,7 @@ class WorkSpaceBasePermission(BasePermission):
         if request.method in ["PUT", "PATCH"]:
             return WorkspaceMember.objects.filter(
                 member=request.user,
-                workspace_id=view.workspace_id,
+                workspace__slug=view.workspace__slug,
                 role__in=[Owner, Admin],
                 is_active=True,
             ).exists()
@@ -135,7 +135,7 @@ class WorkSpaceBasePermission(BasePermission):
         if request.method == "DELETE":
             return WorkspaceMember.objects.filter(
                 member=request.user,
-                workspace_id=view.workspace_id,
+                workspace__slug=view.workspace__slug,
                 role=Owner,
                 is_active=True,
             ).exists()
@@ -147,7 +147,7 @@ class WorkspaceOwnerPermission(BasePermission):
             return False
 
         return WorkspaceMember.objects.filter(
-            workspace_id=view.workspace_id,
+            workspace__slug=view.workspace__slug,
             member=request.user,
             role=Owner,
         ).exists()
@@ -160,7 +160,7 @@ class WorkSpaceAdminPermission(BasePermission):
 
         return WorkspaceMember.objects.filter(
             member=request.user,
-            workspace_id=view.workspace_id,
+            workspace__slug=view.workspace__slug,
             role__in=[Owner, Admin],
             is_active=True,
         ).exists()
@@ -173,14 +173,14 @@ class WorkspaceEntityPermission(BasePermission):
 
         if request.method in SAFE_METHODS:
             return WorkspaceMember.objects.filter(
-                workspace_id=view.workspace_id,
+                workspace__slug=view.workspace__slug,
                 member=request.user,
                 is_active=True,
             ).exists()
 
         return WorkspaceMember.objects.filter(
             member=request.user,
-            workspace_id=view.workspace_id,
+            workspace__slug=view.workspace__slug,
             role__in=[Owner, Admin],
             is_active=True,
         ).exists()
@@ -193,7 +193,7 @@ class WorkspaceViewerPermission(BasePermission):
 
         return WorkspaceMember.objects.filter(
             member=request.user,
-            workspace_id=view.workspace_id,
+            workspace__slug=view.workspace__slug,
             is_active=True,
         ).exists()
 
@@ -205,6 +205,6 @@ class WorkspaceUserPermission(BasePermission):
 
         return WorkspaceMember.objects.filter(
             member=request.user,
-            workspace_id=view.workspace_id,
+            workspace__slug=view.workspace__slug,
             is_active=True,
         ).exists()
