@@ -269,7 +269,7 @@ urlpatterns = [
         name="users",
     ),
     path(
-        "users/me/onboard/",
+        "users/me/onboard",
         UpdateUserOnBoardedEndpoint.as_view(),
         name="user-onboard",
     ),
