@@ -38,6 +38,7 @@ class DocumentViewSet(ModelViewSet):
         """Upload a document"""
         try:
             files = request.FILES.getlist("file")
+            meta_data = request.data.get("meta_data", {})
             user_id = request.user.id
             file_ids = []
             for file in files:
@@ -45,6 +46,7 @@ class DocumentViewSet(ModelViewSet):
                 file.name = f"{user_id}_{file.name}_{int(time())}"
                 document = DocumentRepository.add_document(
                     file=file,
+                    meta_data=meta_data,
                     user_id=user_id,
                     name=file_name,
                     uid=uuid.uuid4().hex,
