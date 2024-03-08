@@ -12,6 +12,16 @@ from common.html_processor import strip_tags
 from .base import ProjectBaseModel
 
 
+class IssueManager(models.Manager):
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .exclude(archived_at__isnull=False)
+            .exclude(is_draft=True)
+        )
+
+
 class Issue(ProjectBaseModel):
     parent = models.ForeignKey(
         "self",
@@ -65,6 +75,9 @@ class Issue(ProjectBaseModel):
     archived_at = models.DateField(null=True)
     is_draft = models.BooleanField(default=False)
     sequence_id = models.IntegerField(default=1, verbose_name="Issue Sequence ID")
+
+    objects = models.Manager()
+    issue_objects = IssueManager()
 
     class Meta:
         verbose_name = "Issue"
