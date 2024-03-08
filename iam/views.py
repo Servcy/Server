@@ -1280,7 +1280,7 @@ class WorkspaceUserProfileEndpoint(BaseAPIView):
                     "last_name": user_data.last_name,
                     "avatar": user_data.avatar,
                     "cover_image": user_data.cover_image,
-                    "date_joined": user_data.date_joined,
+                    "date_joined": user_data.created_at,
                     "user_timezone": user_data.user_timezone,
                     "display_name": user_data.display_name,
                 },

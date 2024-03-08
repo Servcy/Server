@@ -224,7 +224,7 @@ class UserMeSerializer(ServcyBaseSerializer):
             "id",
             "avatar",
             "cover_image",
-            "date_joined",
+            "created_at",
             "display_name",
             "email",
             "first_name",
