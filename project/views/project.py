@@ -69,7 +69,7 @@ class ProjectViewSet(BaseViewSet):
                 "workspace",
                 "workspace__owner",
                 "default_assignee",
-                "project_lead",
+                "lead",
             )
             .annotate(
                 is_favorite=Exists(
@@ -178,18 +178,18 @@ class ProjectViewSet(BaseViewSet):
                     user=request.user,
                 )
 
-                if serializer.data["project_lead"] is not None and str(
-                    serializer.data["project_lead"]
+                if serializer.data["lead"] is not None and str(
+                    serializer.data["lead"]
                 ) != str(request.user.id):
                     ProjectMember.objects.create(
                         project_id=serializer.data["id"],
-                        member_id=serializer.data["project_lead"],
+                        member_id=serializer.data["lead"],
                         role=20,
                     )
                     # Also create the issue property for the user
                     IssueProperty.objects.create(
                         project_id=serializer.data["id"],
-                        user_id=serializer.data["project_lead"],
+                        user_id=serializer.data["lead"],
                     )
 
                 # Default states
@@ -936,9 +936,7 @@ class ProjectFavoritesViewSet(BaseViewSet):
             .get_queryset()
             .filter(workspace__slug=self.kwargs.get("slug"))
             .filter(user=self.request.user)
-            .select_related(
-                "project", "project__project_lead", "project__default_assignee"
-            )
+            .select_related("project", "project__lead", "project__default_assignee")
             .select_related("workspace", "workspace__owner")
         )
 

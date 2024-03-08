@@ -10,6 +10,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.db import IntegrityError
 from django.db.models import (
+    BigIntegerField,
     Case,
     CharField,
     Count,
@@ -21,7 +22,6 @@ from django.db.models import (
     Prefetch,
     Q,
     Sum,
-    BigIntegerField,
     Value,
     When,
 )

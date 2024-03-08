@@ -1,6 +1,7 @@
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.contrib.postgres.fields import ArrayField
 from django.db.models import (
+    BigIntegerField,
     Case,
     CharField,
     Exists,
@@ -9,7 +10,6 @@ from django.db.models import (
     Max,
     OuterRef,
     Q,
-    BigIntegerField,
     Value,
     When,
 )

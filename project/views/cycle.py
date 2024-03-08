@@ -7,6 +7,7 @@ from django.core import serializers
 
 # Django imports
 from django.db.models import (
+    BigIntegerField,
     Case,
     CharField,
     Count,
@@ -16,7 +17,6 @@ from django.db.models import (
     OuterRef,
     Prefetch,
     Q,
-    BigIntegerField,
     Value,
     When,
 )

@@ -8,6 +8,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import IntegrityError
 from django.db.models import (
+    BigIntegerField,
     Case,
     CharField,
     Exists,
@@ -17,7 +18,6 @@ from django.db.models import (
     OuterRef,
     Prefetch,
     Q,
-    BigIntegerField,
     Value,
     When,
 )

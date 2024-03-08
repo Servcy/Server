@@ -3,6 +3,7 @@ import json
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.contrib.postgres.fields import ArrayField
 from django.db.models import (
+    BigIntegerField,
     Count,
     Exists,
     F,
@@ -10,7 +11,6 @@ from django.db.models import (
     OuterRef,
     Prefetch,
     Q,
-    BigIntegerField,
     Value,
 )
 from django.db.models.functions import Coalesce
