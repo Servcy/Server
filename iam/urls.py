@@ -274,7 +274,7 @@ urlpatterns = [
         name="user-onboard",
     ),
     path(
-        "users/me/tour-completed/",
+        "users/me/tour-completed",
         UpdateUserTourCompletedEndpoint.as_view(),
         name="user-tour",
     ),
