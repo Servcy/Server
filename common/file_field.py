@@ -2,15 +2,18 @@ from uuid import uuid4
 
 from django.core.exceptions import ValidationError
 
+from django.conf import settings
+
 
 def upload_path(instance, filename):
     """
     Note: instance must have a workspace attribute.
     """
+    base = "Production" if settings.DEBUG is False else "Development"
     return (
-        f"Documents/{instance.workspace.id}/{uuid4().hex}-{filename}"
+        f"{base}/Documents/{instance.workspace.id}/{uuid4().hex}-{filename}"
         if instance.workspace
-        else f"Documents/{instance.created_by.id}/{uuid4().hex}-{filename}"
+        else f"{base}/Documents/{instance.created_by.id}/{uuid4().hex}-{filename}"
     )
 
 
