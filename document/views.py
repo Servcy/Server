@@ -49,7 +49,6 @@ class DocumentViewSet(ModelViewSet):
                     meta_data=meta_data,
                     user_id=user_id,
                     name=file_name,
-                    uid=uuid.uuid4().hex,
                 )
                 file_ids.append(document.id)
             return success_response(
