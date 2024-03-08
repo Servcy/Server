@@ -2299,6 +2299,10 @@ class Migration(migrations.Migration):
                         to="iam.workspace",
                     ),
                 ),
+                (
+                    "sort_order",
+                    ("sort_order", models.FloatField(default=65535)),
+                ),
             ],
             options={
                 "verbose_name": "Project Member",

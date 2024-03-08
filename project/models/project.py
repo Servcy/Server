@@ -150,6 +150,17 @@ class ProjectMember(ProjectBaseModel):
     )
     default_props = models.JSONField(default=dict)
     preferences = models.JSONField(default=dict)
+    sort_order = models.FloatField(default=65535)
+
+    def save(self, *args, **kwargs):
+        if self._state.adding:
+            smallest_sort_order = ProjectMember.objects.filter(
+                workspace_id=self.project.workspace_id, member=self.member
+            ).aggregate(smallest=models.Min("sort_order"))["smallest"]
+            # Project ordering
+            if smallest_sort_order is not None:
+                self.sort_order = smallest_sort_order - 10000
+        super(ProjectMember, self).save(*args, **kwargs)
 
     class Meta:
         unique_together = ["project", "member"]
