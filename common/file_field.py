@@ -7,7 +7,11 @@ def upload_path(instance, filename):
     """
     Note: instance must have a workspace attribute.
     """
-    return f"{instance.workspace.id}/{uuid4().hex}-{filename}"
+    return (
+        f"{instance.workspace.id}/{uuid4().hex}-{filename}"
+        if instance.workspace
+        else f"{uuid4().hex}-{filename}"
+    )
 
 
 def file_size_validator(value):

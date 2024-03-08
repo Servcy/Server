@@ -386,3 +386,9 @@ CRONJOBS = [
         "notification.scripts.stack_email_notification.main",
     ),
 ]
+
+
+# Unsplash
+UNSPLASH_ACCESS_KEY = config.get("unsplash", "access_key")
+UNSPLASH_APP_ID = config.get("unsplash", "app_id")
+UNSPLASH_SECRET_KEY = config.get("unsplash", "secret_key")

@@ -1,3 +1,4 @@
+from django.conf import settings
 import logging
 import traceback
 import uuid
@@ -5,10 +6,13 @@ from time import time
 
 from rest_framework import status
 from rest_framework.decorators import action
+from rest_framework.response import Response
+import requests
 from rest_framework.viewsets import ModelViewSet
 
 from common.responses import error_response, success_response
 from document.repository import DocumentRepository
+from common.views import BaseAPIView
 from document.serializers import DocumentSerializer
 
 logger = logging.getLogger(__name__)
@@ -66,3 +70,24 @@ class DocumentViewSet(ModelViewSet):
                 logger=logger,
                 logger_message="An unexpected error occurred processing the request",
             )
+
+
+class UnsplashEndpoint(BaseAPIView):
+    _unspalsh_url = "https://api.unsplash.com"
+    _access_key = settings.UNSPLASH_ACCESS_KEY
+
+    def get(self, request):
+        query = request.GET.get("query", False)
+        page = request.GET.get("page", 1)
+        per_page = request.GET.get("per_page", 20)
+
+        url = (
+            f"https://api.unsplash.com/search/photos/?client_id={self._access_key}&query={query}&page=${page}&per_page={per_page}"
+            if query
+            else f"https://api.unsplash.com/photos/?client_id={self._access_key}&page={page}&per_page={per_page}"
+        )
+        headers = {
+            "Content-Type": "application/json",
+        }
+        resp = requests.get(url=url, headers=headers)
+        return Response(resp.json(), status=resp.status_code)
