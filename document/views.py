@@ -45,7 +45,7 @@ class DocumentViewSet(ModelViewSet):
             meta_data = request.data.get("meta_data", {})
             workspace_id = request.data.get("workspace_id", None)
             user_id = request.user.id
-            file_ids = []
+            file_data = []
             for file in files:
                 file_name = file.name
                 file.name = f"{user_id}_{file.name}_{int(time())}"
@@ -56,11 +56,13 @@ class DocumentViewSet(ModelViewSet):
                     workspace_id=workspace_id,
                     name=file_name,
                 )
-                file_ids.append(document.id)
-            return success_response(
-                results={"file_ids": file_ids},
-                status=status.HTTP_201_CREATED,
-            )
+                file_data.append(
+                    {
+                        "url": document.file.url,
+                        "id": document.id,
+                    }
+                )
+            return Response(file_data[0]) if len(files) == 1 else Response(file_data)
         except Exception:
             logger.exception(
                 f"An unexpected error occurred processing the request",
