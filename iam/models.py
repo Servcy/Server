@@ -124,8 +124,16 @@ class WorkspaceMemberInvite(TimeStampedModel, CreatorUpdaterModel):
 
 
 class WorkspaceMember(TimeStampedModel, CreatorUpdaterModel):
-    member = models.ForeignKey(User, on_delete=models.CASCADE)
-    workspace = models.ForeignKey(Workspace, on_delete=models.CASCADE)
+    member = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="member_workspace",
+    )
+    workspace = models.ForeignKey(
+        Workspace,
+        on_delete=models.CASCADE,
+        related_name="workspace_member",
+    )
     invite = models.ForeignKey(WorkspaceMemberInvite, on_delete=models.CASCADE)
     role = models.PositiveSmallIntegerField(
         choices=(
