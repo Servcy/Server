@@ -58,7 +58,7 @@ urlpatterns = [
         name="notifications",
     ),
     path(
-        "workspaces/<str:slug>/users/notifications/unread/",
+        "workspaces/<str:slug>/unread/",
         UnreadNotificationEndpoint.as_view(),
         name="unread-notifications",
     ),
