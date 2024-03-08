@@ -1,18 +1,18 @@
-from django.conf import settings
 import logging
 import traceback
 import uuid
 from time import time
 
+import requests
+from django.conf import settings
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-import requests
 from rest_framework.viewsets import ModelViewSet
 
 from common.responses import error_response, success_response
-from document.repository import DocumentRepository
 from common.views import BaseAPIView
+from document.repository import DocumentRepository
 from document.serializers import DocumentSerializer
 
 logger = logging.getLogger(__name__)
@@ -52,7 +52,8 @@ class DocumentViewSet(ModelViewSet):
                 document = DocumentRepository.add_document(
                     file=file,
                     meta_data=meta_data,
-                    user_id=user_id,
+                    created_by=user_id,
+                    updated_by=user_id,
                     workspace_id=workspace_id,
                     name=file_name,
                 )
