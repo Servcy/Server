@@ -52,8 +52,8 @@ class DocumentViewSet(ModelViewSet):
                 document = DocumentRepository.add_document(
                     file=file,
                     meta_data=meta_data,
-                    created_by=user_id,
-                    updated_by=user_id,
+                    created_by_id=user_id,
+                    updated_by_id=user_id,
                     workspace_id=workspace_id,
                     name=file_name,
                 )

@@ -11,9 +11,9 @@ def upload_path(instance, filename):
     """
     base = "Production" if settings.DEBUG is False else "Development"
     return (
-        f"{base}/Documents/{instance.workspace.id}/{uuid4().hex}-{filename}"
+        f"{base}/Documents/workspace/{instance.workspace.id}/{uuid4().hex}-{filename}"
         if instance.workspace
-        else f"{base}/Documents/{instance.created_by.id}/{uuid4().hex}-{filename}"
+        else f"{base}/Documents/user/{instance.created_by.id}/{uuid4().hex}-{filename}"
     )
 
 
