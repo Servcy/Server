@@ -8,5 +8,5 @@ router.register("", DocumentViewSet, basename="document")
 
 urlpatterns = [
     path("", include(router.urls)),
-    path("unsplash", UnsplashEndpoint.as_view(), name="unsplash"),
+    path("unsplash/", UnsplashEndpoint.as_view(), name="unsplash"),
 ]

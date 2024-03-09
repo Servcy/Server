@@ -78,18 +78,15 @@ class DocumentViewSet(ModelViewSet):
 
 
 class UnsplashEndpoint(BaseAPIView):
-    _unspalsh_url = "https://api.unsplash.com"
-    _access_key = settings.UNSPLASH_ACCESS_KEY
-
     def get(self, request):
         query = request.GET.get("query", False)
         page = request.GET.get("page", 1)
         per_page = request.GET.get("per_page", 20)
 
         url = (
-            f"https://api.unsplash.com/search/photos/?client_id={self._access_key}&query={query}&page=${page}&per_page={per_page}"
+            f"https://api.unsplash.com/search/photos/?client_id={settings.UNSPLASH_ACCESS_KEY}&query={query}&page=${page}&per_page={per_page}"
             if query
-            else f"https://api.unsplash.com/photos/?client_id={self._access_key}&page={page}&per_page={per_page}"
+            else f"https://api.unsplash.com/photos/?client_id={settings.UNSPLASH_ACCESS_KEY}&page={page}&per_page={per_page}"
         )
         headers = {
             "Content-Type": "application/json",
