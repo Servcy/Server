@@ -14,7 +14,7 @@ class GlobalView(TimeStampedModel, CreatorUpdaterModel):
     description = models.TextField(verbose_name="View Description", blank=True)
     query = models.JSONField(verbose_name="View Query")
     access = models.PositiveSmallIntegerField(
-        default=1, choices=((1, "Private"), (0, "Public"))
+        default=0, choices=((1, "Private"), (0, "Public"))
     )
     query_data = models.JSONField(default=dict)
     sort_order = models.FloatField(default=65535)
