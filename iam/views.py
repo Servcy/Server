@@ -559,7 +559,7 @@ class WorkSpaceMemberViewSet(BaseViewSet):
         # Get all active workspace members
         workspace_members = self.get_queryset()
 
-        if workspace_member.role > 10:
+        if workspace_member.role > 1:
             serializer = WorkspaceMemberAdminSerializer(
                 workspace_members,
                 fields=("id", "member", "role"),
@@ -1205,7 +1205,7 @@ class WorkspaceUserProfileEndpoint(BaseAPIView):
             is_active=True,
         )
         projects = []
-        if requesting_workspace_member.role >= 10:
+        if requesting_workspace_member.role >= 1:
             projects = (
                 Project.objects.filter(
                     workspace__slug=slug,
