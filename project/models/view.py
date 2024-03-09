@@ -17,6 +17,16 @@ class GlobalView(TimeStampedModel, CreatorUpdaterModel):
         default=1, choices=((0, "Private"), (1, "Public"))
     )
     query_data = models.JSONField(default=dict)
+    sort_order = models.FloatField(default=65535)
+
+    def save(self, *args, **kwargs):
+        if self._state.adding:
+            largest_sort_order = GlobalView.objects.filter(
+                workspace=self.workspace
+            ).aggregate(largest=models.Max("sort_order"))["largest"]
+            if largest_sort_order is not None:
+                self.sort_order = largest_sort_order + 10000
+        super(GlobalView, self).save(*args, **kwargs)
 
     class Meta:
         verbose_name = "Global View"
@@ -35,6 +45,7 @@ class IssueView(ProjectBaseModel):
     access = models.PositiveSmallIntegerField(
         default=1, choices=((0, "Private"), (1, "Public"))
     )
+    sort_order = models.FloatField(default=65535)
 
     class Meta:
         verbose_name = "Issue View"

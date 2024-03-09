@@ -18,9 +18,23 @@ class State(ProjectBaseModel):
         default="backlog",
         max_length=20,
     )
+    sequence = models.FloatField(default=65535)
+
+    def save(self, *args, **kwargs):
+        if self._state.adding:
+            # Get the maximum sequence value from the database
+            last_id = State.objects.filter(project=self.project).aggregate(
+                largest=models.Max("sequence")
+            )["largest"]
+            # if last_id is not None
+            if last_id is not None:
+                self.sequence = last_id + 15000
+
+        return super().save(*args, **kwargs)
 
     class Meta:
         unique_together = ["name", "project"]
         verbose_name = "State"
         verbose_name_plural = "States"
         db_table = "state"
+        ordering = ("sequence",)
