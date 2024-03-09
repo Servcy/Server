@@ -64,7 +64,7 @@ class ProjectViewSet(BaseViewSet):
             super()
             .get_queryset()
             .filter(workspace__slug=self.kwargs.get("slug"))
-            .filter(Q(project_projectmember__member=self.request.user))
+            .filter(Q(project_projectmember__member=self.request.user) | Q(access=0))
             .select_related(
                 "workspace",
                 "workspace__owner",

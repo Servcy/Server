@@ -116,7 +116,7 @@ class ProjectMemberInvite(ProjectBaseModel):
             (1, "Member"),
             (0, "Guest"),
         ),
-        default=10,
+        default=1,
     )
     message = models.TextField(null=True)
     responded_at = models.DateTimeField(null=True)
@@ -146,7 +146,7 @@ class ProjectMember(ProjectBaseModel):
             (1, "Member"),
             (0, "Guest"),
         ),
-        default=10,
+        default=1,
     )
     default_props = models.JSONField(default=dict)
     preferences = models.JSONField(default=dict)

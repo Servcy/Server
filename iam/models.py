@@ -111,7 +111,7 @@ class WorkspaceMemberInvite(TimeStampedModel, CreatorUpdaterModel):
             (1, "Member"),
             (0, "Guest"),
         ),
-        default=10,
+        default=1,
     )
     invited_by = models.ForeignKey(User, on_delete=models.CASCADE)
     responded_at = models.DateTimeField(null=True)
