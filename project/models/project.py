@@ -49,7 +49,7 @@ class Project(TimeStampedModel, CreatorUpdaterModel):
     issue_views_view = models.BooleanField(default=True)
     page_view = models.BooleanField(default=True)
     access = models.PositiveSmallIntegerField(
-        default=1, choices=((0, "Private"), (1, "Public"))
+        default=0, choices=((1, "Private"), (0, "Public"))
     )
     cover_image = models.FileField(
         upload_to=upload_path,
