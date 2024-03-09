@@ -47,6 +47,7 @@ class UserAdminLiteSerializer(ServcyBaseSerializer):
         fields = [
             "id",
             "first_name",
+            "display_name",
             "last_name",
             "email",
             "avatar",
