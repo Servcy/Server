@@ -19,6 +19,7 @@ from common.permissions import (
     WorkspaceUserPermission,
 )
 from common.views import BaseAPIView, BaseViewSet
+from iam.enums import EAccess, ERole
 from iam.models import TeamMember, User, Workspace, WorkspaceMember
 from project.models import (
     Cycle,
@@ -64,7 +65,10 @@ class ProjectViewSet(BaseViewSet):
             super()
             .get_queryset()
             .filter(workspace__slug=self.kwargs.get("slug"))
-            .filter(Q(project_projectmember__member=self.request.user) | Q(access=0))
+            .filter(
+                Q(project_projectmember__member=self.request.user)
+                | Q(access=EAccess.PUBLIC.value)
+            )
             .select_related(
                 "workspace",
                 "workspace__owner",
@@ -170,7 +174,7 @@ class ProjectViewSet(BaseViewSet):
                 _ = ProjectMember.objects.create(
                     project_id=serializer.data["id"],
                     member=request.user,
-                    role=3,
+                    role=ERole.OWNER.value,
                 )
                 # Also create the issue property for the user
                 _ = IssueProperty.objects.create(
@@ -184,7 +188,7 @@ class ProjectViewSet(BaseViewSet):
                     ProjectMember.objects.create(
                         project_id=serializer.data["id"],
                         member_id=serializer.data["lead"],
-                        role=3,
+                        role=ERole.OWNER.value,
                     )
                     # Also create the issue property for the user
                     IssueProperty.objects.create(
@@ -346,7 +350,7 @@ class ProjectInvitationsViewset(BaseViewSet):
             [
                 email
                 for email in emails
-                if int(email.get("role", 1)) > requesting_user.role
+                if int(email.get("role", ERole.MEMBER.value)) > requesting_user.role
             ]
         ):
             return Response(
@@ -373,7 +377,7 @@ class ProjectInvitationsViewset(BaseViewSet):
                             settings.SECRET_KEY,
                             algorithm="HS256",
                         ),
-                        role=email.get("role", 1),
+                        role=email.get("role", ERole.MEMBER.value),
                         created_by=request.user,
                     )
                 )
@@ -446,7 +450,11 @@ class UserProjectInvitationsViewset(BaseViewSet):
                 ProjectMember(
                     project_id=project_id,
                     member=request.user,
-                    role=2 if workspace_role >= 2 else 1,
+                    role=(
+                        ERole.ADMIN.value
+                        if workspace_role >= ERole.ADMIN.value
+                        else ERole.MEMBER.value
+                    ),
                     workspace=workspace,
                     created_by=request.user,
                 )
@@ -512,7 +520,11 @@ class ProjectJoinEndpoint(BaseAPIView):
                     _ = WorkspaceMember.objects.create(
                         workspace_id=project_invite.workspace_id,
                         member=user,
-                        role=2 if project_invite.role >= 2 else project_invite.role,
+                        role=(
+                            ERole.ADMIN.value
+                            if project_invite.role >= ERole.ADMIN.value
+                            else project_invite.role
+                        ),
                     )
                 else:
                     # Else make him active
@@ -644,7 +656,7 @@ class ProjectMemberViewSet(BaseViewSet):
             bulk_project_members.append(
                 ProjectMember(
                     member_id=member.get("member_id"),
-                    role=member.get("role", 1),
+                    role=member.get("role", ERole.MEMBER.value),
                     project_id=project_id,
                     workspace_id=project.workspace_id,
                     sort_order=sort_order[0] - 10000 if len(sort_order) else 65535,
@@ -769,11 +781,11 @@ class ProjectMemberViewSet(BaseViewSet):
 
         # Check if the leaving user is the only admin of the project
         if (
-            project_member.role == 3
+            project_member.role == ERole.OWNER.value
             and not ProjectMember.objects.filter(
                 workspace__slug=slug,
                 project_id=project_id,
-                role=3,
+                role=ERole.OWNER.value,
                 is_active=True,
             ).count()
             > 1

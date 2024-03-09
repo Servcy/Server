@@ -9,6 +9,7 @@ from rest_framework.response import Response
 
 from common.permissions import ProjectEntityPermission
 from common.views import BaseAPIView, BaseViewSet
+from iam.enums import EAccess, ERole
 from project.models import Page, PageFavorite, PageLog, ProjectMember
 from project.serializers import (
     PageFavoriteSerializer,
@@ -61,7 +62,7 @@ class PageViewSet(BaseViewSet):
                 project__project_projectmember__is_active=True,
             )
             .filter(parent__isnull=True)
-            .filter(Q(owned_by=self.request.user) | Q(access=0))
+            .filter(Q(owned_by=self.request.user) | Q(access=EAccess.PUBLIC.value))
             .select_related("project")
             .select_related("workspace")
             .select_related("owned_by")
@@ -157,7 +158,7 @@ class PageViewSet(BaseViewSet):
                 project_id=project_id,
                 member=request.user,
                 is_active=True,
-                role__lte=2,
+                role__lte=ERole.MEMBER.value,
             ).exists()
             and request.user.id != page.owned_by_id
         ):
@@ -179,7 +180,7 @@ class PageViewSet(BaseViewSet):
                 project_id=project_id,
                 member=request.user,
                 is_active=True,
-                role__lte=2,
+                role__lte=ERole.MEMBER.value,
             ).exists()
             and request.user.id != page.owned_by_id
         ):
@@ -215,7 +216,7 @@ class PageViewSet(BaseViewSet):
                 project_id=project_id,
                 member=request.user,
                 is_active=True,
-                role__gt=3,
+                role__lte=ERole.MEMBER.value,
             ).exists()
             or request.user.id != page.owned_by_id
         ):

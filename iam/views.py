@@ -42,6 +42,7 @@ from common.permissions import (
 )
 from common.responses import error_response
 from common.views import BaseAPIView, BaseViewSet
+from iam.enums import ERole
 from iam.models import (
     Team,
     User,
@@ -167,7 +168,7 @@ class WorkSpaceViewSet(BaseViewSet):
                 _ = WorkspaceMember.objects.create(
                     workspace_id=serializer.data["id"],
                     member=request.user,
-                    role=3,
+                    role=ERole.OWNER.value,
                     company_role=request.data.get("company_role", ""),
                 )
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -283,7 +284,7 @@ class WorkspaceInvitationsViewset(BaseViewSet):
             [
                 email
                 for email in emails
-                if int(email.get("role", 1)) > requesting_user.role
+                if int(email.get("role", ERole.MEMBER.value)) > requesting_user.role
             ]
         ):
             return Response(
@@ -328,7 +329,7 @@ class WorkspaceInvitationsViewset(BaseViewSet):
                             settings.SECRET_KEY,
                             algorithm="HS256",
                         ),
-                        role=email.get("role", 1),
+                        role=email.get("role", ERole.MEMBER.value),
                         created_by=request.user,
                     )
                 )
@@ -559,7 +560,7 @@ class WorkSpaceMemberViewSet(BaseViewSet):
         # Get all active workspace members
         workspace_members = self.get_queryset()
 
-        if workspace_member.role > 1:
+        if workspace_member.role > ERole.MEMBER.value:
             serializer = WorkspaceMemberAdminSerializer(
                 workspace_members,
                 fields=("id", "member", "role"),
@@ -648,7 +649,7 @@ class WorkSpaceMemberViewSet(BaseViewSet):
                     "project_projectmember",
                     filter=Q(
                         project_projectmember__member_id=workspace_member.id,
-                        project_projectmember__role=3,
+                        project_projectmember__role=ERole.OWNER.value,
                     ),
                 ),
             )
@@ -682,10 +683,10 @@ class WorkSpaceMemberViewSet(BaseViewSet):
 
         # Check if the leaving user is the only admin of the workspace
         if (
-            workspace_member.role == 3
+            workspace_member.role == ERole.OWNER.value
             and not WorkspaceMember.objects.filter(
                 workspace__slug=slug,
-                role=3,
+                role=ERole.OWNER.value,
                 is_active=True,
             ).count()
             > 1
@@ -704,7 +705,7 @@ class WorkSpaceMemberViewSet(BaseViewSet):
                     "project_projectmember",
                     filter=Q(
                         project_projectmember__member_id=request.user.id,
-                        project_projectmember__role=3,
+                        project_projectmember__role=ERole.OWNER.value,
                     ),
                 ),
             )
@@ -1826,7 +1827,8 @@ class UserEndpoint(BaseViewSet):
             other_admin_exists=Count(
                 Case(
                     When(
-                        Q(role=3, is_active=True) & ~Q(member=request.user),
+                        Q(role=ERole.OWNER.value, is_active=True)
+                        & ~Q(member=request.user),
                         then=1,
                     ),
                     default=0,
@@ -1852,7 +1854,8 @@ class UserEndpoint(BaseViewSet):
             other_admin_exists=Count(
                 Case(
                     When(
-                        Q(role=3, is_active=True) & ~Q(member=request.user),
+                        Q(role=ERole.OWNER.value, is_active=True)
+                        & ~Q(member=request.user),
                         then=1,
                     ),
                     default=0,
