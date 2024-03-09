@@ -170,7 +170,7 @@ class ProjectViewSet(BaseViewSet):
                 _ = ProjectMember.objects.create(
                     project_id=serializer.data["id"],
                     member=request.user,
-                    role=20,
+                    role=3,
                 )
                 # Also create the issue property for the user
                 _ = IssueProperty.objects.create(
@@ -184,7 +184,7 @@ class ProjectViewSet(BaseViewSet):
                     ProjectMember.objects.create(
                         project_id=serializer.data["id"],
                         member_id=serializer.data["lead"],
-                        role=20,
+                        role=3,
                     )
                     # Also create the issue property for the user
                     IssueProperty.objects.create(
@@ -346,7 +346,7 @@ class ProjectInvitationsViewset(BaseViewSet):
             [
                 email
                 for email in emails
-                if int(email.get("role", 10)) > requesting_user.role
+                if int(email.get("role", 1)) > requesting_user.role
             ]
         ):
             return Response(
@@ -373,7 +373,7 @@ class ProjectInvitationsViewset(BaseViewSet):
                             settings.SECRET_KEY,
                             algorithm="HS256",
                         ),
-                        role=email.get("role", 10),
+                        role=email.get("role", 1),
                         created_by=request.user,
                     )
                 )
@@ -387,7 +387,7 @@ class ProjectInvitationsViewset(BaseViewSet):
 
         # Create workspace member invite
         project_invitations = ProjectMemberInvite.objects.bulk_create(
-            project_invitations, batch_size=10, ignore_conflicts=True
+            project_invitations, batch_size=1, ignore_conflicts=True
         )
         current_site = request.META.get("HTTP_ORIGIN")
 
@@ -446,7 +446,7 @@ class UserProjectInvitationsViewset(BaseViewSet):
                 ProjectMember(
                     project_id=project_id,
                     member=request.user,
-                    role=15 if workspace_role >= 15 else 10,
+                    role=2 if workspace_role >= 2 else 1,
                     workspace=workspace,
                     created_by=request.user,
                 )
@@ -512,7 +512,7 @@ class ProjectJoinEndpoint(BaseAPIView):
                     _ = WorkspaceMember.objects.create(
                         workspace_id=project_invite.workspace_id,
                         member=user,
-                        role=15 if project_invite.role >= 15 else project_invite.role,
+                        role=2 if project_invite.role >= 2 else project_invite.role,
                     )
                 else:
                     # Else make him active
@@ -644,7 +644,7 @@ class ProjectMemberViewSet(BaseViewSet):
             bulk_project_members.append(
                 ProjectMember(
                     member_id=member.get("member_id"),
-                    role=member.get("role", 10),
+                    role=member.get("role", 1),
                     project_id=project_id,
                     workspace_id=project.workspace_id,
                     sort_order=sort_order[0] - 10000 if len(sort_order) else 65535,
@@ -769,11 +769,11 @@ class ProjectMemberViewSet(BaseViewSet):
 
         # Check if the leaving user is the only admin of the project
         if (
-            project_member.role == 20
+            project_member.role == 3
             and not ProjectMember.objects.filter(
                 workspace__slug=slug,
                 project_id=project_id,
-                role=20,
+                role=3,
                 is_active=True,
             ).count()
             > 1

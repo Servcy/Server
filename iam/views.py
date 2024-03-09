@@ -167,7 +167,7 @@ class WorkSpaceViewSet(BaseViewSet):
                 _ = WorkspaceMember.objects.create(
                     workspace_id=serializer.data["id"],
                     member=request.user,
-                    role=20,
+                    role=3,
                     company_role=request.data.get("company_role", ""),
                 )
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -283,7 +283,7 @@ class WorkspaceInvitationsViewset(BaseViewSet):
             [
                 email
                 for email in emails
-                if int(email.get("role", 10)) > requesting_user.role
+                if int(email.get("role", 1)) > requesting_user.role
             ]
         ):
             return Response(
@@ -328,7 +328,7 @@ class WorkspaceInvitationsViewset(BaseViewSet):
                             settings.SECRET_KEY,
                             algorithm="HS256",
                         ),
-                        role=email.get("role", 10),
+                        role=email.get("role", 1),
                         created_by=request.user,
                     )
                 )
@@ -648,7 +648,7 @@ class WorkSpaceMemberViewSet(BaseViewSet):
                     "project_projectmember",
                     filter=Q(
                         project_projectmember__member_id=workspace_member.id,
-                        project_projectmember__role=20,
+                        project_projectmember__role=3,
                     ),
                 ),
             )
@@ -682,10 +682,10 @@ class WorkSpaceMemberViewSet(BaseViewSet):
 
         # Check if the leaving user is the only admin of the workspace
         if (
-            workspace_member.role == 20
+            workspace_member.role == 3
             and not WorkspaceMember.objects.filter(
                 workspace__slug=slug,
-                role=20,
+                role=3,
                 is_active=True,
             ).count()
             > 1
@@ -704,7 +704,7 @@ class WorkSpaceMemberViewSet(BaseViewSet):
                     "project_projectmember",
                     filter=Q(
                         project_projectmember__member_id=request.user.id,
-                        project_projectmember__role=20,
+                        project_projectmember__role=3,
                     ),
                 ),
             )
@@ -1826,7 +1826,7 @@ class UserEndpoint(BaseViewSet):
             other_admin_exists=Count(
                 Case(
                     When(
-                        Q(role=20, is_active=True) & ~Q(member=request.user),
+                        Q(role=3, is_active=True) & ~Q(member=request.user),
                         then=1,
                     ),
                     default=0,
@@ -1852,7 +1852,7 @@ class UserEndpoint(BaseViewSet):
             other_admin_exists=Count(
                 Case(
                     When(
-                        Q(role=20, is_active=True) & ~Q(member=request.user),
+                        Q(role=3, is_active=True) & ~Q(member=request.user),
                         then=1,
                     ),
                     default=0,

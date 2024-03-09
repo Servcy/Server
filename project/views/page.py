@@ -157,7 +157,7 @@ class PageViewSet(BaseViewSet):
                 project_id=project_id,
                 member=request.user,
                 is_active=True,
-                role__lte=15,
+                role__lte=2,
             ).exists()
             and request.user.id != page.owned_by_id
         ):
@@ -179,7 +179,7 @@ class PageViewSet(BaseViewSet):
                 project_id=project_id,
                 member=request.user,
                 is_active=True,
-                role__lte=15,
+                role__lte=2,
             ).exists()
             and request.user.id != page.owned_by_id
         ):
@@ -215,7 +215,7 @@ class PageViewSet(BaseViewSet):
                 project_id=project_id,
                 member=request.user,
                 is_active=True,
-                role__gt=20,
+                role__gt=3,
             ).exists()
             or request.user.id != page.owned_by_id
         ):

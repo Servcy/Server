@@ -109,7 +109,7 @@ class NotificationViewSet(BaseViewSet, BasePaginator):
             if WorkspaceMember.objects.filter(
                 workspace__slug=slug,
                 member=request.user,
-                role__lt=15,
+                role__lt=2,
                 is_active=True,
             ).exists():
                 notifications = Notification.objects.none()
@@ -290,7 +290,7 @@ class MarkAllReadNotificationViewSet(BaseViewSet):
             if WorkspaceMember.objects.filter(
                 workspace__slug=slug,
                 member=request.user,
-                role__lt=15,
+                role__lt=2,
                 is_active=True,
             ).exists():
                 notifications = Notification.objects.none()
