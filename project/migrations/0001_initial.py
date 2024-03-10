@@ -1128,7 +1128,6 @@ class Migration(migrations.Migration):
                         on_delete=django.db.models.deletion.CASCADE,
                         related_name="project_%(class)s",
                         to="project.project",
-                        null=True,
                     ),
                 ),
                 (
