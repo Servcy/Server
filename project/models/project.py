@@ -111,7 +111,6 @@ class ProjectMemberInvite(ProjectBaseModel):
     token = models.CharField(max_length=255)
     role = models.PositiveSmallIntegerField(
         choices=(
-            (3, "Owner"),
             (2, "Admin"),
             (1, "Member"),
             (0, "Guest"),
@@ -141,7 +140,6 @@ class ProjectMember(ProjectBaseModel):
     view_props = models.JSONField(default=dict)
     role = models.PositiveSmallIntegerField(
         choices=(
-            (3, "Owner"),
             (2, "Admin"),
             (1, "Member"),
             (0, "Guest"),

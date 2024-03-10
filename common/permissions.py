@@ -18,14 +18,17 @@ class ProjectBasePermission(BasePermission):
                 is_active=True,
             ).exists()
 
-        ## Only workspace owners or admins can create the projects
+        ## Workspace guests cannot create projects
         if request.method == "POST":
-            return WorkspaceMember.objects.filter(
-                workspace__slug=view.workspace_slug,
-                member=request.user,
-                role__in=[ERole.Admin.value, ERole.Member.value],
-                is_active=True,
-            ).exists()
+            return (
+                WorkspaceMember.objects.filter(
+                    workspace__slug=view.workspace_slug,
+                    member=request.user,
+                    is_active=True,
+                )
+                .exclude(role=ERole.GUEST.value)
+                .exists()
+            )
 
         ## Only Project Admins can update project attributes
         return ProjectMember.objects.filter(
@@ -49,23 +52,30 @@ class ProjectMemberPermission(BasePermission):
                 member=request.user,
                 is_active=True,
             ).exists()
-        ## Only workspace owners or admins can create the projects
+
+        ## Workspace guests cannot create projects
         if request.method == "POST":
-            return WorkspaceMember.objects.filter(
+            return (
+                WorkspaceMember.objects.filter(
+                    workspace__slug=view.workspace_slug,
+                    member=request.user,
+                    is_active=True,
+                )
+                .exclude(role=ERole.GUEST.value)
+                .exists()
+            )
+
+        ## Guests cannot update project members
+        return (
+            ProjectMember.objects.filter(
                 workspace__slug=view.workspace_slug,
                 member=request.user,
-                role__in=[ERole.Admin.value, ERole.Member.value],
+                project_id=view.project_id,
                 is_active=True,
-            ).exists()
-
-        ## Only Project Admins can update project attributes
-        return ProjectMember.objects.filter(
-            workspace__slug=view.workspace_slug,
-            member=request.user,
-            role__in=[ERole.Admin.value, ERole.Member.value],
-            project_id=view.project_id,
-            is_active=True,
-        ).exists()
+            )
+            .exclude(role=ERole.GUEST.value)
+            .exists()
+        )
 
 
 class ProjectEntityPermission(BasePermission):
@@ -82,14 +92,17 @@ class ProjectEntityPermission(BasePermission):
                 is_active=True,
             ).exists()
 
-        ## Only project members or admins can create and edit the project attributes
-        return ProjectMember.objects.filter(
-            workspace__slug=view.workspace_slug,
-            member=request.user,
-            role__in=[ERole.Admin.value, ERole.Member.value],
-            project_id=view.project_id,
-            is_active=True,
-        ).exists()
+        ## Guests cannot create entities
+        return (
+            ProjectMember.objects.filter(
+                workspace__slug=view.workspace_slug,
+                member=request.user,
+                project_id=view.project_id,
+                is_active=True,
+            )
+            .exclude(role=ERole.GUEST.value)
+            .exists()
+        )
 
 
 class ProjectLitePermission(BasePermission):
@@ -107,7 +120,7 @@ class ProjectLitePermission(BasePermission):
 
 class WorkSpaceBasePermission(BasePermission):
     def has_permission(self, request, view):
-        # allow anyone to create a workspace
+        # Allow anyone to create a workspace
         if request.user.is_anonymous:
             return False
 
@@ -118,35 +131,23 @@ class WorkSpaceBasePermission(BasePermission):
         if request.method in SAFE_METHODS:
             return True
 
-        # allow only admins and owners to update the workspace settings
+        # Only workspace admin can update the workspace
         if request.method in ["PUT", "PATCH"]:
             return WorkspaceMember.objects.filter(
                 member=request.user,
                 workspace__slug=view.workspace_slug,
-                role__in=[ERole.Owner.value, ERole.Admin.value],
+                role=ERole.Admin.value,
                 is_active=True,
             ).exists()
 
-        # allow only owner to delete the workspace
+        # Allow workspace admin to delete the workspace
         if request.method == "DELETE":
             return WorkspaceMember.objects.filter(
                 member=request.user,
                 workspace__slug=view.workspace_slug,
-                role=ERole.Owner.value,
+                role=ERole.Admin.value,
                 is_active=True,
             ).exists()
-
-
-class WorkspaceOwnerPermission(BasePermission):
-    def has_permission(self, request, view):
-        if request.user.is_anonymous:
-            return False
-
-        return WorkspaceMember.objects.filter(
-            workspace__slug=view.workspace_slug,
-            member=request.user,
-            role=ERole.Owner.value,
-        ).exists()
 
 
 class WorkSpaceAdminPermission(BasePermission):
@@ -157,7 +158,7 @@ class WorkSpaceAdminPermission(BasePermission):
         return WorkspaceMember.objects.filter(
             member=request.user,
             workspace__slug=view.workspace_slug,
-            role__in=[ERole.Owner.value, ERole.Admin.value],
+            role=ERole.Admin.value,
             is_active=True,
         ).exists()
 
@@ -174,12 +175,16 @@ class WorkspaceEntityPermission(BasePermission):
                 is_active=True,
             ).exists()
 
-        return WorkspaceMember.objects.filter(
-            member=request.user,
-            workspace__slug=view.workspace_slug,
-            role__in=[ERole.Owner.value, ERole.Admin.value],
-            is_active=True,
-        ).exists()
+        # Guests cannot create entities
+        return (
+            WorkspaceMember.objects.filter(
+                member=request.user,
+                workspace__slug=view.workspace_slug,
+                is_active=True,
+            )
+            .exclude(role=ERole.GUEST.value)
+            .exists()
+        )
 
 
 class WorkspaceViewerPermission(BasePermission):

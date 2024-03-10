@@ -174,7 +174,7 @@ class ProjectViewSet(BaseViewSet):
                 _ = ProjectMember.objects.create(
                     project_id=serializer.data["id"],
                     member=request.user,
-                    role=ERole.OWNER.value,
+                    role=ERole.ADMIN.value,
                 )
                 # Also create the issue property for the user
                 _ = IssueProperty.objects.create(
@@ -188,7 +188,7 @@ class ProjectViewSet(BaseViewSet):
                     ProjectMember.objects.create(
                         project_id=serializer.data["id"],
                         member_id=serializer.data["lead"],
-                        role=ERole.OWNER.value,
+                        role=ERole.ADMIN.value,
                     )
                     # Also create the issue property for the user
                     IssueProperty.objects.create(
@@ -781,11 +781,11 @@ class ProjectMemberViewSet(BaseViewSet):
 
         # Check if the leaving user is the only admin of the project
         if (
-            project_member.role == ERole.OWNER.value
+            project_member.role == ERole.ADMIN.value
             and not ProjectMember.objects.filter(
                 workspace__slug=slug,
                 project_id=project_id,
-                role=ERole.OWNER.value,
+                role=ERole.ADMIN.value,
                 is_active=True,
             ).count()
             > 1

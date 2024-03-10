@@ -168,7 +168,7 @@ class WorkSpaceViewSet(BaseViewSet):
                 _ = WorkspaceMember.objects.create(
                     workspace_id=serializer.data["id"],
                     member=request.user,
-                    role=ERole.OWNER.value,
+                    role=ERole.ADMIN.value,
                     company_role=request.data.get("company_role", ""),
                 )
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -649,7 +649,7 @@ class WorkSpaceMemberViewSet(BaseViewSet):
                     "project_projectmember",
                     filter=Q(
                         project_projectmember__member_id=workspace_member.id,
-                        project_projectmember__role=ERole.OWNER.value,
+                        project_projectmember__role=ERole.ADMIN.value,
                     ),
                 ),
             )
@@ -683,10 +683,10 @@ class WorkSpaceMemberViewSet(BaseViewSet):
 
         # Check if the leaving user is the only admin of the workspace
         if (
-            workspace_member.role == ERole.OWNER.value
+            workspace_member.role == ERole.ADMIN.value
             and not WorkspaceMember.objects.filter(
                 workspace__slug=slug,
-                role=ERole.OWNER.value,
+                role=ERole.ADMIN.value,
                 is_active=True,
             ).count()
             > 1
@@ -705,7 +705,7 @@ class WorkSpaceMemberViewSet(BaseViewSet):
                     "project_projectmember",
                     filter=Q(
                         project_projectmember__member_id=request.user.id,
-                        project_projectmember__role=ERole.OWNER.value,
+                        project_projectmember__role=ERole.ADMIN.value,
                     ),
                 ),
             )
@@ -1827,7 +1827,7 @@ class UserEndpoint(BaseViewSet):
             other_admin_exists=Count(
                 Case(
                     When(
-                        Q(role=ERole.OWNER.value, is_active=True)
+                        Q(role=ERole.ADMIN.value, is_active=True)
                         & ~Q(member=request.user),
                         then=1,
                     ),
@@ -1854,7 +1854,7 @@ class UserEndpoint(BaseViewSet):
             other_admin_exists=Count(
                 Case(
                     When(
-                        Q(role=ERole.OWNER.value, is_active=True)
+                        Q(role=ERole.ADMIN.value, is_active=True)
                         & ~Q(member=request.user),
                         then=1,
                     ),

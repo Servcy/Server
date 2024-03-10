@@ -106,7 +106,6 @@ class WorkspaceMemberInvite(TimeStampedModel, CreatorUpdaterModel):
     token = models.CharField(max_length=255)
     role = models.PositiveSmallIntegerField(
         choices=(
-            (3, "Owner"),
             (2, "Admin"),
             (1, "Member"),
             (0, "Guest"),
@@ -136,7 +135,6 @@ class WorkspaceMember(TimeStampedModel, CreatorUpdaterModel):
     )
     role = models.PositiveSmallIntegerField(
         choices=(
-            (3, "Owner"),
             (2, "Admin"),
             (1, "Member"),
             (0, "Guest"),

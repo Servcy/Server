@@ -100,7 +100,6 @@ class PageViewSet(BaseViewSet):
                     pk=parent, workspace__slug=slug, project_id=project_id
                 )
 
-            # Only update access if the page owner is the requesting  user
             if (
                 page.access != request.data.get("access", page.access)
                 and page.owned_by_id != request.user.id
@@ -152,18 +151,17 @@ class PageViewSet(BaseViewSet):
     def archive(self, request, slug, project_id, page_id):
         page = Page.objects.get(pk=page_id, workspace__slug=slug, project_id=project_id)
 
-        # only the owner or admin can archive the page
         if (
             ProjectMember.objects.filter(
                 project_id=project_id,
                 member=request.user,
                 is_active=True,
-                role__lte=ERole.MEMBER.value,
+                role=ERole.GUEST.value,
             ).exists()
             and request.user.id != page.owned_by_id
         ):
             return Response(
-                {"error": "Only the owner or admin can archive the page"},
+                {"error": "Guests cannot archive the page"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -174,18 +172,17 @@ class PageViewSet(BaseViewSet):
     def unarchive(self, request, slug, project_id, page_id):
         page = Page.objects.get(pk=page_id, workspace__slug=slug, project_id=project_id)
 
-        # only the owner or admin can un archive the page
         if (
             ProjectMember.objects.filter(
                 project_id=project_id,
                 member=request.user,
                 is_active=True,
-                role__lte=ERole.MEMBER.value,
+                role=ERole.GUEST.value,
             ).exists()
             and request.user.id != page.owned_by_id
         ):
             return Response(
-                {"error": "Only the owner or admin can un archive the page"},
+                {"error": "Guests cannot unarchive the page"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -210,18 +207,17 @@ class PageViewSet(BaseViewSet):
     def destroy(self, request, slug, project_id, pk):
         page = Page.objects.get(pk=pk, workspace__slug=slug, project_id=project_id)
 
-        # only the owner and admin can delete the page
         if (
             ProjectMember.objects.filter(
                 project_id=project_id,
                 member=request.user,
                 is_active=True,
-                role__lte=ERole.MEMBER.value,
+                role=ERole.GUEST.value,
             ).exists()
             or request.user.id != page.owned_by_id
         ):
             return Response(
-                {"error": "Only the owner and admin can delete the page"},
+                {"error": "Guests cannot delete the page"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
