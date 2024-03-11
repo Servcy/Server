@@ -6,7 +6,7 @@ from celery import shared_task
 from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import timezone
 
-from common.celery.notifications_task import notifications
+from notification.tasks import notifications
 from iam.models import User
 from project.models import (
     CommentReaction,
