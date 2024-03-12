@@ -29,7 +29,6 @@ from rest_framework import status
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 
-from project.tasks import issue_activity
 from common.permissions import (
     ProjectEntityPermission,
     ProjectLitePermission,
@@ -69,6 +68,7 @@ from project.serializers import (
     ProjectMemberLiteSerializer,
     RelatedIssueSerializer,
 )
+from project.tasks import issue_activity
 from project.utils.filters import issue_filters
 
 

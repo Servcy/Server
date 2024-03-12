@@ -28,7 +28,6 @@ from rest_framework import status
 from rest_framework.response import Response
 
 from common.analytics_plot import burndown_plot
-from project.tasks import issue_activity
 from common.permissions import ProjectEntityPermission, ProjectLitePermission
 from common.views import BaseAPIView, BaseViewSet
 from iam.models import User
@@ -50,6 +49,7 @@ from project.serializers import (
     CycleWriteSerializer,
     IssueSerializer,
 )
+from project.tasks import issue_activity
 from project.utils.filters import issue_filters
 
 

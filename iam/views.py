@@ -52,7 +52,6 @@ from iam.models import (
     WorkspaceTheme,
     WorkspaceUserProperties,
 )
-from integration.repository import IntegrationRepository
 from iam.serializers import (
     TeamSerializer,
     UserLiteSerializer,
@@ -67,6 +66,7 @@ from iam.serializers import (
     WorkspaceThemeSerializer,
     WorkspaceUserPropertiesSerializer,
 )
+from integration.repository import IntegrationRepository
 from mails import SendGridEmail
 from project.models import (
     Cycle,
