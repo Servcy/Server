@@ -44,7 +44,6 @@ from common.responses import error_response
 from common.views import BaseAPIView, BaseViewSet
 from iam.enums import ERole
 from iam.models import (
-    Team,
     User,
     Workspace,
     WorkspaceMember,
@@ -53,8 +52,6 @@ from iam.models import (
     WorkspaceUserProperties,
 )
 from iam.serializers import (
-    TeamSerializer,
-    UserLiteSerializer,
     UserMeSerializer,
     UserMeSettingsSerializer,
     UserSerializer,
@@ -1688,61 +1685,6 @@ class WorkspaceCyclesEndpoint(BaseAPIView):
         )
         serializer = CycleSerializer(cycles, many=True).data
         return Response(serializer, status=status.HTTP_200_OK)
-
-
-class TeamMemberViewSet(BaseViewSet):
-    serializer_class = TeamSerializer
-    model = Team
-    permission_classes = [
-        WorkSpaceAdminPermission,
-    ]
-
-    search_fields = [
-        "member__display_name",
-        "member__first_name",
-    ]
-
-    def get_queryset(self):
-        return self.filter_queryset(
-            super()
-            .get_queryset()
-            .filter(workspace__slug=self.kwargs.get("slug"))
-            .select_related("workspace", "workspace__owner")
-            .prefetch_related("members")
-        )
-
-    def create(self, request, slug):
-        members = list(
-            WorkspaceMember.objects.filter(
-                workspace__slug=slug,
-                member__id__in=request.data.get("members", []),
-                is_active=True,
-            )
-            .annotate(member_str_id=Cast("member", output_field=CharField()))
-            .distinct()
-            .values_list("member_str_id", flat=True)
-        )
-
-        if len(members) != len(request.data.get("members", [])):
-            users = list(set(request.data.get("members", [])).difference(members))
-            users = User.objects.filter(pk__in=users)
-
-            serializer = UserLiteSerializer(users, many=True)
-            return Response(
-                {
-                    "error": f"{len(users)} of the member(s) are not a part of the workspace",
-                    "members": serializer.data,
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        workspace = Workspace.objects.get(slug=slug)
-
-        serializer = TeamSerializer(data=request.data, context={"workspace": workspace})
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class WorkSpaceAvailabilityCheckEndpoint(BaseAPIView):

@@ -1,7 +1,6 @@
 from django.urls import path
 
 from project.views import (
-    AddTeamToProjectEndpoint,
     ProjectDeployBoardViewSet,
     ProjectFavoritesViewSet,
     ProjectIdentifierEndpoint,
@@ -113,11 +112,6 @@ urlpatterns = [
             }
         ),
         name="project-member",
-    ),
-    path(
-        "workspaces/<str:slug>/projects/<uuid:project_id>/team-invite/",
-        AddTeamToProjectEndpoint.as_view(),
-        name="projects",
     ),
     path(
         "workspaces/<str:slug>/projects/<uuid:project_id>/project-views/",

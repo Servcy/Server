@@ -36,7 +36,6 @@ from .module import (
 )
 from .page import PageFavoriteViewSet, PageLogEndpoint, PageViewSet, SubPagesEndpoint
 from .project import (
-    AddTeamToProjectEndpoint,
     ProjectDeployBoardViewSet,
     ProjectFavoritesViewSet,
     ProjectIdentifierEndpoint,
