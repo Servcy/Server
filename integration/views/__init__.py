@@ -12,6 +12,7 @@ from integration.repository.events import (
     DisabledUserIntegrationEventRepository,
     IntegrationEventRepository,
 )
+from integration.models import UserIntegration
 from integration.serializers import UserIntegrationSerializer
 from integration.services.figma import FigmaService
 from integration.utils.events import determine_integration_event
@@ -60,6 +61,7 @@ class IntegrationViewSet(BaseViewSet):
 
 
 class UserIntegrationViewSet(BaseViewSet):
+    model = UserIntegration
     serializer_class = UserIntegrationSerializer
     queryset = UserIntegrationSerializer.Meta.model.objects.filter(
         is_revoked=False
