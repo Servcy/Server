@@ -5,6 +5,7 @@ from project.views import (
     UserActivityEndpoint,
     UserActivityGraphEndpoint,
     UserIssueCompletedGraphEndpoint,
+    UserProfileProjectsStatisticsEndpoint,
     UserWorkspaceDashboardEndpoint,
     UserWorkSpacesEndpoint,
     WorkspaceCyclesEndpoint,
@@ -80,6 +81,11 @@ urlpatterns = [
         "users/me/workspaces/<str:slug>/issues-completed-graph/",
         UserIssueCompletedGraphEndpoint.as_view(),
         name="completed-graph",
+    ),
+    path(
+        "workspaces/<str:slug>/user-project-stats/<int:user_id>/",
+        UserProfileProjectsStatisticsEndpoint.as_view(),
+        name="workspace-user-profile-page",
     ),
     path(
         "users/me/workspaces/<str:slug>/dashboard/",

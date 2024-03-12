@@ -29,7 +29,7 @@ from rest_framework.response import Response
 from common.paginator import BasePaginator
 from common.permissions import WorkspaceEntityPermission, WorkspaceViewerPermission
 from common.views import BaseAPIView
-from iam.models import Workspace, WorkspaceMember
+from iam.models import User, Workspace, WorkspaceMember
 from iam.serializers import WorkSpaceSerializer
 from project.models import (
     Cycle,
@@ -856,4 +856,100 @@ class UserActivityEndpoint(BaseAPIView, BasePaginator):
             on_results=lambda issue_activities: IssueActivitySerializer(
                 issue_activities, many=True
             ).data,
+        )
+
+
+class UserProfileProjectsStatisticsEndpoint(BaseAPIView):
+    """
+    This endpoint returns the user profile along with the user's project stats
+    """
+
+    def get(self, request, slug, user_id):
+        user_data = User.objects.get(pk=user_id)
+        requesting_workspace_member = WorkspaceMember.objects.get(
+            workspace__slug=slug,
+            member=request.user,
+            is_active=True,
+        )
+        projects = []
+        if requesting_workspace_member.role >= 1:
+            projects = (
+                Project.objects.filter(
+                    workspace__slug=slug,
+                    project_projectmember__member=request.user,
+                    project_projectmember__is_active=True,
+                )
+                .annotate(
+                    created_issues=Count(
+                        "project_issue",
+                        filter=Q(
+                            project_issue__created_by_id=user_id,
+                            project_issue__archived_at__isnull=True,
+                            project_issue__is_draft=False,
+                        ),
+                    )
+                )
+                .annotate(
+                    assigned_issues=Count(
+                        "project_issue",
+                        filter=Q(
+                            project_issue__assignees__in=[user_id],
+                            project_issue__archived_at__isnull=True,
+                            project_issue__is_draft=False,
+                        ),
+                    )
+                )
+                .annotate(
+                    completed_issues=Count(
+                        "project_issue",
+                        filter=Q(
+                            project_issue__completed_at__isnull=False,
+                            project_issue__assignees__in=[user_id],
+                            project_issue__archived_at__isnull=True,
+                            project_issue__is_draft=False,
+                        ),
+                    )
+                )
+                .annotate(
+                    pending_issues=Count(
+                        "project_issue",
+                        filter=Q(
+                            project_issue__state__group__in=[
+                                "backlog",
+                                "unstarted",
+                                "started",
+                            ],
+                            project_issue__assignees__in=[user_id],
+                            project_issue__archived_at__isnull=True,
+                            project_issue__is_draft=False,
+                        ),
+                    )
+                )
+                .values(
+                    "id",
+                    "name",
+                    "identifier",
+                    "emoji",
+                    "icon_prop",
+                    "created_issues",
+                    "assigned_issues",
+                    "completed_issues",
+                    "pending_issues",
+                )
+            )
+        return Response(
+            {
+                "project_data": projects,
+                "user_data": {
+                    "email": user_data.email,
+                    "first_name": user_data.first_name,
+                    "last_name": user_data.last_name,
+                    "avatar": user_data.avatar,
+                    "cover_image": user_data.cover_image,
+                    "date_joined": user_data.created_at,
+                    "user_timezone": user_data.user_timezone,
+                    "display_name": user_data.display_name,
+                },
+            },
+            status=status.HTTP_200_OK,
         )

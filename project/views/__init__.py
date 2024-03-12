@@ -46,7 +46,6 @@ from .project import (
     ProjectPublicCoverImagesEndpoint,
     ProjectUserViewsEndpoint,
     ProjectViewSet,
-    UserProfileProjectsStatisticsEndpoint,
     UserProjectInvitationsViewset,
     UserProjectRolesEndpoint,
 )
@@ -70,6 +69,7 @@ from .workspace import (
     WorkspaceModulesEndpoint,
     WorkspaceStatesEndpoint,
     WorkspaceUserActivityEndpoint,
+    UserProfileProjectsStatisticsEndpoint,
     WorkspaceUserProfileIssuesEndpoint,
     WorkspaceUserProfileStatsEndpoint,
 )
