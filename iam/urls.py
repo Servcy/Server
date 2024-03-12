@@ -90,7 +90,7 @@ urlpatterns = [
         name="workspace-invitations",
     ),
     path(
-        "workspaces/<str:slug>/invitations/<uuid:pk>/",
+        "workspaces/<str:slug>/invitations/<int:pk>/",
         WorkspaceInvitationsViewset.as_view(
             {
                 "delete": "destroy",
@@ -111,7 +111,7 @@ urlpatterns = [
         name="user-workspace-invitations",
     ),
     path(
-        "workspaces/<str:slug>/invitations/<uuid:pk>/join/",
+        "workspaces/<str:slug>/invitations/<int:pk>/join/",
         WorkspaceJoinEndpoint.as_view(),
         name="workspace-join",
     ),
@@ -127,7 +127,7 @@ urlpatterns = [
         name="workspace-member-roles",
     ),
     path(
-        "workspaces/<str:slug>/members/<uuid:pk>/",
+        "workspaces/<str:slug>/members/<int:pk>/",
         WorkSpaceMemberViewSet.as_view(
             {
                 "patch": "partial_update",
@@ -169,7 +169,7 @@ urlpatterns = [
         name="workspace-themes",
     ),
     path(
-        "workspaces/<str:slug>/workspace-themes/<uuid:pk>/",
+        "workspaces/<str:slug>/workspace-themes/<int:pk>/",
         WorkspaceThemeViewSet.as_view(
             {
                 "get": "retrieve",
