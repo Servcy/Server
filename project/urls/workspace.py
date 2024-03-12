@@ -23,17 +23,17 @@ router = routers.DefaultRouter(trailing_slash=False)
 urlpatterns = [
     path("", include(router.urls)),
     path(
-        "workspaces/<str:slug>/user-stats/<uuid:user_id>/",
+        "workspaces/<str:slug>/user-stats/<int:user_id>/",
         WorkspaceUserProfileStatsEndpoint.as_view(),
         name="workspace-user-stats",
     ),
     path(
-        "workspaces/<str:slug>/user-activity/<uuid:user_id>/",
+        "workspaces/<str:slug>/user-activity/<int:user_id>/",
         WorkspaceUserActivityEndpoint.as_view(),
         name="workspace-user-activity",
     ),
     path(
-        "workspaces/<str:slug>/user-issues/<uuid:user_id>/",
+        "workspaces/<str:slug>/user-issues/<int:user_id>/",
         WorkspaceUserProfileIssuesEndpoint.as_view(),
         name="workspace-user-profile-issues",
     ),
