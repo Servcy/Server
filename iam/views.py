@@ -322,6 +322,7 @@ class WorkspaceInvitationsViewset(BaseViewSet):
                     WorkspaceMemberInvite(
                         email=email.get("email").strip().lower(),
                         workspace=workspace,
+                        invited_by=request.user,
                         token=jwt.encode(
                             {
                                 "email": email,
