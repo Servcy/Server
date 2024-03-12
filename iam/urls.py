@@ -50,6 +50,11 @@ urlpatterns = [
         name="users",
     ),
     path(
+        "users/last-visited-workspace/",
+        UserLastProjectWithWorkspaceEndpoint.as_view(),
+        name="workspace-project-details",
+    ),
+    path(
         "workspace-slug-check/",
         WorkSpaceAvailabilityCheckEndpoint.as_view(),
         name="workspace-availability",
@@ -144,42 +149,17 @@ urlpatterns = [
         name="leave-workspace-members",
     ),
     path(
-        "workspaces/<str:slug>/teams/",
-        TeamMemberViewSet.as_view(
-            {
-                "get": "list",
-                "post": "create",
-            }
-        ),
-        name="workspace-team-members",
-    ),
-    path(
-        "workspaces/<str:slug>/teams/<uuid:pk>/",
-        TeamMemberViewSet.as_view(
-            {
-                "put": "update",
-                "patch": "partial_update",
-                "delete": "destroy",
-                "get": "retrieve",
-            }
-        ),
-        name="workspace-team-members",
-    ),
-    path(
-        "users/last-visited-workspace/",
-        UserLastProjectWithWorkspaceEndpoint.as_view(),
-        name="workspace-project-details",
-    ),
-    path(
         "workspaces/<str:slug>/workspace-members/me/",
         WorkspaceMemberUserEndpoint.as_view(),
         name="workspace-member-details",
     ),
+    # workspace member views
     path(
         "workspaces/<str:slug>/workspace-views/",
         WorkspaceMemberUserViewsEndpoint.as_view(),
         name="workspace-member-views-details",
     ),
+    # workspace themes
     path(
         "workspaces/<str:slug>/workspace-themes/",
         WorkspaceThemeViewSet.as_view(
