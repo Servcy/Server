@@ -4,30 +4,17 @@ from rest_framework import routers
 from iam.views import (
     UpdateUserOnBoardedEndpoint,
     UpdateUserTourCompletedEndpoint,
-    UserActivityEndpoint,
-    UserActivityGraphEndpoint,
     UserEndpoint,
-    UserIssueCompletedGraphEndpoint,
     UserLastProjectWithWorkspaceEndpoint,
-    UserWorkspaceDashboardEndpoint,
     UserWorkspaceInvitationsViewSet,
-    UserWorkSpacesEndpoint,
     WorkSpaceAvailabilityCheckEndpoint,
-    WorkspaceCyclesEndpoint,
-    WorkspaceEstimatesEndpoint,
     WorkspaceInvitationsViewset,
     WorkspaceJoinEndpoint,
-    WorkspaceLabelsEndpoint,
     WorkspaceMemberUserEndpoint,
     WorkspaceMemberUserViewsEndpoint,
     WorkSpaceMemberViewSet,
-    WorkspaceModulesEndpoint,
     WorkspaceProjectMemberEndpoint,
-    WorkspaceStatesEndpoint,
     WorkspaceThemeViewSet,
-    WorkspaceUserActivityEndpoint,
-    WorkspaceUserProfileIssuesEndpoint,
-    WorkspaceUserProfileStatsEndpoint,
     WorkspaceUserPropertiesEndpoint,
     WorkSpaceViewSet,
 )
@@ -180,64 +167,15 @@ urlpatterns = [
         name="workspace-themes",
     ),
     path(
-        "workspaces/<str:slug>/user-stats/<uuid:user_id>/",
-        WorkspaceUserProfileStatsEndpoint.as_view(),
-        name="workspace-user-stats",
-    ),
-    path(
-        "workspaces/<str:slug>/user-activity/<uuid:user_id>/",
-        WorkspaceUserActivityEndpoint.as_view(),
-        name="workspace-user-activity",
-    ),
-    path(
-        "workspaces/<str:slug>/user-issues/<uuid:user_id>/",
-        WorkspaceUserProfileIssuesEndpoint.as_view(),
-        name="workspace-user-profile-issues",
-    ),
-    path(
-        "workspaces/<str:slug>/labels/",
-        WorkspaceLabelsEndpoint.as_view(),
-        name="workspace-labels",
-    ),
-    path(
         "workspaces/<str:slug>/user-properties/",
         WorkspaceUserPropertiesEndpoint.as_view(),
         name="workspace-user-filters",
-    ),
-    path(
-        "workspaces/<str:slug>/states/",
-        WorkspaceStatesEndpoint.as_view(),
-        name="workspace-state",
-    ),
-    path(
-        "workspaces/<str:slug>/estimates/",
-        WorkspaceEstimatesEndpoint.as_view(),
-        name="workspace-estimate",
-    ),
-    path(
-        "workspaces/<str:slug>/modules/",
-        WorkspaceModulesEndpoint.as_view(),
-        name="workspace-modules",
-    ),
-    path(
-        "workspaces/<str:slug>/cycles/",
-        WorkspaceCyclesEndpoint.as_view(),
-        name="workspace-cycles",
     ),
     path(
         "users/me/settings/",
         UserEndpoint.as_view(
             {
                 "get": "retrieve_user_settings",
-            }
-        ),
-        name="users",
-    ),
-    path(
-        "users/me/instance-admin/",
-        UserEndpoint.as_view(
-            {
-                "get": "retrieve_instance_admin",
             }
         ),
         name="users",
@@ -252,32 +190,4 @@ urlpatterns = [
         UpdateUserTourCompletedEndpoint.as_view(),
         name="user-tour",
     ),
-    path(
-        "users/me/activities/",
-        UserActivityEndpoint.as_view(),
-        name="user-activities",
-    ),
-    # user workspaces
-    path(
-        "users/me/workspaces/",
-        UserWorkSpacesEndpoint.as_view(),
-        name="user-workspace",
-    ),
-    # User Graphs
-    path(
-        "users/me/workspaces/<str:slug>/activity-graph/",
-        UserActivityGraphEndpoint.as_view(),
-        name="user-activity-graph",
-    ),
-    path(
-        "users/me/workspaces/<str:slug>/issues-completed-graph/",
-        UserIssueCompletedGraphEndpoint.as_view(),
-        name="completed-graph",
-    ),
-    path(
-        "users/me/workspaces/<str:slug>/dashboard/",
-        UserWorkspaceDashboardEndpoint.as_view(),
-        name="user-workspace-dashboard",
-    ),
-    ## End User Graph
 ]

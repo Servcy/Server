@@ -45,8 +45,8 @@ from .project import (
     ProjectMemberViewSet,
     ProjectPublicCoverImagesEndpoint,
     ProjectUserViewsEndpoint,
-    UserProfileProjectsStatisticsEndpoint,
     ProjectViewSet,
+    UserProfileProjectsStatisticsEndpoint,
     UserProjectInvitationsViewset,
     UserProjectRolesEndpoint,
 )
@@ -57,4 +57,19 @@ from .view import (
     GlobalViewViewSet,
     IssueViewFavoriteViewSet,
     IssueViewViewSet,
+)
+from .workspace import (
+    UserActivityEndpoint,
+    UserActivityGraphEndpoint,
+    UserIssueCompletedGraphEndpoint,
+    UserWorkspaceDashboardEndpoint,
+    UserWorkSpacesEndpoint,
+    WorkspaceCyclesEndpoint,
+    WorkspaceEstimatesEndpoint,
+    WorkspaceLabelsEndpoint,
+    WorkspaceModulesEndpoint,
+    WorkspaceStatesEndpoint,
+    WorkspaceUserActivityEndpoint,
+    WorkspaceUserProfileIssuesEndpoint,
+    WorkspaceUserProfileStatsEndpoint,
 )

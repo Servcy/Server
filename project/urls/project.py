@@ -10,8 +10,8 @@ from project.views import (
     ProjectMemberViewSet,
     ProjectPublicCoverImagesEndpoint,
     ProjectUserViewsEndpoint,
-    UserProfileProjectsStatisticsEndpoint,
     ProjectViewSet,
+    UserProfileProjectsStatisticsEndpoint,
     UserProjectInvitationsViewset,
     UserProjectRolesEndpoint,
 )

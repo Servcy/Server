@@ -4,7 +4,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.db import IntegrityError
-from django.db.models import Exists, F, Func, OuterRef, Prefetch, Q, Subquery, Count
+from django.db.models import Count, Exists, F, Func, OuterRef, Prefetch, Q, Subquery
 from django.utils import timezone
 from rest_framework import serializers, status
 from rest_framework.permissions import AllowAny
