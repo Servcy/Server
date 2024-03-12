@@ -75,6 +75,7 @@ urlpatterns = [
         ),
         name="workspace",
     ),
+    # workspace invitations
     path(
         "workspaces/<str:slug>/invitations/",
         WorkspaceInvitationsViewset.as_view(
@@ -111,6 +112,7 @@ urlpatterns = [
         WorkspaceJoinEndpoint.as_view(),
         name="workspace-join",
     ),
+    # workspace members
     path(
         "workspaces/<str:slug>/members/",
         WorkSpaceMemberViewSet.as_view({"get": "list"}),
