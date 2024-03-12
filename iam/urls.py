@@ -39,6 +39,17 @@ router = routers.DefaultRouter(trailing_slash=False)
 urlpatterns = [
     path("", include(router.urls)),
     path(
+        "users/me/",
+        UserEndpoint.as_view(
+            {
+                "get": "retrieve",
+                "patch": "partial_update",
+                "delete": "deactivate",
+            }
+        ),
+        name="users",
+    ),
+    path(
         "workspace-slug-check/",
         WorkSpaceAvailabilityCheckEndpoint.as_view(),
         name="workspace-availability",
@@ -237,17 +248,6 @@ urlpatterns = [
         "workspaces/<str:slug>/cycles/",
         WorkspaceCyclesEndpoint.as_view(),
         name="workspace-cycles",
-    ),
-    path(
-        "users/me/",
-        UserEndpoint.as_view(
-            {
-                "get": "retrieve",
-                "patch": "partial_update",
-                "delete": "deactivate",
-            }
-        ),
-        name="users",
     ),
     path(
         "users/me/settings/",
