@@ -2,15 +2,15 @@ import logging
 
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.viewsets import ViewSet
 
 from common.responses import error_response, success_response
+from common.views import BaseViewSet
 from inbox.services import InboxService
 
 logger = logging.getLogger(__name__)
 
 
-class InboxViewSet(ViewSet):
+class InboxViewSet(BaseViewSet):
     @action(detail=False, methods=["post"], url_path="items")
     def fetch_items(self, request):
         try:
