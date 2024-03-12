@@ -13,7 +13,6 @@ from django.utils import timezone
 from rest_framework import status
 
 from common.analytics_plot import ExtractMonth, build_graph_plot
-from dashboard.tasks import analytics_export_task
 from common.permissions import WorkSpaceAdminPermission
 from common.responses import Response, error_response
 from common.views import BaseAPIView, BaseViewSet
@@ -23,6 +22,7 @@ from dashboard.serializers import (
     DashboardSerializer,
     WidgetSerializer,
 )
+from dashboard.tasks import analytics_export_task
 from dashboard.utils import (
     dashboard_assigned_issues,
     dashboard_created_issues,

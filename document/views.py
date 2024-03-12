@@ -5,20 +5,18 @@ from time import time
 
 import requests
 from django.conf import settings
-from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet
 
-from common.responses import error_response, success_response
-from common.views import BaseAPIView
+from common.responses import error_response
+from common.views import BaseAPIView, BaseViewSet
 from document.repository import DocumentRepository
 from document.serializers import DocumentSerializer
 
 logger = logging.getLogger(__name__)
 
 
-class DocumentViewSet(ModelViewSet):
+class DocumentViewSet(BaseViewSet):
     """
     DocumentViewSet allows to perform CRUD operations on Document model
     """
