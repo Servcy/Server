@@ -3,10 +3,10 @@ import logging
 
 from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.viewsets import GenericViewSet, ViewSet, mixins
 
 from common.exceptions import ExternalIntegrationException
 from common.responses import error_response, success_response
+from common.views import BaseViewSet
 from integration.repository import IntegrationRepository
 from integration.repository.events import (
     DisabledUserIntegrationEventRepository,
@@ -19,7 +19,7 @@ from integration.utils.events import determine_integration_event
 logger = logging.getLogger(__name__)
 
 
-class IntegrationViewSet(GenericViewSet):
+class IntegrationViewSet(BaseViewSet):
     @action(detail=False, methods=["get"], url_path="fetch-integrations")
     def fetch_integrations(self, request):
         try:
@@ -59,11 +59,7 @@ class IntegrationViewSet(GenericViewSet):
             )
 
 
-class UserIntegrationViewSet(
-    mixins.ListModelMixin,
-    GenericViewSet,
-    mixins.UpdateModelMixin,
-):
+class UserIntegrationViewSet(BaseViewSet):
     serializer_class = UserIntegrationSerializer
     queryset = UserIntegrationSerializer.Meta.model.objects.filter(
         is_revoked=False
@@ -121,7 +117,7 @@ class UserIntegrationViewSet(
             )
 
 
-class IntegrationEventViewSet(ViewSet):
+class IntegrationEventViewSet(BaseViewSet):
     @action(detail=False, methods=["post"], url_path="disable-event")
     def disable_user_integration_event(self, request):
         try:
