@@ -27,7 +27,7 @@ urlpatterns = [
         name="notifications",
     ),
     path(
-        "workspaces/<str:slug>/users/notifications/<uuid:pk>/",
+        "workspaces/<str:slug>/users/notifications/<int:pk>/",
         NotificationViewSet.as_view(
             {
                 "get": "retrieve",
@@ -38,7 +38,7 @@ urlpatterns = [
         name="notifications",
     ),
     path(
-        "workspaces/<str:slug>/users/notifications/<uuid:pk>/read/",
+        "workspaces/<str:slug>/users/notifications/<int:pk>/read/",
         NotificationViewSet.as_view(
             {
                 "post": "mark_read",
@@ -48,7 +48,7 @@ urlpatterns = [
         name="notifications",
     ),
     path(
-        "workspaces/<str:slug>/users/notifications/<uuid:pk>/archive/",
+        "workspaces/<str:slug>/users/notifications/<int:pk>/archive/",
         NotificationViewSet.as_view(
             {
                 "post": "archive",

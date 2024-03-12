@@ -46,14 +46,14 @@ urlpatterns = [
         name="analytic-view",
     ),
     path(
-        "workspaces/<str:slug>/analytic-view/<uuid:pk>/",
+        "workspaces/<str:slug>/analytic-view/<int:pk>/",
         AnalyticViewViewset.as_view(
             {"get": "retrieve", "patch": "partial_update", "delete": "destroy"}
         ),
         name="analytic-view",
     ),
     path(
-        "workspaces/<str:slug>/saved-analytic-view/<uuid:analytic_id>/",
+        "workspaces/<str:slug>/saved-analytic-view/<int:analytic_id>/",
         SavedAnalyticEndpoint.as_view(),
         name="saved-analytic-view",
     ),

@@ -1,7 +1,6 @@
 import json
 import logging
 import traceback
-import uuid
 
 from bs4 import BeautifulSoup
 from celery import shared_task
@@ -311,7 +310,7 @@ def notifications(
             issue_assignees = IssueAssignee.objects.filter(
                 issue_id=issue_id, project_id=project_id
             ).values_list("assignee", flat=True)
-            issue_subscribers = list(set(issue_subscribers) - {uuid.UUID(actor_id)})
+            issue_subscribers = list(set(issue_subscribers) - {int(actor_id)})
             for subscriber in issue_subscribers:
                 if issue.created_by_id and issue.created_by_id == subscriber:
                     sender = "in_app:issue_activities:created"
