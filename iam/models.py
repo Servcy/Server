@@ -141,7 +141,6 @@ class WorkspaceMember(TimeStampedModel, CreatorUpdaterModel):
         ),
         default=1,
     )
-    company_role = models.TextField(null=True, blank=True)
     view_props = models.JSONField(default=dict)
     default_props = models.JSONField(default=dict)
     issue_props = models.JSONField(default=dict)

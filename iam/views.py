@@ -170,7 +170,6 @@ class WorkSpaceViewSet(BaseViewSet):
                     workspace_id=serializer.data["id"],
                     member=request.user,
                     role=ERole.ADMIN.value,
-                    company_role=request.data.get("company_role", ""),
                 )
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(
