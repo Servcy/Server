@@ -1,10 +1,10 @@
 import logging
 import urllib.parse
 
-from rest_framework import status, viewsets
 from rest_framework.decorators import action
 
 from common.responses import error_response, success_response
+from common.views import BaseViewSet
 from integration.services.asana import AsanaService
 from integration.services.figma import FigmaService
 from integration.services.github import GithubService
@@ -18,7 +18,7 @@ from integration.services.trello import TrelloService
 logger = logging.getLogger(__name__)
 
 
-class OauthViewset(viewsets.ViewSet):
+class OauthViewset(BaseViewSet):
     def _handle_oauth_code(self, request, service_class, service_name: str):
         """Generalized method to handle OAuth2 authorization flow for a given service.
 
