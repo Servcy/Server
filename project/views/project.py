@@ -4,7 +4,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.db import IntegrityError
-from django.db.models import Exists, F, Func, OuterRef, Prefetch, Q, Subquery
+from django.db.models import Exists, F, Func, OuterRef, Prefetch, Q, Subquery, Count
 from django.utils import timezone
 from rest_framework import serializers, status
 from rest_framework.permissions import AllowAny
@@ -1014,3 +1014,99 @@ class UserProjectRolesEndpoint(BaseAPIView):
             str(member["project_id"]): member["role"] for member in project_members
         }
         return Response(project_members, status=status.HTTP_200_OK)
+
+
+class UserProfileProjectsStatisticsEndpoint(BaseAPIView):
+    """
+    This endpoint returns the user profile along with the user's project stats
+    """
+
+    def get(self, request, slug, user_id):
+        user_data = User.objects.get(pk=user_id)
+        requesting_workspace_member = WorkspaceMember.objects.get(
+            workspace__slug=slug,
+            member=request.user,
+            is_active=True,
+        )
+        projects = []
+        if requesting_workspace_member.role >= 1:
+            projects = (
+                Project.objects.filter(
+                    workspace__slug=slug,
+                    project_projectmember__member=request.user,
+                    project_projectmember__is_active=True,
+                )
+                .annotate(
+                    created_issues=Count(
+                        "project_issue",
+                        filter=Q(
+                            project_issue__created_by_id=user_id,
+                            project_issue__archived_at__isnull=True,
+                            project_issue__is_draft=False,
+                        ),
+                    )
+                )
+                .annotate(
+                    assigned_issues=Count(
+                        "project_issue",
+                        filter=Q(
+                            project_issue__assignees__in=[user_id],
+                            project_issue__archived_at__isnull=True,
+                            project_issue__is_draft=False,
+                        ),
+                    )
+                )
+                .annotate(
+                    completed_issues=Count(
+                        "project_issue",
+                        filter=Q(
+                            project_issue__completed_at__isnull=False,
+                            project_issue__assignees__in=[user_id],
+                            project_issue__archived_at__isnull=True,
+                            project_issue__is_draft=False,
+                        ),
+                    )
+                )
+                .annotate(
+                    pending_issues=Count(
+                        "project_issue",
+                        filter=Q(
+                            project_issue__state__group__in=[
+                                "backlog",
+                                "unstarted",
+                                "started",
+                            ],
+                            project_issue__assignees__in=[user_id],
+                            project_issue__archived_at__isnull=True,
+                            project_issue__is_draft=False,
+                        ),
+                    )
+                )
+                .values(
+                    "id",
+                    "name",
+                    "identifier",
+                    "emoji",
+                    "icon_prop",
+                    "created_issues",
+                    "assigned_issues",
+                    "completed_issues",
+                    "pending_issues",
+                )
+            )
+        return Response(
+            {
+                "project_data": projects,
+                "user_data": {
+                    "email": user_data.email,
+                    "first_name": user_data.first_name,
+                    "last_name": user_data.last_name,
+                    "avatar": user_data.avatar,
+                    "cover_image": user_data.cover_image,
+                    "date_joined": user_data.created_at,
+                    "user_timezone": user_data.user_timezone,
+                    "display_name": user_data.display_name,
+                },
+            },
+            status=status.HTTP_200_OK,
+        )

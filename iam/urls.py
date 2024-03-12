@@ -26,7 +26,6 @@ from iam.views import (
     WorkspaceStatesEndpoint,
     WorkspaceThemeViewSet,
     WorkspaceUserActivityEndpoint,
-    WorkspaceUserProfileEndpoint,
     WorkspaceUserProfileIssuesEndpoint,
     WorkspaceUserProfileStatsEndpoint,
     WorkspaceUserPropertiesEndpoint,
@@ -189,11 +188,6 @@ urlpatterns = [
         "workspaces/<str:slug>/user-activity/<uuid:user_id>/",
         WorkspaceUserActivityEndpoint.as_view(),
         name="workspace-user-activity",
-    ),
-    path(
-        "workspaces/<str:slug>/user-profile/<uuid:user_id>/",
-        WorkspaceUserProfileEndpoint.as_view(),
-        name="workspace-user-profile-page",
     ),
     path(
         "workspaces/<str:slug>/user-issues/<uuid:user_id>/",

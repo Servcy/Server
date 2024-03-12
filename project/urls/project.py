@@ -10,6 +10,7 @@ from project.views import (
     ProjectMemberViewSet,
     ProjectPublicCoverImagesEndpoint,
     ProjectUserViewsEndpoint,
+    UserProfileProjectsStatisticsEndpoint,
     ProjectViewSet,
     UserProjectInvitationsViewset,
     UserProjectRolesEndpoint,
@@ -112,6 +113,11 @@ urlpatterns = [
             }
         ),
         name="project-member",
+    ),
+    path(
+        "workspaces/<str:slug>/user-project-stats/<uuid:user_id>/",
+        UserProfileProjectsStatisticsEndpoint.as_view(),
+        name="workspace-user-profile-page",
     ),
     path(
         "workspaces/<str:slug>/projects/<uuid:project_id>/project-views/",

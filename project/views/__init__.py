@@ -45,6 +45,7 @@ from .project import (
     ProjectMemberViewSet,
     ProjectPublicCoverImagesEndpoint,
     ProjectUserViewsEndpoint,
+    UserProfileProjectsStatisticsEndpoint,
     ProjectViewSet,
     UserProjectInvitationsViewset,
     UserProjectRolesEndpoint,
