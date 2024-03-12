@@ -97,7 +97,7 @@ class IntegrationRepository:
         )
 
     @staticmethod
-    def revoke_user_integrations(user_integrations: list[int] | int):
+    def revoke_user_integrations(user_integrations: list[int] | int = [], **kwargs):
         """
         Revoke user integrations.
         """
@@ -110,6 +110,10 @@ class IntegrationRepository:
                 is_revoked=True,
                 updated_at=timezone.now(),
             )
+        elif kwargs.get("revoke_all", False) and kwargs.get("user_id"):
+            UserIntegration.objects.filter(
+                user_id=kwargs["user_id"], is_revoked=False
+            ).update(is_revoked=True, updated_at=timezone.now())
 
     @staticmethod
     def decrypt_meta_data(meta_data: str) -> dict:

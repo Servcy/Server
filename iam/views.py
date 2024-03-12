@@ -52,6 +52,7 @@ from iam.models import (
     WorkspaceTheme,
     WorkspaceUserProperties,
 )
+from integration.repository import IntegrationRepository
 from iam.serializers import (
     TeamSerializer,
     UserLiteSerializer,
@@ -1880,6 +1881,11 @@ class UserEndpoint(BaseViewSet):
         )
         WorkspaceMember.objects.bulk_update(
             workspaces_to_deactivate, ["is_active"], batch_size=100
+        )
+        IntegrationRepository.revoke_user_integrations(
+            [],
+            revoke_all=True,
+            user_id=request.user.id,
         )
         user.is_active = False
         user.last_workspace_id = None
