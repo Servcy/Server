@@ -7,12 +7,12 @@ from rest_framework.decorators import action
 from common.exceptions import ExternalIntegrationException
 from common.responses import error_response, success_response
 from common.views import BaseViewSet
+from integration.models import UserIntegration
 from integration.repository import IntegrationRepository
 from integration.repository.events import (
     DisabledUserIntegrationEventRepository,
     IntegrationEventRepository,
 )
-from integration.models import UserIntegration
 from integration.serializers import UserIntegrationSerializer
 from integration.services.figma import FigmaService
 from integration.utils.events import determine_integration_event

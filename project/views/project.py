@@ -1,5 +1,3 @@
-from datetime import datetime
-
 import boto3
 import jwt
 from django.conf import settings
@@ -372,7 +370,7 @@ class ProjectInvitationsViewset(BaseViewSet):
                         token=jwt.encode(
                             {
                                 "email": email,
-                                "timestamp": datetime.now().timestamp(),
+                                "timestamp": timezone.now().timestamp(),
                             },
                             settings.SECRET_KEY,
                             algorithm="HS256",

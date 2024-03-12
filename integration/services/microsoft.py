@@ -4,6 +4,7 @@ import logging
 import msal
 import requests
 from django.conf import settings
+from django.utils import timezone
 
 from common.datetime import future_date_in_iso_formate
 from common.exceptions import ExternalIntegrationException
@@ -127,7 +128,7 @@ class MicrosoftService:
         expiration_date_time = datetime.datetime.strptime(
             subscription["expirationDateTime"], "%Y-%m-%dT%H:%M:%S.%fZ"
         )
-        if (expiration_date_time - datetime.datetime.now()).total_seconds() < 86400:
+        if (expiration_date_time - timezone.now()).total_seconds() < 86400:
             self.renew_subscription(subscription["id"])
         return True
 

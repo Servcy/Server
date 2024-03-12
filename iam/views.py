@@ -1,5 +1,5 @@
 import logging
-from datetime import date, datetime
+from datetime import date
 
 import jwt
 from dateutil.relativedelta import relativedelta
@@ -325,7 +325,7 @@ class WorkspaceInvitationsViewset(BaseViewSet):
                         token=jwt.encode(
                             {
                                 "email": email,
-                                "timestamp": datetime.now().timestamp(),
+                                "timestamp": timezone.now().timestamp(),
                             },
                             settings.SECRET_KEY,
                             algorithm="HS256",

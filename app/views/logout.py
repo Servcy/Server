@@ -1,15 +1,15 @@
 import logging
 
 from rest_framework import status
-from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from common.responses import error_response, success_response
+from common.views import BaseAPIView
 
 logger = logging.getLogger(__name__)
 
 
-class LogoutView(APIView):
+class LogoutView(BaseAPIView):
     def post(self, request):
         try:
             payload = request.data

@@ -1,11 +1,13 @@
 from datetime import datetime, timedelta
 
+from django.utils import timezone
+
 
 def future_date_in_iso_formate(days: int, with_microseconds: bool = False) -> str:
     """
     Function to get date in future in ISO format
     """
-    future_date = datetime.now() + timedelta(days=days)
+    future_date = timezone.now() + timedelta(days=days)
     date_format = "%Y-%m-%dT%H:%M:%SZ"
     if with_microseconds:
         date_format = "%Y-%m-%dT%H:%M:%S.%fZ"

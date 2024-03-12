@@ -12,6 +12,7 @@ from django.core import serializers
 from django.core.paginator import EmptyPage, Paginator
 from django.db.models import Value as V
 from django.db.models import When
+from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
@@ -298,7 +299,7 @@ class CommonUtils:
             time_dict = {"current_index": 1}
 
         time_dict[time_dict["current_index"]] = {
-            "time": datetime.now(),
+            "time": timezone.now(),
             "line_no": line_no if line_no else "",
             "ref_text": ref_text,
         }

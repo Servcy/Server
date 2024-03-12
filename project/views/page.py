@@ -1,7 +1,6 @@
-from datetime import datetime
-
 from django.db import connection
 from django.db.models import Exists, OuterRef, Q
+from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.decorators.gzip import gzip_page
 from rest_framework import status
@@ -165,7 +164,7 @@ class PageViewSet(BaseViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        unarchive_archive_page_and_descendants(page_id, datetime.now())
+        unarchive_archive_page_and_descendants(page_id, timezone.now())
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 

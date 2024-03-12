@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.utils import timezone
 
 from iam.models import User
 
@@ -28,4 +29,9 @@ class AccountsRepository:
             )
         except User.DoesNotExist:
             user = None
+        return user
+
+    def update_last_login(self, user):
+        user.last_login = timezone.now()
+        user.save()
         return user

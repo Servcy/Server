@@ -36,4 +36,5 @@ class AccountsService:
                         "traceback": traceback.format_exc(),
                     },
                 )
+        self.account_repository.update_last_login(user)
         return user
