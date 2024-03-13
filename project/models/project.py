@@ -51,12 +51,7 @@ class Project(TimeStampedModel, CreatorUpdaterModel):
     access = models.PositiveSmallIntegerField(
         default=0, choices=((1, "Private"), (0, "Public"))
     )
-    cover_image = models.FileField(
-        upload_to=upload_path,
-        default=None,
-        null=True,
-        validators=[file_size_validator],
-    )
+    cover_image = models.URLField(null=True, default=None)
     estimate = models.ForeignKey(
         "project.Estimate",
         on_delete=models.SET_NULL,
