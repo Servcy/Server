@@ -191,7 +191,7 @@ class WorkSpaceViewSet(BaseViewSet):
     def create(self, request):
         try:
             serializer = WorkSpaceSerializer(data=request.data)
-            slug = request.data.get("workspace_slug", False)
+            slug = request.data.get("slug", False)
             name = request.data.get("name", False)
             if not name or not slug:
                 return Response(
