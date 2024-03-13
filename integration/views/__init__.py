@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 class IntegrationViewSet(BaseViewSet):
-    @action(detail=False, methods=["get"], url_path="fetch-integrations")
+    @action(detail=False, methods=["get"], url_path="fetch")
     def fetch_integrations(self, request):
         try:
             requesting_user = request.user
@@ -120,7 +120,7 @@ class UserIntegrationViewSet(BaseViewSet):
 
 
 class IntegrationEventViewSet(BaseViewSet):
-    @action(detail=False, methods=["post"], url_path="disable-event")
+    @action(detail=False, methods=["post"], url_path="disable")
     def disable_user_integration_event(self, request):
         try:
             user_id = request.user.id
@@ -173,7 +173,7 @@ class IntegrationEventViewSet(BaseViewSet):
                 logger_message="Error while disabling integration event",
             )
 
-    @action(detail=False, methods=["post"], url_path="enable-event")
+    @action(detail=False, methods=["post"], url_path="enable")
     def enable_user_integration_event(self, request):
         try:
             user_id = request.user.id
@@ -223,7 +223,7 @@ class IntegrationEventViewSet(BaseViewSet):
                 logger_message="Error while enabling integration event",
             )
 
-    @action(detail=False, methods=["get"], url_path="fetch-events")
+    @action(detail=False, methods=["get"], url_path="fetch")
     def fetch_integration_events(self, request):
         try:
             integration_id = int(request.GET.get("integration_id", 0))
@@ -261,7 +261,7 @@ class IntegrationEventViewSet(BaseViewSet):
                 logger_message="Error while fetching integration events",
             )
 
-    @action(detail=False, methods=["post"], url_path="disable-such-notifications")
+    @action(detail=False, methods=["post"], url_path="notification")
     def disable_such_notifications(self, request):
         try:
             user_id = request.user.id

@@ -9,11 +9,9 @@ from integration.views import (
 from integration.views.oauth import OauthViewset
 
 router = routers.DefaultRouter(trailing_slash=False)
-router.register("oauth", OauthViewset, basename="oauth")
-router.register("user-integration", UserIntegrationViewSet, basename="user_integration")
-router.register(
-    "integration-event", IntegrationEventViewSet, basename="integration_event"
-)
+router.register("oauth", OauthViewset, basename="oauth_integration")
+router.register("user", UserIntegrationViewSet, basename="user_integration")
+router.register("event", IntegrationEventViewSet, basename="event_integration")
 router.register("", IntegrationViewSet, basename="integration")
 
 urlpatterns = [
