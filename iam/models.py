@@ -79,9 +79,7 @@ class User(AbstractBaseUser, PermissionsMixin, TimeStampedModel):
 
 class Workspace(TimeStampedModel, CreatorUpdaterModel):
     name = models.CharField(max_length=150, verbose_name="Workspace Name")
-    logo = models.FileField(
-        upload_to=upload_path, null=True, default=None, validators=[file_size_validator]
-    )
+    logo = models.URLField(blank=False, null=True, default=None)
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="owner")
     slug = models.SlugField(
         max_length=48,
