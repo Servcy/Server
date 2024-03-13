@@ -32,7 +32,6 @@ from iam.serializers import (
     WorkSpaceSerializer,
 )
 from integration.repository import IntegrationRepository
-from mails import SendGridEmail
 from project.models import Issue, Project, ProjectMember
 from project.serializers import ProjectMemberSerializer
 
@@ -257,14 +256,12 @@ class WorkspaceInvitationsViewset(BaseViewSet):
                 {"error": "Emails are required"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
         # check for role level of the requesting user
         requesting_user = WorkspaceMember.objects.get(
             workspace__slug=workspace_slug,
             member=request.user,
             is_active=True,
         )
-
         # Check if any invited user has an higher role
         if len(
             [
@@ -277,17 +274,14 @@ class WorkspaceInvitationsViewset(BaseViewSet):
                 {"error": "You cannot invite a user with higher role"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
         # Get the workspace object
         workspace = Workspace.objects.get(slug=workspace_slug)
-
         # Check if user is already a member of workspace
         workspace_members = WorkspaceMember.objects.filter(
             workspace=workspace,
             member__email__in=[email.get("email") for email in emails],
             is_active=True,
         ).select_related("member", "workspace", "workspace__owner")
-
         if workspace_members:
             return Response(
                 {
@@ -298,7 +292,6 @@ class WorkspaceInvitationsViewset(BaseViewSet):
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
         workspace_invitations = []
         for email in emails:
             try:
@@ -327,22 +320,12 @@ class WorkspaceInvitationsViewset(BaseViewSet):
                     },
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-        # Create workspace member invite
         workspace_invitations = WorkspaceMemberInvite.objects.bulk_create(
             workspace_invitations, batch_size=10, ignore_conflicts=True
         )
-
-        # Send invitations
-        for invitation in workspace_invitations:
-            SendGridEmail(to_email=invitation.email).send_workspace_invitation(
-                workspace_name=workspace.name,
-                user_name=request.user.first_name or request.user.email,
-                invite_link=f"{settings.FRONTEND_URL}/workspace/invite/?invitation_id={invitation.id}&email={invitation.email}&workspace__slug={workspace_slug}",
-            )
-
         return Response(
             {
-                "message": "Emails sent successfully",
+                "message": "Invitations sent successfully!",
             },
             status=status.HTTP_200_OK,
         )

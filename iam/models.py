@@ -2,14 +2,17 @@ import random
 import string
 
 import pytz
+from django.conf import settings
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.core.validators import RegexValidator
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 from app.models import CreatorUpdaterModel, TimeStampedModel
-from common.file_field import file_size_validator, upload_path
 from common.validators import slug_validator
 from iam.managers import UserAccountManager
+from mails import SendGridEmail
 
 
 def get_onboarding_step():
@@ -148,3 +151,18 @@ class WorkspaceMember(TimeStampedModel, CreatorUpdaterModel):
         db_table = "workspace_member"
         verbose_name = "Workspace Member"
         verbose_name_plural = "Workspace Members"
+
+
+@receiver(post_save, sender=WorkspaceMemberInvite)
+def create_issue_sequence(sender, instance, created, **kwargs):
+    if created:
+        workspace = instance.workspace
+        invited_by = instance.invited_by
+        if not workspace or not invited_by:
+            return
+        SendGridEmail(to_email=instance.email).send_workspace_invitation(
+            workspace_name=workspace.name,
+            user_name=invited_by.first_name or invited_by.email,
+            invite_link=f"{settings.FRONTEND_URL}/workspace/invite/?invitation_id={instance.id}&email={instance.email}&workspace__slug={workspace.slug}",
+        )
+    return
