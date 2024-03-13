@@ -640,7 +640,7 @@ class ProjectMemberViewSet(BaseViewSet):
             ignore_conflicts=True,
         )
 
-        _ = IssueProperty.objects.bulk_create(
+        IssueProperty.objects.bulk_create(
             bulk_issue_props, batch_size=10, ignore_conflicts=True
         )
 
