@@ -22,6 +22,7 @@ class Document(TimeStampedModel, CreatorUpdaterModel):
         related_name="assets",
         default=None,
     )
+    is_deleted = models.BooleanField(default=False)
 
     class Meta:
         db_table = "document"

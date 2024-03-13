@@ -74,6 +74,28 @@ class DocumentViewSet(BaseViewSet):
                 logger_message="An unexpected error occurred processing the request",
             )
 
+    @action(detail=False, methods=["post"], url_path="delete")
+    def delete(self, request):
+        instance = DocumentRepository.get_document(
+            {
+                "file": request.data.get("file"),
+            }
+        )
+        instance.is_deleted = True
+        instance.save()
+        return Response(status=204)
+
+    @action(detail=False, methods=["post"], url_path="restore")
+    def restore(self, request):
+        instance = DocumentRepository.get_document(
+            {
+                "file": request.data.get("file"),
+            }
+        )
+        instance.is_deleted = False
+        instance.save()
+        return Response(status=200)
+
 
 class UnsplashEndpoint(BaseAPIView):
     def get(self, request):

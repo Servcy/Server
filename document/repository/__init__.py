@@ -26,3 +26,7 @@ class DocumentRepository:
         if return_values:
             qs = qs.values(*return_values)
         return qs
+
+    @staticmethod
+    def get_document(filters: dict):
+        return Document.objects.get(**filters, is_deleted=False)
