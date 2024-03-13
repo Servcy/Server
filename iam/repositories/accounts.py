@@ -1,7 +1,7 @@
-from django.conf import settings
 from django.utils import timezone
 
 from iam.models import User
+from notification.models import UserNotificationPreference
 
 
 class AccountsRepository:
@@ -17,6 +17,14 @@ class AccountsRepository:
             phone_number=f"+{input}" if input_type == "phone_number" else None,
             username=input if input_type == "email" else f"+{input}",
             password=None,
+        )
+        UserNotificationPreference.objects.create(
+            user=user,
+            property_change=False,
+            state_change=False,
+            comment=False,
+            mention=False,
+            issue_completed=False,
         )
         return user
 
