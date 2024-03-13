@@ -26,11 +26,15 @@ class DocumentViewSet(BaseViewSet):
     ordering_fields = ["name"]
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user, uid=uuid.uuid4().hex)
+        serializer.save(
+            created_by=self.request.user,
+            updated_by=self.request.user,
+            uid=uuid.uuid4().hex,
+        )
 
     def get_queryset(self):
         serach = self.request.query_params.get("search", None)
-        queryset = self.queryset.filter(user=self.request.user)
+        queryset = self.queryset.filter(created_by=self.request.user)
         if serach:
             queryset = queryset.filter(name__icontains=serach)
         return queryset
