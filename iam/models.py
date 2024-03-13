@@ -163,6 +163,6 @@ def create_issue_sequence(sender, instance, created, **kwargs):
         SendGridEmail(to_email=instance.email).send_workspace_invitation(
             workspace_name=workspace.name,
             user_name=invited_by.first_name or invited_by.email,
-            invite_link=f"{settings.FRONTEND_URL}/workspace/invite/?invitation_id={instance.id}&email={instance.email}&workspace__slug={workspace.slug}",
+            invite_link=f"{settings.FRONTEND_URL}/workspace/invite/?invitation_id={instance.id}&email={instance.email}&slug={workspace.slug}",
         )
     return
