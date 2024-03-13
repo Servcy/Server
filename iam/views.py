@@ -159,6 +159,10 @@ class WorkSpaceViewSet(BaseViewSet):
     ]
     lookup_field = "slug"
 
+    @property
+    def workspace_slug(self):
+        return self.kwargs.get("slug", None)
+
     def get_queryset(self):
         member_count = (
             WorkspaceMember.objects.filter(
