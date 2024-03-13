@@ -18,6 +18,7 @@ class State(ProjectBaseModel):
         default="backlog",
         max_length=20,
     )
+    default = models.BooleanField(default=False)
     sequence = models.FloatField(default=65535)
 
     def save(self, *args, **kwargs):
