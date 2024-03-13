@@ -21,7 +21,7 @@ class StateViewSet(BaseViewSet):
         return self.filter_queryset(
             super()
             .get_queryset()
-            .filter(workspace__slug=self.kwargs.get("slug"))
+            .filter(workspace__slug=self.kwargs.get("workspace_slug"))
             .filter(project_id=self.kwargs.get("project_id"))
             .filter(
                 project__project_projectmember__member=self.request.user,
@@ -33,14 +33,14 @@ class StateViewSet(BaseViewSet):
             .distinct()
         )
 
-    def create(self, request, slug, project_id):
+    def create(self, request, workspace_slug, project_id):
         serializer = StateSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(project_id=project_id)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def list(self, request, slug, project_id):
+    def list(self, request, **kwargs):
         states = StateSerializer(self.get_queryset(), many=True).data
         grouped = request.GET.get("grouped", False)
         if grouped == "true":
@@ -53,22 +53,22 @@ class StateViewSet(BaseViewSet):
             return Response(state_dict, status=status.HTTP_200_OK)
         return Response(states, status=status.HTTP_200_OK)
 
-    def mark_as_default(self, request, slug, project_id, pk):
+    def mark_as_default(self, request, workspace_slug, project_id, pk):
         # Select all the states which are marked as default
         _ = State.objects.filter(
-            workspace__slug=slug, project_id=project_id, default=True
+            workspace__slug=workspace_slug, project_id=project_id, default=True
         ).update(default=False)
         _ = State.objects.filter(
-            workspace__slug=slug, project_id=project_id, pk=pk
+            workspace__slug=workspace_slug, project_id=project_id, pk=pk
         ).update(default=True)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    def destroy(self, request, slug, project_id, pk):
+    def destroy(self, request, workspace_slug, project_id, pk):
         state = State.objects.get(
             ~Q(name="Triage"),
             pk=pk,
             project_id=project_id,
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
         )
 
         if state.default:
