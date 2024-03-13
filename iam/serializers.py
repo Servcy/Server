@@ -8,8 +8,6 @@ from iam.models import (
     Workspace,
     WorkspaceMember,
     WorkspaceMemberInvite,
-    WorkspaceTheme,
-    WorkspaceUserProperties,
 )
 
 
@@ -23,6 +21,111 @@ class JWTTokenSerializer(TokenObtainPairSerializer):
         token["phone_number"] = user.phone_number
         token["invited_by"] = user.invited_by.id if user.invited_by else None
         return token
+
+
+class UserSerializer(ServcyBaseSerializer):
+    class Meta:
+        model = User
+        fields = "__all__"
+        read_only_fields = [
+            "id",
+            "created_at",
+            "updated_at",
+            "is_superuser",
+            "is_staff",
+            "is_onboarded",
+        ]
+        extra_kwargs = {"password": {"write_only": True}}
+
+        def get_is_onboarded(self, obj):
+            """If the user has already filled first name or last name then he is onboarded"""
+            return bool(obj.first_name) or bool(obj.last_name)
+
+
+class UserReadSerializer(ServcyBaseSerializer):
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "avatar",
+            "cover_image",
+            "created_at",
+            "display_name",
+            "email",
+            "first_name",
+            "last_name",
+            "is_active",
+            "is_onboarded",
+            "is_tour_completed",
+            "phone_number",
+            "onboarding_step",
+            "user_timezone",
+            "username",
+            "theme",
+            "last_workspace_id",
+            "use_case",
+        ]
+        read_only_fields = fields
+
+
+class UserSettingsSerializer(ServcyBaseSerializer):
+    workspace = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "email",
+            "workspace",
+        ]
+        read_only_fields = fields
+
+    def get_workspace(self, obj):
+        workspace_invites = WorkspaceMemberInvite.objects.filter(
+            email=obj.email
+        ).count()
+        if (
+            obj.last_workspace_id is not None
+            and Workspace.objects.filter(
+                pk=obj.last_workspace_id,
+                workspace_member__member=obj.id,
+                workspace_member__is_active=True,
+            ).exists()
+        ):
+            workspace = Workspace.objects.filter(
+                pk=obj.last_workspace_id,
+                workspace_member__member=obj.id,
+                workspace_member__is_active=True,
+            ).first()
+            return {
+                "last_workspace_id": obj.last_workspace_id,
+                "last_workspace_slug": workspace.slug if workspace is not None else "",
+                "fallback_workspace_id": obj.last_workspace_id,
+                "fallback_workspace_slug": (
+                    workspace.slug if workspace is not None else ""
+                ),
+                "invites": workspace_invites,
+            }
+        else:
+            fallback_workspace = (
+                Workspace.objects.filter(
+                    workspace_member__member_id=obj.id,
+                    workspace_member__is_active=True,
+                )
+                .order_by("created_at")
+                .first()
+            )
+            return {
+                "last_workspace_id": None,
+                "last_workspace_slug": None,
+                "fallback_workspace_id": (
+                    fallback_workspace.id if fallback_workspace is not None else None
+                ),
+                "fallback_workspace_slug": (
+                    fallback_workspace.slug if fallback_workspace is not None else None
+                ),
+                "invites": workspace_invites,
+            }
 
 
 class UserLiteSerializer(ServcyBaseSerializer):
@@ -129,128 +232,3 @@ class WorkSpaceMemberInviteSerializer(ServcyBaseSerializer):
             "created_at",
             "updated_at",
         ]
-
-
-class WorkspaceThemeSerializer(ServcyBaseSerializer):
-    class Meta:
-        model = WorkspaceTheme
-        fields = "__all__"
-        read_only_fields = [
-            "workspace",
-            "actor",
-        ]
-
-
-class WorkspaceUserPropertiesSerializer(ServcyBaseSerializer):
-    class Meta:
-        model = WorkspaceUserProperties
-        fields = "__all__"
-        read_only_fields = [
-            "workspace",
-            "user",
-        ]
-
-
-class UserSerializer(ServcyBaseSerializer):
-    class Meta:
-        model = User
-        fields = "__all__"
-        read_only_fields = [
-            "id",
-            "created_at",
-            "updated_at",
-            "is_superuser",
-            "is_staff",
-            "is_onboarded",
-        ]
-        extra_kwargs = {"password": {"write_only": True}}
-
-        def get_is_onboarded(self, obj):
-            """If the user has already filled first name or last name then he is onboarded"""
-            return bool(obj.first_name) or bool(obj.last_name)
-
-
-class UserMeSerializer(ServcyBaseSerializer):
-    class Meta:
-        model = User
-        fields = [
-            "id",
-            "avatar",
-            "cover_image",
-            "created_at",
-            "display_name",
-            "email",
-            "first_name",
-            "last_name",
-            "is_active",
-            "is_onboarded",
-            "is_tour_completed",
-            "phone_number",
-            "onboarding_step",
-            "user_timezone",
-            "username",
-            "theme",
-            "last_workspace_id",
-            "use_case",
-        ]
-        read_only_fields = fields
-
-
-class UserMeSettingsSerializer(ServcyBaseSerializer):
-    workspace = serializers.SerializerMethodField()
-
-    class Meta:
-        model = User
-        fields = [
-            "id",
-            "email",
-            "workspace",
-        ]
-        read_only_fields = fields
-
-    def get_workspace(self, obj):
-        workspace_invites = WorkspaceMemberInvite.objects.filter(
-            email=obj.email
-        ).count()
-        if (
-            obj.last_workspace_id is not None
-            and Workspace.objects.filter(
-                pk=obj.last_workspace_id,
-                workspace_member__member=obj.id,
-                workspace_member__is_active=True,
-            ).exists()
-        ):
-            workspace = Workspace.objects.filter(
-                pk=obj.last_workspace_id,
-                workspace_member__member=obj.id,
-                workspace_member__is_active=True,
-            ).first()
-            return {
-                "last_workspace_id": obj.last_workspace_id,
-                "last_workspace_slug": workspace.slug if workspace is not None else "",
-                "fallback_workspace_id": obj.last_workspace_id,
-                "fallback_workspace_slug": (
-                    workspace.slug if workspace is not None else ""
-                ),
-                "invites": workspace_invites,
-            }
-        else:
-            fallback_workspace = (
-                Workspace.objects.filter(
-                    workspace_member__member_id=obj.id,
-                    workspace_member__is_active=True,
-                )
-                .order_by("created_at")
-                .first()
-            )
-            return {
-                "last_workspace_id": None,
-                "last_workspace_slug": None,
-                "fallback_workspace_id": (
-                    fallback_workspace.id if fallback_workspace is not None else None
-                ),
-                "fallback_workspace_slug": (
-                    fallback_workspace.slug if fallback_workspace is not None else None
-                ),
-                "invites": workspace_invites,
-            }

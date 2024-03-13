@@ -16,7 +16,6 @@ from common.permissions import (
     WorkSpaceBasePermission,
     WorkspaceEntityPermission,
     WorkspaceUserPermission,
-    WorkspaceViewerPermission,
 )
 from common.responses import error_response
 from common.views import BaseAPIView, BaseViewSet
@@ -26,28 +25,125 @@ from iam.models import (
     Workspace,
     WorkspaceMember,
     WorkspaceMemberInvite,
-    WorkspaceTheme,
-    WorkspaceUserProperties,
 )
 from iam.serializers import (
-    UserMeSerializer,
-    UserMeSettingsSerializer,
+    UserReadSerializer,
+    UserSettingsSerializer,
     UserSerializer,
     WorkspaceMemberAdminSerializer,
     WorkSpaceMemberInviteSerializer,
     WorkspaceMemberMeSerializer,
     WorkSpaceMemberSerializer,
     WorkSpaceSerializer,
-    WorkspaceThemeSerializer,
-    WorkspaceUserPropertiesSerializer,
 )
 from integration.repository import IntegrationRepository
 from mails import SendGridEmail
 from project.models import Issue, Project, ProjectMember
-from project.serializers import ProjectMemberRoleSerializer, ProjectMemberSerializer
-from project.utils.filters import issue_filters
+from project.serializers import ProjectMemberSerializer
 
 logger = logging.getLogger(__name__)
+
+
+class UserEndpoint(BaseViewSet):
+    serializer_class = UserSerializer
+    model = User
+
+    def get_object(self):
+        return self.request.user
+
+    def retrieve(self, request):
+        serialized_data = UserReadSerializer(request.user).data
+        return Response(
+            serialized_data,
+            status=status.HTTP_200_OK,
+        )
+
+    def retrieve_my_settings(self, request):
+        serialized_data = UserSettingsSerializer(request.user).data
+        return Response(serialized_data, status=status.HTTP_200_OK)
+
+    def deactivate(self, request):
+        # Check all workspace user is active
+        user = self.get_object()
+        projects_to_deactivate = []
+        workspaces_to_deactivate = []
+        projects = ProjectMember.objects.filter(
+            member=request.user, is_active=True
+        ).annotate(
+            other_admin_exists=Count(
+                Case(
+                    When(
+                        Q(role=ERole.ADMIN.value, is_active=True)
+                        & ~Q(member=request.user),
+                        then=1,
+                    ),
+                    default=0,
+                    output_field=IntegerField(),
+                )
+            ),
+            total_members=Count("id"),
+        )
+        for project in projects:
+            if project.other_admin_exists > 0 or (project.total_members == 1):
+                project.is_active = False
+                projects_to_deactivate.append(project)
+            else:
+                return Response(
+                    {
+                        "error": "You cannot deactivate account as you are the only admin in some projects."
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        workspaces = WorkspaceMember.objects.filter(
+            member=request.user, is_active=True
+        ).annotate(
+            other_admin_exists=Count(
+                Case(
+                    When(
+                        Q(role=ERole.ADMIN.value, is_active=True)
+                        & ~Q(member=request.user),
+                        then=1,
+                    ),
+                    default=0,
+                    output_field=IntegerField(),
+                )
+            ),
+            total_members=Count("id"),
+        )
+        for workspace in workspaces:
+            if workspace.other_admin_exists > 0 or (workspace.total_members == 1):
+                workspace.is_active = False
+                workspaces_to_deactivate.append(workspace)
+            else:
+                return Response(
+                    {
+                        "error": "You cannot deactivate account as you are the only admin in some workspaces."
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        ProjectMember.objects.bulk_update(
+            projects_to_deactivate, ["is_active"], batch_size=100
+        )
+        WorkspaceMember.objects.bulk_update(
+            workspaces_to_deactivate, ["is_active"], batch_size=100
+        )
+        IntegrationRepository.revoke_user_integrations(
+            [],
+            revoke_all=True,
+            user_id=request.user.id,
+        )
+        user.is_active = False
+        user.last_workspace_id = None
+        user.is_tour_completed = False
+        user.is_onboarded = False
+        user.onboarding_step = {
+            "workspace_join": False,
+            "profile_complete": False,
+            "workspace_create": False,
+            "workspace_invite": False,
+        }
+        user.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class WorkSpaceViewSet(BaseViewSet):
@@ -624,48 +720,6 @@ class WorkSpaceMemberViewSet(BaseViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class WorkspaceProjectMemberEndpoint(BaseAPIView):
-    """
-    This endpoint returns the project members in which the user is involved
-    """
-
-    serializer_class = ProjectMemberRoleSerializer
-    model = ProjectMember
-    permission_classes = [
-        WorkspaceEntityPermission,
-    ]
-
-    def get(self, request, slug):
-        # Fetch all project IDs where the user is involved
-        project_ids = (
-            ProjectMember.objects.filter(
-                member=request.user,
-                is_active=True,
-            )
-            .values_list("project_id", flat=True)
-            .distinct()
-        )
-
-        # Get all the project members in which the user is involved
-        project_members = ProjectMember.objects.filter(
-            workspace__slug=slug,
-            project_id__in=project_ids,
-            is_active=True,
-        ).select_related("project", "member", "workspace")
-        project_members = ProjectMemberRoleSerializer(project_members, many=True).data
-
-        project_members_dict = dict()
-
-        # Construct a dictionary with project_id as key and project_members as value
-        for project_member in project_members:
-            project_id = project_member.pop("project")
-            if str(project_id) not in project_members_dict:
-                project_members_dict[str(project_id)] = []
-            project_members_dict[str(project_id)].append(project_member)
-
-        return Response(project_members_dict, status=status.HTTP_200_OK)
-
-
 class UserLastProjectWithWorkspaceEndpoint(BaseAPIView):
     """
     This endpoint returns the last workspace and project in which the user was involved
@@ -735,29 +789,6 @@ class WorkspaceMemberUserViewsEndpoint(BaseAPIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class WorkspaceThemeViewSet(BaseViewSet):
-    """
-    This endpoint handles creating, listing, updating and deleting workspace themes
-    """
-
-    permission_classes = [
-        WorkSpaceAdminPermission,
-    ]
-    model = WorkspaceTheme
-    serializer_class = WorkspaceThemeSerializer
-
-    def get_queryset(self):
-        return super().get_queryset().filter(workspace__slug=self.kwargs.get("slug"))
-
-    def create(self, request, slug):
-        workspace = Workspace.objects.get(slug=slug)
-        serializer = WorkspaceThemeSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(workspace=workspace, actor=request.user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
 class WorkSpaceAvailabilityCheckEndpoint(BaseAPIView):
     def get(self, request):
         slug = request.GET.get("slug", False)
@@ -770,148 +801,6 @@ class WorkSpaceAvailabilityCheckEndpoint(BaseAPIView):
 
         workspace = Workspace.objects.filter(slug=slug).exists()
         return Response({"status": not workspace}, status=status.HTTP_200_OK)
-
-
-class WorkspaceUserPropertiesEndpoint(BaseAPIView):
-    """
-    This endpoint handles the user properties for the workspace
-    """
-
-    permission_classes = [
-        WorkspaceViewerPermission,
-    ]
-
-    def patch(self, request, slug):
-        workspace_properties = WorkspaceUserProperties.objects.get(
-            user=request.user,
-            workspace__slug=slug,
-        )
-
-        workspace_properties.filters = request.data.get(
-            "filters", workspace_properties.filters
-        )
-        workspace_properties.display_filters = request.data.get(
-            "display_filters", workspace_properties.display_filters
-        )
-        workspace_properties.display_properties = request.data.get(
-            "display_properties", workspace_properties.display_properties
-        )
-        workspace_properties.save()
-
-        serializer = WorkspaceUserPropertiesSerializer(workspace_properties)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    def get(self, request, slug):
-        (
-            workspace_properties,
-            _,
-        ) = WorkspaceUserProperties.objects.get_or_create(
-            user=request.user, workspace__slug=slug
-        )
-        serializer = WorkspaceUserPropertiesSerializer(workspace_properties)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-class UserEndpoint(BaseViewSet):
-    serializer_class = UserSerializer
-    model = User
-
-    def get_object(self):
-        return self.request.user
-
-    def retrieve(self, request):
-        serialized_data = UserMeSerializer(request.user).data
-        return Response(
-            serialized_data,
-            status=status.HTTP_200_OK,
-        )
-
-    def retrieve_user_settings(self, request):
-        serialized_data = UserMeSettingsSerializer(request.user).data
-        return Response(serialized_data, status=status.HTTP_200_OK)
-
-    def deactivate(self, request):
-        # Check all workspace user is active
-        user = self.get_object()
-        projects_to_deactivate = []
-        workspaces_to_deactivate = []
-        projects = ProjectMember.objects.filter(
-            member=request.user, is_active=True
-        ).annotate(
-            other_admin_exists=Count(
-                Case(
-                    When(
-                        Q(role=ERole.ADMIN.value, is_active=True)
-                        & ~Q(member=request.user),
-                        then=1,
-                    ),
-                    default=0,
-                    output_field=IntegerField(),
-                )
-            ),
-            total_members=Count("id"),
-        )
-        for project in projects:
-            if project.other_admin_exists > 0 or (project.total_members == 1):
-                project.is_active = False
-                projects_to_deactivate.append(project)
-            else:
-                return Response(
-                    {
-                        "error": "You cannot deactivate account as you are the only admin in some projects."
-                    },
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-        workspaces = WorkspaceMember.objects.filter(
-            member=request.user, is_active=True
-        ).annotate(
-            other_admin_exists=Count(
-                Case(
-                    When(
-                        Q(role=ERole.ADMIN.value, is_active=True)
-                        & ~Q(member=request.user),
-                        then=1,
-                    ),
-                    default=0,
-                    output_field=IntegerField(),
-                )
-            ),
-            total_members=Count("id"),
-        )
-        for workspace in workspaces:
-            if workspace.other_admin_exists > 0 or (workspace.total_members == 1):
-                workspace.is_active = False
-                workspaces_to_deactivate.append(workspace)
-            else:
-                return Response(
-                    {
-                        "error": "You cannot deactivate account as you are the only admin in some workspaces."
-                    },
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-        ProjectMember.objects.bulk_update(
-            projects_to_deactivate, ["is_active"], batch_size=100
-        )
-        WorkspaceMember.objects.bulk_update(
-            workspaces_to_deactivate, ["is_active"], batch_size=100
-        )
-        IntegrationRepository.revoke_user_integrations(
-            [],
-            revoke_all=True,
-            user_id=request.user.id,
-        )
-        user.is_active = False
-        user.last_workspace_id = None
-        user.is_tour_completed = False
-        user.is_onboarded = False
-        user.onboarding_step = {
-            "workspace_join": False,
-            "profile_complete": False,
-            "workspace_create": False,
-            "workspace_invite": False,
-        }
-        user.save()
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class UpdateUserOnBoardedEndpoint(BaseAPIView):

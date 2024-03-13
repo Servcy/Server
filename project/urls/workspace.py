@@ -1,5 +1,4 @@
-from django.urls import include, path
-from rest_framework import routers
+from django.urls import path
 
 from project.views import (
     UserActivityEndpoint,
@@ -18,10 +17,7 @@ from project.views import (
     WorkspaceUserProfileStatsEndpoint,
 )
 
-router = routers.DefaultRouter(trailing_slash=False)
-
 urlpatterns = [
-    path("", include(router.urls)),
     path(
         "workspaces/<str:slug>/user-stats/<int:user_id>/",
         WorkspaceUserProfileStatsEndpoint.as_view(),
@@ -68,7 +64,7 @@ urlpatterns = [
         name="user-activities",
     ),
     path(
-        "users/me/workspaces/",
+        "me/workspaces",
         UserWorkSpacesEndpoint.as_view(),
         name="user-workspace",
     ),

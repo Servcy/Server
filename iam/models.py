@@ -152,26 +152,6 @@ class WorkspaceMember(TimeStampedModel, CreatorUpdaterModel):
         verbose_name_plural = "Workspace Members"
 
 
-class WorkspaceTheme(TimeStampedModel, CreatorUpdaterModel):
-    workspace = models.ForeignKey(
-        Workspace, on_delete=models.CASCADE, related_name="themes"
-    )
-    name = models.CharField(max_length=300)
-    actor = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name="themes",
-    )
-    colors = models.JSONField(default=dict)
-
-    class Meta:
-        unique_together = ["workspace", "name"]
-        verbose_name = "Workspace Theme"
-        verbose_name_plural = "Workspace Themes"
-        db_table = "workspace_theme"
-        ordering = ("-created_at",)
-
-
 class WorkspaceUserProperties(TimeStampedModel, CreatorUpdaterModel):
     workspace = models.ForeignKey(
         Workspace,
