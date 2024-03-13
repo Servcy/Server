@@ -42,7 +42,7 @@ class DocumentViewSet(BaseViewSet):
             files = request.FILES.getlist("file")
             meta_data = request.data.get("meta_data", {})
             workspace_id = request.data.get("workspace_id", None)
-            if workspace_id:
+            if workspace_id and workspace_id != "null" and workspace_id != "undefined":
                 workspace_id = int(workspace_id)
             user_id = request.user.id
             file_data = []
@@ -64,6 +64,19 @@ class DocumentViewSet(BaseViewSet):
                     }
                 )
             return Response(file_data[0]) if len(files) == 1 else Response(file_data)
+        except ValueError:
+            logger.exception(
+                f"An unexpected error occurred processing the request",
+                extra={
+                    "traceback": traceback.format_exc(),
+                },
+            )
+            return error_response(
+                logger=logger,
+                logger_message="An unexpected error occurred processing the request",
+                error_message="Invalid request data",
+                status=400,
+            )
         except Exception:
             logger.exception(
                 f"An unexpected error occurred processing the request",
