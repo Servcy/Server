@@ -6,6 +6,7 @@ from django.db import IntegrityError
 from django.db.models import Exists, F, Func, OuterRef, Prefetch, Q, Subquery
 from django.utils import timezone
 from rest_framework import serializers, status
+from django.db import transaction
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
@@ -18,6 +19,7 @@ from common.permissions import (
 from common.views import BaseAPIView, BaseViewSet
 from iam.enums import EAccess, ERole
 from iam.models import User, Workspace, WorkspaceMember
+from common.states import DEFAULT_STATES
 from project.models import (
     Cycle,
     IssueProperty,
@@ -165,88 +167,53 @@ class ProjectViewSet(BaseViewSet):
                 data={**request.data}, context={"workspace_id": workspace.id}
             )
             if serializer.is_valid():
-                serializer.save()
-
-                # Add the user as Administrator to the project
-                ProjectMember.objects.create(
-                    project_id=serializer.data["id"],
-                    member=request.user,
-                    role=ERole.ADMIN.value,
-                )
-                # Also create the issue property for the user
-                IssueProperty.objects.create(
-                    project_id=serializer.data["id"],
-                    user=request.user,
-                )
-
-                if serializer.data["lead"] is not None and str(
-                    serializer.data["lead"]
-                ) != str(request.user.id):
+                with transaction.atomic():
+                    serializer.save()
+                    # Add the user as Administrator to the project
                     ProjectMember.objects.create(
                         project_id=serializer.data["id"],
-                        member_id=serializer.data["lead"],
+                        member=request.user,
                         role=ERole.ADMIN.value,
                     )
                     # Also create the issue property for the user
                     IssueProperty.objects.create(
                         project_id=serializer.data["id"],
-                        user_id=serializer.data["lead"],
+                        user=request.user,
                     )
-
-                # Default states
-                states = [
-                    {
-                        "name": "Backlog",
-                        "color": "#A3A3A3",
-                        "sequence": 15000,
-                        "group": "backlog",
-                        "default": True,
-                    },
-                    {
-                        "name": "Todo",
-                        "color": "#3A3A3A",
-                        "sequence": 25000,
-                        "group": "unstarted",
-                    },
-                    {
-                        "name": "In Progress",
-                        "color": "#F59E0B",
-                        "sequence": 35000,
-                        "group": "started",
-                    },
-                    {
-                        "name": "Done",
-                        "color": "#4D7E3E",
-                        "sequence": 45000,
-                        "group": "completed",
-                    },
-                    {
-                        "name": "Cancelled",
-                        "color": "#EF4444",
-                        "sequence": 55000,
-                        "group": "cancelled",
-                    },
-                ]
-
-                State.objects.bulk_create(
-                    [
-                        State(
-                            name=state["name"],
-                            color=state["color"],
-                            project=serializer.instance,
-                            sequence=state["sequence"],
-                            workspace=serializer.instance.workspace,
-                            group=state["group"],
-                            default=state.get("default", False),
-                            created_by=request.user,
+                    if serializer.data["lead"] is not None and str(
+                        serializer.data["lead"]
+                    ) != str(request.user.id):
+                        ProjectMember.objects.create(
+                            project_id=serializer.data["id"],
+                            member_id=serializer.data["lead"],
+                            role=ERole.ADMIN.value,
                         )
-                        for state in states
-                    ]
-                )
-
-                project = self.get_queryset().filter(pk=serializer.data["id"]).first()
-                serializer = ProjectListSerializer(project)
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
+                        # Also create the issue property for the user
+                        IssueProperty.objects.create(
+                            project_id=serializer.data["id"],
+                            user_id=serializer.data["lead"],
+                        )
+                    # Default states
+                    State.objects.bulk_create(
+                        [
+                            State(
+                                name=state["name"],
+                                color=state["color"],
+                                project=serializer.instance,
+                                sequence=state["sequence"],
+                                workspace=serializer.instance.workspace,
+                                group=state["group"],
+                                default=state.get("default", False),
+                                created_by=request.user,
+                            )
+                            for state in DEFAULT_STATES
+                        ]
+                    )
+                    project = (
+                        self.get_queryset().filter(pk=serializer.data["id"]).first()
+                    )
+                    serializer = ProjectListSerializer(project)
+                    return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(
                 serializer.errors,
                 status=status.HTTP_400_BAD_REQUEST,
