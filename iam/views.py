@@ -292,27 +292,25 @@ class WorkspaceInvitationsViewset(BaseViewSet):
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        workspace_invitations = []
         for email in emails:
             try:
                 validate_email(email.get("email"))
-                workspace_invitations.append(
-                    WorkspaceMemberInvite(
-                        email=email.get("email").strip().lower(),
-                        workspace=workspace,
-                        invited_by=request.user,
-                        token=jwt.encode(
-                            {
-                                "email": email,
-                                "timestamp": timezone.now().timestamp(),
-                            },
-                            settings.SECRET_KEY,
-                            algorithm="HS256",
-                        ),
-                        role=email.get("role", ERole.MEMBER.value),
-                        created_by=request.user,
-                    )
+                invite = WorkspaceMemberInvite(
+                    email=email.get("email").strip().lower(),
+                    workspace=workspace,
+                    invited_by=request.user,
+                    token=jwt.encode(
+                        {
+                            "email": email,
+                            "timestamp": timezone.now().timestamp(),
+                        },
+                        settings.SECRET_KEY,
+                        algorithm="HS256",
+                    ),
+                    role=email.get("role", ERole.MEMBER.value),
+                    created_by=request.user,
                 )
+                invite.save()
             except ValidationError:
                 return Response(
                     {
@@ -320,9 +318,6 @@ class WorkspaceInvitationsViewset(BaseViewSet):
                     },
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-        workspace_invitations = WorkspaceMemberInvite.objects.bulk_create(
-            workspace_invitations, batch_size=10, ignore_conflicts=True
-        )
         return Response(
             {
                 "message": "Invitations sent successfully!",
