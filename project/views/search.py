@@ -15,7 +15,7 @@ class GlobalSearchEndpoint(BaseAPIView):
     also show related workspace if found
     """
 
-    def filter_workspaces(self, query, slug, project_id, workspace_search):
+    def filter_workspaces(self, query, **kwargs):
         fields = ["name"]
         q = Q()
         for field in fields:
@@ -26,7 +26,7 @@ class GlobalSearchEndpoint(BaseAPIView):
             .values("name", "id", "slug")
         )
 
-    def filter_projects(self, query, slug, project_id, workspace_search):
+    def filter_projects(self, query, workspace_slug, **kwargs):
         fields = ["name", "identifier"]
         q = Q()
         for field in fields:
@@ -36,13 +36,13 @@ class GlobalSearchEndpoint(BaseAPIView):
                 q,
                 project_projectmember__member=self.request.user,
                 project_projectmember__is_active=True,
-                workspace__slug=slug,
+                workspace__slug=workspace_slug,
             )
             .distinct()
             .values("name", "id", "identifier", "workspace__slug")
         )
 
-    def filter_issues(self, query, slug, project_id, workspace_search):
+    def filter_issues(self, query, workspace_slug, project_id, workspace_search):
         fields = ["name", "sequence_id", "project__identifier"]
         q = Q()
         for field in fields:
@@ -58,7 +58,7 @@ class GlobalSearchEndpoint(BaseAPIView):
             q,
             project__project_projectmember__member=self.request.user,
             project__project_projectmember__is_active=True,
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
         )
 
         if workspace_search == "false" and project_id:
@@ -73,7 +73,7 @@ class GlobalSearchEndpoint(BaseAPIView):
             "workspace__slug",
         )
 
-    def filter_cycles(self, query, slug, project_id, workspace_search):
+    def filter_cycles(self, query, workspace_slug, project_id, workspace_search):
         fields = ["name"]
         q = Q()
         for field in fields:
@@ -83,7 +83,7 @@ class GlobalSearchEndpoint(BaseAPIView):
             q,
             project__project_projectmember__member=self.request.user,
             project__project_projectmember__is_active=True,
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
         )
 
         if workspace_search == "false" and project_id:
@@ -97,7 +97,7 @@ class GlobalSearchEndpoint(BaseAPIView):
             "workspace__slug",
         )
 
-    def filter_modules(self, query, slug, project_id, workspace_search):
+    def filter_modules(self, query, workspace_slug, project_id, workspace_search):
         fields = ["name"]
         q = Q()
         for field in fields:
@@ -107,7 +107,7 @@ class GlobalSearchEndpoint(BaseAPIView):
             q,
             project__project_projectmember__member=self.request.user,
             project__project_projectmember__is_active=True,
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
         )
 
         if workspace_search == "false" and project_id:
@@ -121,7 +121,7 @@ class GlobalSearchEndpoint(BaseAPIView):
             "workspace__slug",
         )
 
-    def filter_pages(self, query, slug, project_id, workspace_search):
+    def filter_pages(self, query, workspace_slug, project_id, workspace_search):
         fields = ["name"]
         q = Q()
         for field in fields:
@@ -131,7 +131,7 @@ class GlobalSearchEndpoint(BaseAPIView):
             q,
             project__project_projectmember__member=self.request.user,
             project__project_projectmember__is_active=True,
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
         )
 
         if workspace_search == "false" and project_id:
@@ -145,7 +145,7 @@ class GlobalSearchEndpoint(BaseAPIView):
             "workspace__slug",
         )
 
-    def filter_views(self, query, slug, project_id, workspace_search):
+    def filter_views(self, query, workspace_slug, project_id, workspace_search):
         fields = ["name"]
         q = Q()
         for field in fields:
@@ -155,7 +155,7 @@ class GlobalSearchEndpoint(BaseAPIView):
             q,
             project__project_projectmember__member=self.request.user,
             project__project_projectmember__is_active=True,
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
         )
 
         if workspace_search == "false" and project_id:
@@ -169,7 +169,7 @@ class GlobalSearchEndpoint(BaseAPIView):
             "workspace__slug",
         )
 
-    def get(self, request, slug):
+    def get(self, request, workspace_slug):
         query = request.query_params.get("search", False)
         workspace_search = request.query_params.get("workspace_search", "false")
         project_id = request.query_params.get("project_id", False)
@@ -204,12 +204,12 @@ class GlobalSearchEndpoint(BaseAPIView):
 
         for model in MODELS_MAPPER.keys():
             func = MODELS_MAPPER.get(model, None)
-            results[model] = func(query, slug, project_id, workspace_search)
+            results[model] = func(query, workspace_slug, project_id, workspace_search)
         return Response({"results": results}, status=status.HTTP_200_OK)
 
 
 class IssueSearchEndpoint(BaseAPIView):
-    def get(self, request, slug, project_id):
+    def get(self, request, workspace_slug, project_id):
         query = request.query_params.get("search", False)
         workspace_search = request.query_params.get("workspace_search", "false")
         parent = request.query_params.get("parent", "false")
@@ -221,7 +221,7 @@ class IssueSearchEndpoint(BaseAPIView):
         issue_id = request.query_params.get("issue_id", False)
 
         issues = Issue.issue_objects.filter(
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             project__project_projectmember__member=self.request.user,
             project__project_projectmember__is_active=True,
         )
