@@ -32,13 +32,13 @@ class NotificationViewSet(BaseViewSet, BasePaginator):
             super()
             .get_queryset()
             .filter(
-                workspace__slug=self.kwargs.get("slug"),
+                workspace__slug=self.kwargs.get("workspace_slug"),
                 receiver_id=self.request.user.id,
             )
             .select_related("workspace", "project," "triggered_by", "receiver")
         )
 
-    def list(self, request, slug):
+    def list(self, request, workspace_slug):
         # Get query parameters
         snoozed = request.GET.get("snoozed", "false")
         archived = request.GET.get("archived", "false")
@@ -47,7 +47,7 @@ class NotificationViewSet(BaseViewSet, BasePaginator):
 
         notifications = (
             Notification.objects.filter(
-                workspace__slug=slug, receiver_id=request.user.id
+                workspace__slug=workspace_slug, receiver_id=request.user.id
             )
             .select_related("workspace", "project", "triggered_by", "receiver")
             .order_by("snoozed_till", "-created_at")
@@ -75,7 +75,7 @@ class NotificationViewSet(BaseViewSet, BasePaginator):
         if type == "watching":
             issue_ids = (
                 IssueSubscriber.objects.filter(
-                    workspace__slug=slug, subscriber_id=request.user.id
+                    workspace__slug=workspace_slug, subscriber_id=request.user.id
                 )
                 .annotate(
                     created=Exists(
@@ -101,14 +101,14 @@ class NotificationViewSet(BaseViewSet, BasePaginator):
         # Assigned Issues
         if type == "assigned":
             issue_ids = IssueAssignee.objects.filter(
-                workspace__slug=slug, assignee_id=request.user.id
+                workspace__slug=workspace_slug, assignee_id=request.user.id
             ).values_list("issue_id", flat=True)
             notifications = notifications.filter(entity_identifier__in=issue_ids)
 
         # Created issues
         if type == "created":
             if WorkspaceMember.objects.filter(
-                workspace__slug=slug,
+                workspace__slug=workspace_slug,
                 member=request.user,
                 role__lt=ERole.ADMIN.value,
                 is_active=True,
@@ -116,7 +116,7 @@ class NotificationViewSet(BaseViewSet, BasePaginator):
                 notifications = Notification.objects.none()
             else:
                 issue_ids = Issue.objects.filter(
-                    workspace__slug=slug, created_by=request.user
+                    workspace__slug=workspace_slug, created_by=request.user
                 ).values_list("pk", flat=True)
                 notifications = notifications.filter(entity_identifier__in=issue_ids)
 
@@ -133,9 +133,9 @@ class NotificationViewSet(BaseViewSet, BasePaginator):
         serializer = NotificationSerializer(notifications, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def partial_update(self, request, slug, pk):
+    def partial_update(self, request, workspace_slug, pk):
         notification = Notification.objects.get(
-            workspace__slug=slug, pk=pk, receiver=request.user
+            workspace__slug=workspace_slug, pk=pk, receiver=request.user
         )
         # Only read_at and snoozed_till can be updated
         notification_data = {
@@ -150,36 +150,36 @@ class NotificationViewSet(BaseViewSet, BasePaginator):
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def mark_read(self, request, slug, pk):
+    def mark_read(self, request, workspace_slug, pk):
         notification = Notification.objects.get(
-            receiver=request.user, workspace__slug=slug, pk=pk
+            receiver=request.user, workspace__slug=workspace_slug, pk=pk
         )
         notification.read_at = timezone.now()
         notification.save()
         serializer = NotificationSerializer(notification)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def mark_unread(self, request, slug, pk):
+    def mark_unread(self, request, workspace_slug, pk):
         notification = Notification.objects.get(
-            receiver=request.user, workspace__slug=slug, pk=pk
+            receiver=request.user, workspace__slug=workspace_slug, pk=pk
         )
         notification.read_at = None
         notification.save()
         serializer = NotificationSerializer(notification)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def archive(self, request, slug, pk):
+    def archive(self, request, workspace_slug, pk):
         notification = Notification.objects.get(
-            receiver=request.user, workspace__slug=slug, pk=pk
+            receiver=request.user, workspace__slug=workspace_slug, pk=pk
         )
         notification.archived_at = timezone.now()
         notification.save()
         serializer = NotificationSerializer(notification)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def unarchive(self, request, slug, pk):
+    def unarchive(self, request, workspace_slug, pk):
         notification = Notification.objects.get(
-            receiver=request.user, workspace__slug=slug, pk=pk
+            receiver=request.user, workspace__slug=workspace_slug, pk=pk
         )
         notification.archived_at = None
         notification.save()
@@ -192,37 +192,37 @@ class UnreadNotificationEndpoint(BaseAPIView):
     Get the count of unread notifications
     """
 
-    def get(self, request, slug):
+    def get(self, request, workspace_slug):
         # Watching Issues Count
         watching_issues_count = Notification.objects.filter(
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             receiver_id=request.user.id,
             read_at__isnull=True,
             archived_at__isnull=True,
             entity_identifier__in=IssueSubscriber.objects.filter(
-                workspace__slug=slug, subscriber_id=request.user.id
+                workspace__slug=workspace_slug, subscriber_id=request.user.id
             ).values_list("issue_id", flat=True),
         ).count()
 
         # My Issues Count
         my_issues_count = Notification.objects.filter(
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             receiver_id=request.user.id,
             read_at__isnull=True,
             archived_at__isnull=True,
             entity_identifier__in=IssueAssignee.objects.filter(
-                workspace__slug=slug, assignee_id=request.user.id
+                workspace__slug=workspace_slug, assignee_id=request.user.id
             ).values_list("issue_id", flat=True),
         ).count()
 
         # Created Issues Count
         created_issues_count = Notification.objects.filter(
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             receiver_id=request.user.id,
             read_at__isnull=True,
             archived_at__isnull=True,
             entity_identifier__in=Issue.objects.filter(
-                workspace__slug=slug, created_by=request.user
+                workspace__slug=workspace_slug, created_by=request.user
             ).values_list("pk", flat=True),
         ).count()
 
@@ -241,14 +241,14 @@ class MarkAllReadNotificationViewSet(BaseViewSet):
     Mark all notifications as read
     """
 
-    def create(self, request, slug):
+    def create(self, request, workspace_slug):
         snoozed = request.data.get("snoozed", False)
         archived = request.data.get("archived", False)
         type = request.data.get("type", "all")
 
         notifications = (
             Notification.objects.filter(
-                workspace__slug=slug,
+                workspace__slug=workspace_slug,
                 receiver_id=request.user.id,
                 read_at__isnull=True,
             )
@@ -275,21 +275,21 @@ class MarkAllReadNotificationViewSet(BaseViewSet):
         # Subscribed issues
         if type == "watching":
             issue_ids = IssueSubscriber.objects.filter(
-                workspace__slug=slug, subscriber_id=request.user.id
+                workspace__slug=workspace_slug, subscriber_id=request.user.id
             ).values_list("issue_id", flat=True)
             notifications = notifications.filter(entity_identifier__in=issue_ids)
 
         # Assigned Issues
         if type == "assigned":
             issue_ids = IssueAssignee.objects.filter(
-                workspace__slug=slug, assignee_id=request.user.id
+                workspace__slug=workspace_slug, assignee_id=request.user.id
             ).values_list("issue_id", flat=True)
             notifications = notifications.filter(entity_identifier__in=issue_ids)
 
         # Created issues
         if type == "created":
             if WorkspaceMember.objects.filter(
-                workspace__slug=slug,
+                workspace__slug=workspace_slug,
                 member=request.user,
                 role__lt=ERole.ADMIN.value,
                 is_active=True,
@@ -297,7 +297,7 @@ class MarkAllReadNotificationViewSet(BaseViewSet):
                 notifications = Notification.objects.none()
             else:
                 issue_ids = Issue.objects.filter(
-                    workspace__slug=slug, created_by=request.user
+                    workspace__slug=workspace_slug, created_by=request.user
                 ).values_list("pk", flat=True)
                 notifications = notifications.filter(entity_identifier__in=issue_ids)
 

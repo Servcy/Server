@@ -13,12 +13,12 @@ router = routers.DefaultRouter(trailing_slash=False)
 urlpatterns = [
     path("", include(router.urls)),
     path(
-        "me/notification-preferences/",
+        "me/preferences",
         UserNotificationPreferenceEndpoint.as_view(),
         name="user-notification-preferences",
     ),
     path(
-        "workspace/<str:slug>/users/notifications/",
+        "<str:workspace_slug>",
         NotificationViewSet.as_view(
             {
                 "get": "list",
@@ -27,7 +27,7 @@ urlpatterns = [
         name="notifications",
     ),
     path(
-        "workspace/<str:slug>/users/notifications/<int:pk>/",
+        "<str:workspace_slug>/<int:pk>",
         NotificationViewSet.as_view(
             {
                 "get": "retrieve",
@@ -38,7 +38,7 @@ urlpatterns = [
         name="notifications",
     ),
     path(
-        "workspace/<str:slug>/users/notifications/<int:pk>/read/",
+        "<str:workspace_slug>/<int:pk>/read",
         NotificationViewSet.as_view(
             {
                 "post": "mark_read",
@@ -48,7 +48,7 @@ urlpatterns = [
         name="notifications",
     ),
     path(
-        "workspace/<str:slug>/users/notifications/<int:pk>/archive/",
+        "<str:workspace_slug>/<int:pk>/archive",
         NotificationViewSet.as_view(
             {
                 "post": "archive",
@@ -58,12 +58,12 @@ urlpatterns = [
         name="notifications",
     ),
     path(
-        "workspace/<str:slug>/unread/",
+        "<str:workspace_slug>/unread",
         UnreadNotificationEndpoint.as_view(),
         name="unread-notifications",
     ),
     path(
-        "workspace/<str:slug>/users/notifications/mark-all-read/",
+        "<str:workspace_slug>/read",
         MarkAllReadNotificationViewSet.as_view(
             {
                 "post": "create",
