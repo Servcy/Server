@@ -2,8 +2,6 @@ from django.urls import path
 
 from project.views import (
     UserActivityEndpoint,
-    UserActivityGraphEndpoint,
-    UserIssueCompletedGraphEndpoint,
     UserProfileProjectsStatisticsEndpoint,
     UserWorkspaceDashboardEndpoint,
     UserWorkSpacesEndpoint,
@@ -67,16 +65,6 @@ urlpatterns = [
         "me/workspaces",
         UserWorkSpacesEndpoint.as_view(),
         name="user-workspace",
-    ),
-    path(
-        "me/<str:workspace_slug>/activity-graph/",
-        UserActivityGraphEndpoint.as_view(),
-        name="user-activity-graph",
-    ),
-    path(
-        "me/<str:workspace_slug>/issues-completed-graph/",
-        UserIssueCompletedGraphEndpoint.as_view(),
-        name="completed-graph",
     ),
     path(
         "<str:workspace_slug>/user-project-stats/<int:user_id>/",

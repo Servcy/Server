@@ -119,52 +119,6 @@ class UserWorkSpacesEndpoint(BaseAPIView):
         return Response(workspaces, status=status.HTTP_200_OK)
 
 
-class UserActivityGraphEndpoint(BaseAPIView):
-    """
-    This endpoint returns the user activity graph
-    """
-
-    def get(self, request, workspace_slug):
-        issue_activities = (
-            IssueActivity.objects.filter(
-                actor=request.user,
-                workspace__slug=workspace_slug,
-                created_at__date__gte=date.today() + relativedelta(months=-6),
-            )
-            .annotate(created_date=Cast("created_at", DateField()))
-            .values("created_date")
-            .annotate(activity_count=Count("created_date"))
-            .order_by("created_date")
-        )
-
-        return Response(issue_activities, status=status.HTTP_200_OK)
-
-
-class UserIssueCompletedGraphEndpoint(BaseAPIView):
-    """
-    This endpoint returns the user issue completed graph
-    """
-
-    def get(self, request, workspace_slug):
-        month = request.GET.get("month", 1)
-
-        issues = (
-            Issue.issue_objects.filter(
-                assignees__in=[request.user],
-                workspace__slug=workspace_slug,
-                completed_at__month=month,
-                completed_at__isnull=False,
-            )
-            .annotate(completed_week=ExtractWeek("completed_at"))
-            .annotate(week=F("completed_week") % 4)
-            .values("week")
-            .annotate(completed_count=Count("completed_week"))
-            .order_by("week")
-        )
-
-        return Response(issues, status=status.HTTP_200_OK)
-
-
 class WeekInMonth(Func):
     """
     This class returns the week in month

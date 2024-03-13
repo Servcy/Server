@@ -59,8 +59,6 @@ from .view import (
 )
 from .workspace import (
     UserActivityEndpoint,
-    UserActivityGraphEndpoint,
-    UserIssueCompletedGraphEndpoint,
     UserProfileProjectsStatisticsEndpoint,
     UserWorkspaceDashboardEndpoint,
     UserWorkSpacesEndpoint,
