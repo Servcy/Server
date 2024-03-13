@@ -1,5 +1,4 @@
-from django.urls import include, path
-from rest_framework import routers
+from django.urls import path
 
 from dashboard.views import (
     AnalyticsEndpoint,
@@ -10,18 +9,15 @@ from dashboard.views import (
     WidgetsEndpoint,
 )
 
-router = routers.DefaultRouter(trailing_slash=False)
-
 urlpatterns = [
-    path("", include(router.urls)),
     # Dashboard
     path(
-        "<str:workspace_slug>/dashboard",
+        "<str:workspace_slug>",
         DashboardEndpoint.as_view(),
         name="dashboard",
     ),
     path(
-        "<str:workspace_slug>/dashboard/<int:dashboard_id>",
+        "<str:workspace_slug>/<int:dashboard_id>",
         DashboardEndpoint.as_view(),
         name="dashboard",
     ),
@@ -33,14 +29,14 @@ urlpatterns = [
     ),
     # Analytics
     path(
-        "<str:workspace_slug>/analytics/export",
-        ExportAnalyticsEndpoint.as_view(),
-        name="export-analytics",
-    ),
-    path(
         "<str:workspace_slug>/analytics",
         AnalyticsEndpoint.as_view(),
         name="servcy-analytics",
+    ),
+    path(
+        "<str:workspace_slug>/analytics/export",
+        ExportAnalyticsEndpoint.as_view(),
+        name="export-analytics",
     ),
     path(
         "<str:workspace_slug>/analytics/view",
