@@ -37,7 +37,7 @@ urlpatterns = [
         name="workspace-labels",
     ),
     path(
-        "<str:workspace_slug>/states/",
+        "<str:workspace_slug>/states",
         WorkspaceStatesEndpoint.as_view(),
         name="workspace-state",
     ),
