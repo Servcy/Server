@@ -381,41 +381,6 @@ class AnalyticViewViewset(BaseViewSet):
         )
 
 
-class SavedAnalyticEndpoint(BaseAPIView):
-    """
-    Get the saved analytic details
-    """
-
-    permission_classes = [
-        WorkSpaceAdminPermission,
-    ]
-
-    def get(self, request, slug, analytic_id):
-        analytic_view = Analytic.objects.get(pk=analytic_id, workspace__slug=slug)
-
-        filter = analytic_view.query
-        queryset = Issue.issue_objects.filter(**filter)
-
-        x_axis = analytic_view.query_dict.get("x_axis", False)
-        y_axis = analytic_view.query_dict.get("y_axis", False)
-
-        if not x_axis or not y_axis:
-            return Response(
-                {"error": "x-axis and y-axis dimensions are required"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        segment = request.GET.get("segment", False)
-        distribution = build_graph_plot(
-            queryset=queryset, x_axis=x_axis, y_axis=y_axis, segment=segment
-        )
-        total_issues = queryset.count()
-        return Response(
-            {"total": total_issues, "distribution": distribution},
-            status=status.HTTP_200_OK,
-        )
-
-
 class DefaultAnalyticsEndpoint(BaseAPIView):
     """
     Get the default analytics for the workspace
