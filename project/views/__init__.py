@@ -61,6 +61,7 @@ from .workspace import (
     UserActivityEndpoint,
     UserActivityGraphEndpoint,
     UserIssueCompletedGraphEndpoint,
+    UserProfileProjectsStatisticsEndpoint,
     UserWorkspaceDashboardEndpoint,
     UserWorkSpacesEndpoint,
     WorkspaceCyclesEndpoint,
@@ -69,7 +70,6 @@ from .workspace import (
     WorkspaceModulesEndpoint,
     WorkspaceStatesEndpoint,
     WorkspaceUserActivityEndpoint,
-    UserProfileProjectsStatisticsEndpoint,
     WorkspaceUserProfileIssuesEndpoint,
     WorkspaceUserProfileStatsEndpoint,
 )

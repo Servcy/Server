@@ -35,11 +35,11 @@ CYCLE_ID = "issue_cycle__cycle_id"
 MODULE_ID = "issue_module__module_id"
 
 
-def get_assignee_details(slug, filters):
+def get_assignee_details(workspace_slug, filters):
     """Fetch assignee details if required."""
     return (
         Issue.issue_objects.filter(
-            workspace__slug=slug, **filters, assignees__avatar__isnull=False
+            workspace__slug=workspace_slug, **filters, assignees__avatar__isnull=False
         )
         .distinct("assignees__id")
         .order_by("assignees__id")
@@ -53,21 +53,23 @@ def get_assignee_details(slug, filters):
     )
 
 
-def get_label_details(slug, filters):
+def get_label_details(workspace_slug, filters):
     """Fetch label details if required"""
     return (
-        Issue.objects.filter(workspace__slug=slug, **filters, labels__id__isnull=False)
+        Issue.objects.filter(
+            workspace__slug=workspace_slug, **filters, labels__id__isnull=False
+        )
         .distinct("labels__id")
         .order_by("labels__id")
         .values("labels__id", "labels__color", "labels__name")
     )
 
 
-def get_state_details(slug, filters):
+def get_state_details(workspace_slug, filters):
     """Fetch state details if required."""
     return (
         Issue.issue_objects.filter(
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             **filters,
         )
         .distinct("state_id")
@@ -76,11 +78,11 @@ def get_state_details(slug, filters):
     )
 
 
-def get_module_details(slug, filters):
+def get_module_details(workspace_slug, filters):
     """Fetch module details if required."""
     return (
         Issue.issue_objects.filter(
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             **filters,
             issue_module__module_id__isnull=False,
         )
@@ -93,11 +95,11 @@ def get_module_details(slug, filters):
     )
 
 
-def get_cycle_details(slug, filters):
+def get_cycle_details(workspace_slug, filters):
     """Fetch cycle details if required."""
     return (
         Issue.issue_objects.filter(
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             **filters,
             issue_cycle__cycle_id__isnull=False,
         )
@@ -339,16 +341,16 @@ def generate_non_segmented_rows(
 
 
 @shared_task
-def analytics_export_task(email, data, slug):
+def analytics_export_task(email, data, workspace_slug):
     """
     Task to export analytics data to CSV and send it via email.
     :param email: Email to send the export to.
     :param data: Data to be used for analytics.
-    :param slug: Workspace slug.
+    :param workspace_slug: Workspace workspace_slug.
     """
     try:
         filters = issue_filters(data, "POST")
-        queryset = Issue.issue_objects.filter(**filters, workspace__slug=slug)
+        queryset = Issue.issue_objects.filter(**filters, workspace__slug=workspace_slug)
 
         x_axis = data.get("x_axis", False)
         y_axis = data.get("y_axis", False)
@@ -360,31 +362,31 @@ def analytics_export_task(email, data, slug):
         key = "count" if y_axis == "issue_count" else "estimate"
 
         assignee_details = (
-            get_assignee_details(slug, filters)
+            get_assignee_details(workspace_slug, filters)
             if x_axis == ASSIGNEE_ID or segment == ASSIGNEE_ID
             else {}
         )
 
         label_details = (
-            get_label_details(slug, filters)
+            get_label_details(workspace_slug, filters)
             if x_axis == LABEL_ID or segment == LABEL_ID
             else {}
         )
 
         state_details = (
-            get_state_details(slug, filters)
+            get_state_details(workspace_slug, filters)
             if x_axis == STATE_ID or segment == STATE_ID
             else {}
         )
 
         cycle_details = (
-            get_cycle_details(slug, filters)
+            get_cycle_details(workspace_slug, filters)
             if x_axis == CYCLE_ID or segment == CYCLE_ID
             else {}
         )
 
         module_details = (
-            get_module_details(slug, filters)
+            get_module_details(workspace_slug, filters)
             if x_axis == MODULE_ID or segment == MODULE_ID
             else {}
         )
@@ -414,16 +416,16 @@ def analytics_export_task(email, data, slug):
                 module_details,
             )
         csv_buffer = generate_csv_from_rows(rows)
-        SendGridEmail(email).send_analytics_export(slug, csv_buffer)
+        SendGridEmail(email).send_analytics_export(workspace_slug, csv_buffer)
         return
     except:
         logger.exception(
-            f"Error exporting analytics data for {slug} to {email}.",
+            f"Error exporting analytics data for {workspace_slug} to {email}.",
             exc_info=True,
             extra={
                 "email": email,
                 "data": data,
-                "slug": slug,
+                "workspace_slug": workspace_slug,
                 "traceback": traceback.format_exc(),
             },
         )

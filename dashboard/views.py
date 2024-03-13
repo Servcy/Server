@@ -64,7 +64,7 @@ class DashboardEndpoint(BaseAPIView):
             return Response(serializer.data, status=status.HTTP_204_NO_CONTENT)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def get(self, request, slug, dashboard_id=None):
+    def get(self, request, workspace_slug, dashboard_id=None):
         """
         Get the dashboard details
         - If dashboard_id is not provided, then it will return the default dashboard
@@ -166,7 +166,7 @@ class DashboardEndpoint(BaseAPIView):
             response = func(
                 self,
                 request=request,
-                workspace__slug=slug,
+                workspace__slug=workspace_slug,
             )
             if isinstance(response, Response):
                 return response
@@ -206,7 +206,7 @@ class AnalyticsEndpoint(BaseAPIView):
         WorkSpaceAdminPermission,
     ]
 
-    def get(self, request, slug):
+    def get(self, request, workspace_slug):
         x_axis = request.GET.get("x_axis", False)
         y_axis = request.GET.get("y_axis", False)
         segment = request.GET.get("segment", False)
@@ -258,7 +258,7 @@ class AnalyticsEndpoint(BaseAPIView):
         filters = issue_filters(request.GET, "GET")
 
         # Get the issues for the workspace with the additional filters applied
-        queryset = Issue.issue_objects.filter(workspace__slug=slug, **filters)
+        queryset = Issue.issue_objects.filter(workspace__slug=workspace_slug, **filters)
 
         # Get the total issue count
         total_issues = queryset.count()
@@ -272,7 +272,7 @@ class AnalyticsEndpoint(BaseAPIView):
         if x_axis in ["state_id"] or segment in ["state_id"]:
             state_details = (
                 Issue.issue_objects.filter(
-                    workspace__slug=slug,
+                    workspace__slug=workspace_slug,
                     **filters,
                 )
                 .distinct("state_id")
@@ -284,7 +284,7 @@ class AnalyticsEndpoint(BaseAPIView):
         if x_axis in ["labels__id"] or segment in ["labels__id"]:
             label_details = (
                 Issue.objects.filter(
-                    workspace__slug=slug, **filters, labels__id__isnull=False
+                    workspace__slug=workspace_slug, **filters, labels__id__isnull=False
                 )
                 .distinct("labels__id")
                 .order_by("labels__id")
@@ -295,7 +295,7 @@ class AnalyticsEndpoint(BaseAPIView):
         if x_axis in ["assignees__id"] or segment in ["assignees__id"]:
             assignee_details = (
                 Issue.issue_objects.filter(
-                    workspace__slug=slug,
+                    workspace__slug=workspace_slug,
                     **filters,
                     assignees__avatar__isnull=False,
                 )
@@ -314,7 +314,7 @@ class AnalyticsEndpoint(BaseAPIView):
         if x_axis in ["issue_cycle__cycle_id"] or segment in ["issue_cycle__cycle_id"]:
             cycle_details = (
                 Issue.issue_objects.filter(
-                    workspace__slug=slug,
+                    workspace__slug=workspace_slug,
                     **filters,
                     issue_cycle__cycle_id__isnull=False,
                 )
@@ -332,7 +332,7 @@ class AnalyticsEndpoint(BaseAPIView):
         ]:
             module_details = (
                 Issue.issue_objects.filter(
-                    workspace__slug=slug,
+                    workspace__slug=workspace_slug,
                     **filters,
                     issue_module__module_id__isnull=False,
                 )
@@ -372,12 +372,14 @@ class AnalyticViewViewset(BaseViewSet):
     serializer_class = AnalyticSerializer
 
     def perform_create(self, serializer):
-        workspace = Workspace.objects.get(slug=self.kwargs.get("slug"))
+        workspace = Workspace.objects.get(slug=self.kwargs.get("workspace_slug"))
         serializer.save(workspace_id=workspace.id)
 
     def get_queryset(self):
         return self.filter_queryset(
-            super().get_queryset().filter(workspace__slug=self.kwargs.get("slug"))
+            super()
+            .get_queryset()
+            .filter(workspace__slug=self.kwargs.get("workspace_slug"))
         )
 
 
@@ -390,9 +392,11 @@ class DefaultAnalyticsEndpoint(BaseAPIView):
         WorkSpaceAdminPermission,
     ]
 
-    def get(self, request, slug):
+    def get(self, request, workspace_slug):
         filters = issue_filters(request.GET, "GET")
-        base_issues = Issue.issue_objects.filter(workspace__slug=slug, **filters)
+        base_issues = Issue.issue_objects.filter(
+            workspace__slug=workspace_slug, **filters
+        )
 
         total_issues = base_issues.count()
 
@@ -492,7 +496,7 @@ class ExportAnalyticsEndpoint(BaseAPIView):
         WorkSpaceAdminPermission,
     ]
 
-    def post(self, request, slug):
+    def post(self, request, workspace_slug):
         x_axis = request.data.get("x_axis", False)
         y_axis = request.data.get("y_axis", False)
         segment = request.data.get("segment", False)
@@ -536,7 +540,7 @@ class ExportAnalyticsEndpoint(BaseAPIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         analytics_export_task.delay(
-            email=request.user.email, data=request.data, slug=slug
+            email=request.user.email, data=request.data, workspace_slug=workspace_slug
         )
         return Response(
             {

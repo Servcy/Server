@@ -16,12 +16,12 @@ urlpatterns = [
     path("", include(router.urls)),
     # Dashboard
     path(
-        "workspaces/<str:slug>/dashboard",
+        "<str:workspace_slug>/dashboard",
         DashboardEndpoint.as_view(),
         name="dashboard",
     ),
     path(
-        "workspaces/<str:slug>/dashboard/<int:dashboard_id>",
+        "<str:workspace_slug>/dashboard/<int:dashboard_id>",
         DashboardEndpoint.as_view(),
         name="dashboard",
     ),
@@ -33,22 +33,22 @@ urlpatterns = [
     ),
     # Analytics
     path(
-        "workspaces/<str:slug>/analytics/export",
+        "<str:workspace_slug>/analytics/export",
         ExportAnalyticsEndpoint.as_view(),
         name="export-analytics",
     ),
     path(
-        "workspaces/<str:slug>/analytics",
+        "<str:workspace_slug>/analytics",
         AnalyticsEndpoint.as_view(),
         name="servcy-analytics",
     ),
     path(
-        "workspaces/<str:slug>/analytics/view",
+        "<str:workspace_slug>/analytics/view",
         AnalyticViewViewset.as_view({"get": "list", "post": "create"}),
         name="analytic-view",
     ),
     path(
-        "workspaces/<str:slug>/analytics/default",
+        "<str:workspace_slug>/analytics/default",
         DefaultAnalyticsEndpoint.as_view(),
         name="default-analytics",
     ),
