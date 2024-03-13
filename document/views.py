@@ -42,6 +42,8 @@ class DocumentViewSet(BaseViewSet):
             files = request.FILES.getlist("file")
             meta_data = request.data.get("meta_data", {})
             workspace_id = request.data.get("workspace_id", None)
+            if workspace_id:
+                workspace_id = int(workspace_id)
             user_id = request.user.id
             file_data = []
             for file in files:
