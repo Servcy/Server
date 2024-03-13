@@ -150,26 +150,3 @@ class WorkspaceMember(TimeStampedModel, CreatorUpdaterModel):
         db_table = "workspace_member"
         verbose_name = "Workspace Member"
         verbose_name_plural = "Workspace Members"
-
-
-class WorkspaceUserProperties(TimeStampedModel, CreatorUpdaterModel):
-    workspace = models.ForeignKey(
-        Workspace,
-        on_delete=models.CASCADE,
-        related_name="workspace_user_properties",
-    )
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name="workspace_user_properties",
-    )
-    filters = models.JSONField(default=dict)
-    display_filters = models.JSONField(default=dict)
-    display_properties = models.JSONField(default=dict)
-
-    class Meta:
-        unique_together = ["workspace", "user"]
-        verbose_name = "Workspace User Property"
-        verbose_name_plural = "Workspace User Property"
-        db_table = "workspace_user_property"
-        ordering = ("-created_at",)
