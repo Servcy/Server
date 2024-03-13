@@ -43,7 +43,6 @@ from .project import (
     ProjectJoinEndpoint,
     ProjectMemberUserEndpoint,
     ProjectMemberViewSet,
-    ProjectPublicCoverImagesEndpoint,
     ProjectUserViewsEndpoint,
     ProjectViewSet,
     UserProjectInvitationsViewset,

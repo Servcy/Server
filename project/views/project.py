@@ -1,10 +1,9 @@
-import boto3
 import jwt
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.db import IntegrityError
-from django.db.models import Count, Exists, F, Func, OuterRef, Prefetch, Q, Subquery
+from django.db.models import Exists, F, Func, OuterRef, Prefetch, Q, Subquery
 from django.utils import timezone
 from rest_framework import serializers, status
 from rest_framework.permissions import AllowAny
@@ -920,37 +919,6 @@ class ProjectFavoritesViewSet(BaseViewSet):
         )
         project_favorite.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-class ProjectPublicCoverImagesEndpoint(BaseAPIView):
-    permission_classes = [
-        AllowAny,
-    ]
-
-    def get(self, request):
-        files = []
-        s3 = boto3.client(
-            "s3",
-            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-        )
-        params = {
-            "Bucket": settings.AWS_STORAGE_BUCKET_NAME,
-            "Prefix": "static/project-cover/",
-        }
-
-        response = s3.list_objects_v2(**params)
-        # Extracting file keys from the response
-        if "Contents" in response:
-            for content in response["Contents"]:
-                if not content["Key"].endswith(
-                    "/"
-                ):  # This line ensures we're only getting files, not "sub-folders"
-                    files.append(
-                        f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.{settings.AWS_REGION}.amazonaws.com/{content['Key']}"
-                    )
-
-        return Response(files, status=status.HTTP_200_OK)
 
 
 class ProjectDeployBoardViewSet(BaseViewSet):

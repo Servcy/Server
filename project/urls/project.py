@@ -8,7 +8,6 @@ from project.views import (
     ProjectJoinEndpoint,
     ProjectMemberUserEndpoint,
     ProjectMemberViewSet,
-    ProjectPublicCoverImagesEndpoint,
     ProjectUserViewsEndpoint,
     ProjectViewSet,
     UserProjectInvitationsViewset,
@@ -141,11 +140,6 @@ urlpatterns = [
             }
         ),
         name="project-favorite",
-    ),
-    path(
-        "project-covers/",
-        ProjectPublicCoverImagesEndpoint.as_view(),
-        name="project-covers",
     ),
     path(
         "<str:workspace_slug>/<int:project_id>/project-deploy-boards/",
