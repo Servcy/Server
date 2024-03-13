@@ -9,7 +9,7 @@ urlpatterns = [
         name="global-search",
     ),
     path(
-        "<str:workspace_slug>/projects/<int:project_id>/search-issues/",
+        "<str:workspace_slug>/<int:project_id>/search/issues/",
         IssueSearchEndpoint.as_view(),
         name="project-issue-search",
     ),

@@ -4,7 +4,7 @@ from project.views import GPTIntegrationEndpoint
 
 urlpatterns = [
     path(
-        "workspace/<str:slug>/projects/<int:project_id>/ai-assistant/",
+        "<str:workspace_slug>/<int:project_id>/ai-assistant/",
         GPTIntegrationEndpoint.as_view(),
         name="importer",
     ),

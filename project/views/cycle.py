@@ -72,12 +72,12 @@ class CycleViewSet(BaseViewSet):
             user=self.request.user,
             cycle_id=OuterRef("pk"),
             project_id=self.kwargs.get("project_id"),
-            workspace__slug=self.kwargs.get("slug"),
+            workspace__slug=self.kwargs.get("workspace_slug"),
         )
         return self.filter_queryset(
             super()
             .get_queryset()
-            .filter(workspace__slug=self.kwargs.get("slug"))
+            .filter(workspace__slug=self.kwargs.get("workspace_slug"))
             .filter(project_id=self.kwargs.get("project_id"))
             .filter(
                 project__project_projectmember__member=self.request.user,
@@ -187,7 +187,7 @@ class CycleViewSet(BaseViewSet):
             .distinct()
         )
 
-    def list(self, request, slug, project_id):
+    def list(self, request, workspace_slug, project_id):
         queryset = self.get_queryset()
         cycle_view = request.GET.get("cycle_view", "all")
 
@@ -231,7 +231,7 @@ class CycleViewSet(BaseViewSet):
                 assignee_distribution = (
                     Issue.objects.filter(
                         issue_cycle__cycle_id=data[0]["id"],
-                        workspace__slug=slug,
+                        workspace__slug=workspace_slug,
                         project_id=project_id,
                     )
                     .annotate(display_name=F("assignees__display_name"))
@@ -270,7 +270,7 @@ class CycleViewSet(BaseViewSet):
                 label_distribution = (
                     Issue.objects.filter(
                         issue_cycle__cycle_id=data[0]["id"],
-                        workspace__slug=slug,
+                        workspace__slug=workspace_slug,
                         project_id=project_id,
                     )
                     .annotate(label_name=F("labels__name"))
@@ -314,7 +314,7 @@ class CycleViewSet(BaseViewSet):
                 if data[0]["start_date"] and data[0]["end_date"]:
                     data[0]["distribution"]["completion_chart"] = burndown_plot(
                         queryset=queryset.first(),
-                        slug=slug,
+                        slug=workspace_slug,
                         project_id=project_id,
                         cycle_id=data[0]["id"],
                     )
@@ -348,7 +348,7 @@ class CycleViewSet(BaseViewSet):
         )
         return Response(data, status=status.HTTP_200_OK)
 
-    def create(self, request, slug, project_id):
+    def create(self, request, workspace_slug, project_id):
         if (
             request.data.get("start_date", None) is None
             and request.data.get("end_date", None) is None
@@ -402,9 +402,9 @@ class CycleViewSet(BaseViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-    def partial_update(self, request, slug, project_id, pk):
+    def partial_update(self, request, workspace_slug, project_id, pk):
         queryset = self.get_queryset().filter(
-            workspace__slug=slug, project_id=project_id, pk=pk
+            workspace__slug=workspace_slug, project_id=project_id, pk=pk
         )
         cycle = queryset.first()
         request_data = request.data
@@ -454,7 +454,7 @@ class CycleViewSet(BaseViewSet):
             return Response(cycle, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def retrieve(self, request, slug, project_id, pk):
+    def retrieve(self, request, workspace_slug, project_id, pk):
         queryset = self.get_queryset().filter(pk=pk)
         data = (
             self.get_queryset()
@@ -491,7 +491,7 @@ class CycleViewSet(BaseViewSet):
         assignee_distribution = (
             Issue.objects.filter(
                 issue_cycle__cycle_id=pk,
-                workspace__slug=slug,
+                workspace__slug=workspace_slug,
                 project_id=project_id,
             )
             .annotate(first_name=F("assignees__first_name"))
@@ -539,7 +539,7 @@ class CycleViewSet(BaseViewSet):
         label_distribution = (
             Issue.objects.filter(
                 issue_cycle__cycle_id=pk,
-                workspace__slug=slug,
+                workspace__slug=workspace_slug,
                 project_id=project_id,
             )
             .annotate(label_name=F("labels__name"))
@@ -584,7 +584,7 @@ class CycleViewSet(BaseViewSet):
         if queryset.start_date and queryset.end_date:
             data["distribution"]["completion_chart"] = burndown_plot(
                 queryset=queryset,
-                slug=slug,
+                slug=workspace_slug,
                 project_id=project_id,
                 cycle_id=pk,
             )
@@ -594,13 +594,15 @@ class CycleViewSet(BaseViewSet):
             status=status.HTTP_200_OK,
         )
 
-    def destroy(self, request, slug, project_id, pk):
+    def destroy(self, request, workspace_slug, project_id, pk):
         cycle_issues = list(
             CycleIssue.objects.filter(cycle_id=self.kwargs.get("pk")).values_list(
                 "issue", flat=True
             )
         )
-        cycle = Cycle.objects.get(workspace__slug=slug, project_id=project_id, pk=pk)
+        cycle = Cycle.objects.get(
+            workspace__slug=workspace_slug, project_id=project_id, pk=pk
+        )
 
         issue_activity.delay(
             type="cycle.activity.deleted",
@@ -649,7 +651,7 @@ class CycleIssueViewSet(BaseViewSet):
                 .annotate(count=Func(F("id"), function="Count"))
                 .values("count")
             )
-            .filter(workspace__slug=self.kwargs.get("slug"))
+            .filter(workspace__slug=self.kwargs.get("workspace_slug"))
             .filter(project_id=self.kwargs.get("project_id"))
             .filter(
                 project__project_projectmember__member=self.request.user,
@@ -665,14 +667,14 @@ class CycleIssueViewSet(BaseViewSet):
         )
 
     @method_decorator(gzip_page)
-    def list(self, request, slug, project_id, cycle_id):
+    def list(self, request, workspace_slug, project_id, cycle_id):
         fields = [field for field in request.GET.get("fields", "").split(",") if field]
         order_by = request.GET.get("order_by", "created_at")
         filters = issue_filters(request.query_params, "GET")
         queryset = (
             Issue.issue_objects.filter(issue_cycle__cycle_id=cycle_id)
             .filter(project_id=project_id)
-            .filter(workspace__slug=slug)
+            .filter(workspace__slug=workspace_slug)
             .filter(**filters)
             .select_related("workspace", "project", "state", "parent")
             .prefetch_related(
@@ -764,7 +766,7 @@ class CycleIssueViewSet(BaseViewSet):
             )
         return Response(issues, status=status.HTTP_200_OK)
 
-    def create(self, request, slug, project_id, cycle_id):
+    def create(self, request, workspace_slug, project_id, cycle_id):
         issues = request.data.get("issues", [])
 
         if not issues:
@@ -774,7 +776,7 @@ class CycleIssueViewSet(BaseViewSet):
             )
 
         cycle = Cycle.objects.get(
-            workspace__slug=slug, project_id=project_id, pk=cycle_id
+            workspace__slug=workspace_slug, project_id=project_id, pk=cycle_id
         )
 
         if cycle.end_date is not None and cycle.end_date < timezone.now().date():
@@ -848,10 +850,10 @@ class CycleIssueViewSet(BaseViewSet):
         )
         return Response({"message": "success"}, status=status.HTTP_201_CREATED)
 
-    def destroy(self, request, slug, project_id, cycle_id, issue_id):
+    def destroy(self, request, workspace_slug, project_id, cycle_id, issue_id):
         cycle_issue = CycleIssue.objects.get(
             issue_id=issue_id,
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             project_id=project_id,
             cycle_id=cycle_id,
         )
@@ -879,7 +881,7 @@ class CycleDateCheckEndpoint(BaseAPIView):
         ProjectEntityPermission,
     ]
 
-    def post(self, request, slug, project_id):
+    def post(self, request, workspace_slug, project_id):
         start_date = request.data.get("start_date", False)
         end_date = request.data.get("end_date", False)
         cycle_id = request.data.get("cycle_id")
@@ -891,7 +893,7 @@ class CycleDateCheckEndpoint(BaseAPIView):
 
         # Check if any cycle intersects in the given interval
         cycles = Cycle.objects.filter(
-            Q(workspace__slug=slug)
+            Q(workspace__slug=workspace_slug)
             & Q(project_id=project_id)
             & (
                 Q(start_date__lte=start_date, end_date__gte=start_date)
@@ -918,23 +920,23 @@ class CycleFavoriteViewSet(BaseViewSet):
         return self.filter_queryset(
             super()
             .get_queryset()
-            .filter(workspace__slug=self.kwargs.get("slug"))
+            .filter(workspace__slug=self.kwargs.get("workspace_slug"))
             .filter(user=self.request.user)
             .select_related("cycle", "cycle__owned_by")
         )
 
-    def create(self, request, slug, project_id):
+    def create(self, request, workspace_slug, project_id):
         serializer = CycleFavoriteSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(user=request.user, project_id=project_id)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def destroy(self, request, slug, project_id, cycle_id):
+    def destroy(self, request, workspace_slug, project_id, cycle_id):
         cycle_favorite = CycleFavorite.objects.get(
             project=project_id,
             user=request.user,
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             cycle_id=cycle_id,
         )
         cycle_favorite.delete()
@@ -946,7 +948,7 @@ class TransferCycleIssueEndpoint(BaseAPIView):
         ProjectEntityPermission,
     ]
 
-    def post(self, request, slug, project_id, cycle_id):
+    def post(self, request, workspace_slug, project_id, cycle_id):
         new_cycle_id = request.data.get("new_cycle_id", False)
 
         if not new_cycle_id:
@@ -956,12 +958,12 @@ class TransferCycleIssueEndpoint(BaseAPIView):
             )
 
         new_cycle = Cycle.objects.filter(
-            workspace__slug=slug, project_id=project_id, pk=new_cycle_id
+            workspace__slug=workspace_slug, project_id=project_id, pk=new_cycle_id
         ).first()
 
         old_cycle = (
             Cycle.objects.filter(
-                workspace__slug=slug, project_id=project_id, pk=cycle_id
+                workspace__slug=workspace_slug, project_id=project_id, pk=cycle_id
             )
             .annotate(
                 total_issues=Count(
@@ -1027,7 +1029,7 @@ class TransferCycleIssueEndpoint(BaseAPIView):
         # Pass the new_cycle queryset to burndown_plot
         completion_chart = burndown_plot(
             queryset=old_cycle.first(),
-            slug=slug,
+            slug=workspace_slug,
             project_id=project_id,
             cycle_id=cycle_id,
         )
@@ -1036,7 +1038,7 @@ class TransferCycleIssueEndpoint(BaseAPIView):
         assignee_distribution = (
             Issue.objects.filter(
                 issue_cycle__cycle_id=cycle_id,
-                workspace__slug=slug,
+                workspace__slug=workspace_slug,
                 project_id=project_id,
             )
             .annotate(display_name=F("assignees__display_name"))
@@ -1090,7 +1092,7 @@ class TransferCycleIssueEndpoint(BaseAPIView):
         label_distribution = (
             Issue.objects.filter(
                 issue_cycle__cycle_id=cycle_id,
-                workspace__slug=slug,
+                workspace__slug=workspace_slug,
                 project_id=project_id,
             )
             .annotate(label_name=F("labels__name"))
@@ -1154,7 +1156,7 @@ class TransferCycleIssueEndpoint(BaseAPIView):
         ]
 
         current_cycle = Cycle.objects.filter(
-            workspace__slug=slug, project_id=project_id, pk=cycle_id
+            workspace__slug=workspace_slug, project_id=project_id, pk=cycle_id
         ).first()
 
         current_cycle.progress_snapshot = {
@@ -1186,7 +1188,7 @@ class TransferCycleIssueEndpoint(BaseAPIView):
         cycle_issues = CycleIssue.objects.filter(
             cycle_id=cycle_id,
             project_id=project_id,
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             issue__state__group__in=["backlog", "unstarted", "started"],
         )
 
@@ -1207,12 +1209,12 @@ class CycleUserPropertiesEndpoint(BaseAPIView):
         ProjectLitePermission,
     ]
 
-    def patch(self, request, slug, project_id, cycle_id):
+    def patch(self, request, workspace_slug, project_id, cycle_id):
         cycle_properties = CycleUserProperties.objects.get(
             user=request.user,
             cycle_id=cycle_id,
             project_id=project_id,
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
         )
 
         cycle_properties.filters = request.data.get("filters", cycle_properties.filters)
@@ -1227,12 +1229,12 @@ class CycleUserPropertiesEndpoint(BaseAPIView):
         serializer = CycleUserPropertiesSerializer(cycle_properties)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    def get(self, request, slug, project_id, cycle_id):
+    def get(self, request, workspace_slug, project_id, cycle_id):
         cycle_properties, _ = CycleUserProperties.objects.get_or_create(
             user=request.user,
             project_id=project_id,
             cycle_id=cycle_id,
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
         )
         serializer = CycleUserPropertiesSerializer(cycle_properties)
         return Response(serializer.data, status=status.HTTP_200_OK)

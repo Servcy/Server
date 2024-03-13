@@ -3,12 +3,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from app.serializers import ServcyBaseSerializer, ServcyDynamicBaseSerializer
 from common.validators import INVALID_SLUGS
-from iam.models import (
-    User,
-    Workspace,
-    WorkspaceMember,
-    WorkspaceMemberInvite,
-)
+from iam.models import User, Workspace, WorkspaceMember, WorkspaceMemberInvite
 
 
 class JWTTokenSerializer(TokenObtainPairSerializer):

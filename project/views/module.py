@@ -67,13 +67,13 @@ class ModuleViewSet(BaseViewSet):
             user=self.request.user,
             module_id=OuterRef("pk"),
             project_id=self.kwargs.get("project_id"),
-            workspace__slug=self.kwargs.get("slug"),
+            workspace__slug=self.kwargs.get("workspace_slug"),
         )
         return (
             super()
             .get_queryset()
             .filter(project_id=self.kwargs.get("project_id"))
-            .filter(workspace__slug=self.kwargs.get("slug"))
+            .filter(workspace__slug=self.kwargs.get("workspace_slug"))
             .annotate(is_favorite=Exists(favorite_subquery))
             .select_related("project")
             .select_related("workspace")
@@ -157,8 +157,8 @@ class ModuleViewSet(BaseViewSet):
             .order_by("-is_favorite", "-created_at")
         )
 
-    def create(self, request, slug, project_id):
-        project = Project.objects.get(workspace__slug=slug, pk=project_id)
+    def create(self, request, workspace_slug, project_id):
+        project = Project.objects.get(workspace__slug=workspace_slug, pk=project_id)
         serializer = ModuleWriteSerializer(
             data=request.data, context={"project": project}
         )
@@ -200,7 +200,7 @@ class ModuleViewSet(BaseViewSet):
             return Response(module, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def list(self, request, slug, project_id):
+    def list(self, request, workspace_slug, project_id):
         queryset = self.get_queryset()
         if self.fields:
             modules = ModuleSerializer(
@@ -238,13 +238,13 @@ class ModuleViewSet(BaseViewSet):
             )
         return Response(modules, status=status.HTTP_200_OK)
 
-    def retrieve(self, request, slug, project_id, pk):
+    def retrieve(self, request, workspace_slug, project_id, pk):
         queryset = self.get_queryset().filter(pk=pk)
 
         assignee_distribution = (
             Issue.objects.filter(
                 issue_module__module_id=pk,
-                workspace__slug=slug,
+                workspace__slug=workspace_slug,
                 project_id=project_id,
             )
             .annotate(first_name=F("assignees__first_name"))
@@ -294,7 +294,7 @@ class ModuleViewSet(BaseViewSet):
         label_distribution = (
             Issue.objects.filter(
                 issue_module__module_id=pk,
-                workspace__slug=slug,
+                workspace__slug=workspace_slug,
                 project_id=project_id,
             )
             .annotate(label_name=F("labels__name"))
@@ -343,7 +343,7 @@ class ModuleViewSet(BaseViewSet):
         if queryset.first().start_date and queryset.first().target_date:
             data["distribution"]["completion_chart"] = burndown_plot(
                 queryset=queryset.first(),
-                slug=slug,
+                slug=workspace_slug,
                 project_id=project_id,
                 module_id=pk,
             )
@@ -353,7 +353,7 @@ class ModuleViewSet(BaseViewSet):
             status=status.HTTP_200_OK,
         )
 
-    def partial_update(self, request, slug, project_id, pk):
+    def partial_update(self, request, workspace_slug, project_id, pk):
         queryset = self.get_queryset().filter(pk=pk)
         serializer = ModuleWriteSerializer(
             queryset.first(), data=request.data, partial=True
@@ -392,8 +392,10 @@ class ModuleViewSet(BaseViewSet):
             return Response(module, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def destroy(self, request, slug, project_id, pk):
-        module = Module.objects.get(workspace__slug=slug, project_id=project_id, pk=pk)
+    def destroy(self, request, workspace_slug, project_id, pk):
+        module = Module.objects.get(
+            workspace__slug=workspace_slug, project_id=project_id, pk=pk
+        )
         module_issues = list(
             ModuleIssue.objects.filter(module_id=pk).values_list("issue", flat=True)
         )
@@ -433,7 +435,7 @@ class ModuleIssueViewSet(BaseViewSet):
         return (
             Issue.issue_objects.filter(
                 project_id=self.kwargs.get("project_id"),
-                workspace__slug=self.kwargs.get("slug"),
+                workspace__slug=self.kwargs.get("workspace_slug"),
                 issue_module__module_id=self.kwargs.get("module_id"),
             )
             .select_related("workspace", "project", "state", "parent")
@@ -486,7 +488,7 @@ class ModuleIssueViewSet(BaseViewSet):
         ).distinct()
 
     @method_decorator(gzip_page)
-    def list(self, request, slug, project_id, module_id):
+    def list(self, request, workspace_slug, project_id, module_id):
         fields = [field for field in request.GET.get("fields", "").split(",") if field]
         filters = issue_filters(request.query_params, "GET")
         issue_queryset = self.get_queryset().filter(**filters)
@@ -525,7 +527,7 @@ class ModuleIssueViewSet(BaseViewSet):
         return Response(issues, status=status.HTTP_200_OK)
 
     # create multiple issues inside a module
-    def create_module_issues(self, request, slug, project_id, module_id):
+    def create_module_issues(self, request, workspace_slug, project_id, module_id):
         issues = request.data.get("issues", [])
         if not issues:
             return Response(
@@ -565,7 +567,7 @@ class ModuleIssueViewSet(BaseViewSet):
         return Response({"message": "success"}, status=status.HTTP_201_CREATED)
 
     # create multiple module inside an issue
-    def create_issue_modules(self, request, slug, project_id, issue_id):
+    def create_issue_modules(self, request, workspace_slug, project_id, issue_id):
         modules = request.data.get("modules", [])
         if not modules:
             return Response(
@@ -606,9 +608,9 @@ class ModuleIssueViewSet(BaseViewSet):
 
         return Response({"message": "success"}, status=status.HTTP_201_CREATED)
 
-    def destroy(self, request, slug, project_id, module_id, issue_id):
+    def destroy(self, request, workspace_slug, project_id, module_id, issue_id):
         module_issue = ModuleIssue.objects.get(
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             project_id=project_id,
             module_id=module_id,
             issue_id=issue_id,
@@ -645,7 +647,7 @@ class ModuleLinkViewSet(BaseViewSet):
         return (
             super()
             .get_queryset()
-            .filter(workspace__slug=self.kwargs.get("slug"))
+            .filter(workspace__slug=self.kwargs.get("workspace_slug"))
             .filter(project_id=self.kwargs.get("project_id"))
             .filter(module_id=self.kwargs.get("module_id"))
             .filter(
@@ -665,23 +667,23 @@ class ModuleFavoriteViewSet(BaseViewSet):
         return self.filter_queryset(
             super()
             .get_queryset()
-            .filter(workspace__slug=self.kwargs.get("slug"))
+            .filter(workspace__slug=self.kwargs.get("workspace_slug"))
             .filter(user=self.request.user)
             .select_related("module")
         )
 
-    def create(self, request, slug, project_id):
+    def create(self, request, workspace_slug, project_id):
         serializer = ModuleFavoriteSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(user=request.user, project_id=project_id)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def destroy(self, request, slug, project_id, module_id):
+    def destroy(self, request, workspace_slug, project_id, module_id):
         module_favorite = ModuleFavorite.objects.get(
             project=project_id,
             user=request.user,
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             module_id=module_id,
         )
         module_favorite.delete()
@@ -693,12 +695,12 @@ class ModuleUserPropertiesEndpoint(BaseAPIView):
         ProjectLitePermission,
     ]
 
-    def patch(self, request, slug, project_id, module_id):
+    def patch(self, request, workspace_slug, project_id, module_id):
         module_properties = ModuleUserProperties.objects.get(
             user=request.user,
             module_id=module_id,
             project_id=project_id,
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
         )
 
         module_properties.filters = request.data.get(
@@ -715,12 +717,12 @@ class ModuleUserPropertiesEndpoint(BaseAPIView):
         serializer = ModuleUserPropertiesSerializer(module_properties)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    def get(self, request, slug, project_id, module_id):
+    def get(self, request, workspace_slug, project_id, module_id):
         module_properties, _ = ModuleUserProperties.objects.get_or_create(
             user=request.user,
             project_id=project_id,
             module_id=module_id,
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
         )
         serializer = ModuleUserPropertiesSerializer(module_properties)
         return Response(serializer.data, status=status.HTTP_200_OK)

@@ -9,7 +9,7 @@ from project.views import (
 
 urlpatterns = [
     path(
-        "workspace/<str:slug>/projects/<int:project_id>/pages/",
+        "<str:workspace_slug>/<int:project_id>/pages/",
         PageViewSet.as_view(
             {
                 "get": "list",
@@ -19,7 +19,7 @@ urlpatterns = [
         name="project-pages",
     ),
     path(
-        "workspace/<str:slug>/projects/<int:project_id>/pages/<int:pk>/",
+        "<str:workspace_slug>/<int:project_id>/pages/<int:pk>/",
         PageViewSet.as_view(
             {
                 "get": "retrieve",
@@ -30,7 +30,7 @@ urlpatterns = [
         name="project-pages",
     ),
     path(
-        "workspace/<str:slug>/projects/<int:project_id>/user-favorite-pages/",
+        "<str:workspace_slug>/<int:project_id>/pages/favorite/",
         PageFavoriteViewSet.as_view(
             {
                 "get": "list",
@@ -40,7 +40,7 @@ urlpatterns = [
         name="user-favorite-pages",
     ),
     path(
-        "workspace/<str:slug>/projects/<int:project_id>/user-favorite-pages/<int:page_id>/",
+        "<str:workspace_slug>/<int:project_id>/pages/<int:page_id>/favorite/",
         PageFavoriteViewSet.as_view(
             {
                 "delete": "destroy",
@@ -49,7 +49,7 @@ urlpatterns = [
         name="user-favorite-pages",
     ),
     path(
-        "workspace/<str:slug>/projects/<int:project_id>/pages/",
+        "<str:workspace_slug>/<int:project_id>/pages/",
         PageViewSet.as_view(
             {
                 "get": "list",
@@ -59,7 +59,7 @@ urlpatterns = [
         name="project-pages",
     ),
     path(
-        "workspace/<str:slug>/projects/<int:project_id>/pages/<int:pk>/",
+        "<str:workspace_slug>/<int:project_id>/pages/<int:pk>/",
         PageViewSet.as_view(
             {
                 "get": "retrieve",
@@ -70,7 +70,7 @@ urlpatterns = [
         name="project-pages",
     ),
     path(
-        "workspace/<str:slug>/projects/<int:project_id>/pages/<int:page_id>/archive/",
+        "<str:workspace_slug>/<int:project_id>/pages/<int:page_id>/archive/",
         PageViewSet.as_view(
             {
                 "post": "archive",
@@ -79,7 +79,7 @@ urlpatterns = [
         name="project-page-archive",
     ),
     path(
-        "workspace/<str:slug>/projects/<int:project_id>/pages/<int:page_id>/unarchive/",
+        "<str:workspace_slug>/<int:project_id>/pages/<int:page_id>/unarchive/",
         PageViewSet.as_view(
             {
                 "post": "unarchive",
@@ -88,7 +88,7 @@ urlpatterns = [
         name="project-page-unarchive",
     ),
     path(
-        "workspace/<str:slug>/projects/<int:project_id>/archived-pages/",
+        "<str:workspace_slug>/<int:project_id>/pages/archived/",
         PageViewSet.as_view(
             {
                 "get": "archive_list",
@@ -97,7 +97,7 @@ urlpatterns = [
         name="project-pages",
     ),
     path(
-        "workspace/<str:slug>/projects/<int:project_id>/pages/<int:page_id>/lock/",
+        "<str:workspace_slug>/<int:project_id>/pages/<int:page_id>/lock/",
         PageViewSet.as_view(
             {
                 "post": "lock",
@@ -106,7 +106,7 @@ urlpatterns = [
         name="project-pages",
     ),
     path(
-        "workspace/<str:slug>/projects/<int:project_id>/pages/<int:page_id>/unlock/",
+        "<str:workspace_slug>/<int:project_id>/pages/<int:page_id>/unlock/",
         PageViewSet.as_view(
             {
                 "post": "unlock",
@@ -114,17 +114,17 @@ urlpatterns = [
         ),
     ),
     path(
-        "workspace/<str:slug>/projects/<int:project_id>/pages/<int:page_id>/transactions/",
+        "<str:workspace_slug>/<int:project_id>/pages/<int:page_id>/transactions/",
         PageLogEndpoint.as_view(),
         name="page-transactions",
     ),
     path(
-        "workspace/<str:slug>/projects/<int:project_id>/pages/<int:page_id>/transactions/<int:transaction>/",
+        "<str:workspace_slug>/<int:project_id>/pages/<int:page_id>/transactions/<int:transaction>/",
         PageLogEndpoint.as_view(),
         name="page-transactions",
     ),
     path(
-        "workspace/<str:slug>/projects/<int:project_id>/pages/<int:page_id>/sub-pages/",
+        "<str:workspace_slug>/<int:project_id>/pages/<int:page_id>/sub/",
         SubPagesEndpoint.as_view(),
         name="sub-page",
     ),

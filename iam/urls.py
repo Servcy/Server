@@ -15,7 +15,6 @@ from iam.views import (
     WorkSpaceViewSet,
 )
 
-
 urlpatterns = [
     path(
         "me",
@@ -68,7 +67,7 @@ urlpatterns = [
         name="workspace",
     ),
     path(
-        "workspace/<str:slug>",
+        "<str:workspace_slug>",
         WorkSpaceViewSet.as_view(
             {
                 "put": "update",
@@ -79,7 +78,7 @@ urlpatterns = [
         name="workspace",
     ),
     path(
-        "workspace/<str:slug>/invitations",
+        "<str:workspace_slug>/invitations",
         WorkspaceInvitationsViewset.as_view(
             {
                 "get": "list",
@@ -89,7 +88,7 @@ urlpatterns = [
         name="workspace-invitations",
     ),
     path(
-        "workspace/<str:slug>/invitations/<int:pk>",
+        "<str:workspace_slug>/invitations/<int:pk>",
         WorkspaceInvitationsViewset.as_view(
             {
                 "delete": "destroy",
@@ -110,17 +109,17 @@ urlpatterns = [
         name="user-workspace-invitations",
     ),
     path(
-        "workspace/<str:slug>/invitations/<int:pk>/join",
+        "<str:workspace_slug>/invitations/<int:pk>/join",
         WorkspaceJoinEndpoint.as_view(),
         name="workspace-join",
     ),
     path(
-        "workspace/<str:slug>/members",
+        "<str:workspace_slug>/members",
         WorkSpaceMemberViewSet.as_view({"get": "list"}),
         name="workspace-member",
     ),
     path(
-        "workspace/<str:slug>/members/<int:pk>",
+        "<str:workspace_slug>/members/<int:pk>",
         WorkSpaceMemberViewSet.as_view(
             {
                 "patch": "partial_update",
@@ -131,7 +130,7 @@ urlpatterns = [
         name="workspace-member",
     ),
     path(
-        "workspace/<str:slug>/members/leave",
+        "<str:workspace_slug>/members/leave",
         WorkSpaceMemberViewSet.as_view(
             {
                 "post": "leave",
@@ -140,12 +139,12 @@ urlpatterns = [
         name="leave-workspace-members",
     ),
     path(
-        "workspace/<str:slug>/members/me",
+        "<str:workspace_slug>/members/me",
         WorkspaceMemberUserEndpoint.as_view(),
         name="workspace-member-details",
     ),
     path(
-        "workspace/<str:slug>/views",
+        "<str:workspace_slug>/views",
         WorkspaceMemberUserViewsEndpoint.as_view(),
         name="workspace-member-views-details",
     ),

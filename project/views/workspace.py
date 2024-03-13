@@ -124,11 +124,11 @@ class UserActivityGraphEndpoint(BaseAPIView):
     This endpoint returns the user activity graph
     """
 
-    def get(self, request, slug):
+    def get(self, request, workspace_slug):
         issue_activities = (
             IssueActivity.objects.filter(
                 actor=request.user,
-                workspace__slug=slug,
+                workspace__slug=workspace_slug,
                 created_at__date__gte=date.today() + relativedelta(months=-6),
             )
             .annotate(created_date=Cast("created_at", DateField()))
@@ -145,13 +145,13 @@ class UserIssueCompletedGraphEndpoint(BaseAPIView):
     This endpoint returns the user issue completed graph
     """
 
-    def get(self, request, slug):
+    def get(self, request, workspace_slug):
         month = request.GET.get("month", 1)
 
         issues = (
             Issue.issue_objects.filter(
                 assignees__in=[request.user],
-                workspace__slug=slug,
+                workspace__slug=workspace_slug,
                 completed_at__month=month,
                 completed_at__isnull=False,
             )
@@ -179,11 +179,11 @@ class UserWorkspaceDashboardEndpoint(BaseAPIView):
     This endpoint returns the user workspace dashboard details
     """
 
-    def get(self, request, slug):
+    def get(self, request, workspace_slug):
         issue_activities = (
             IssueActivity.objects.filter(
                 actor=request.user,
-                workspace__slug=slug,
+                workspace__slug=workspace_slug,
                 created_at__date__gte=date.today() + relativedelta(months=-3),
             )
             .annotate(created_date=Cast("created_at", DateField()))
@@ -197,7 +197,7 @@ class UserWorkspaceDashboardEndpoint(BaseAPIView):
         completed_issues = (
             Issue.issue_objects.filter(
                 assignees__in=[request.user],
-                workspace__slug=slug,
+                workspace__slug=workspace_slug,
                 completed_at__month=month,
                 completed_at__isnull=False,
             )
@@ -209,24 +209,24 @@ class UserWorkspaceDashboardEndpoint(BaseAPIView):
         )
 
         assigned_issues = Issue.issue_objects.filter(
-            workspace__slug=slug, assignees__in=[request.user]
+            workspace__slug=workspace_slug, assignees__in=[request.user]
         ).count()
 
         pending_issues_count = Issue.issue_objects.filter(
             ~Q(state__group__in=["completed", "cancelled"]),
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             assignees__in=[request.user],
         ).count()
 
         completed_issues_count = Issue.issue_objects.filter(
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             assignees__in=[request.user],
             state__group="completed",
         ).count()
 
         issues_due_week = (
             Issue.issue_objects.filter(
-                workspace__slug=slug,
+                workspace__slug=workspace_slug,
                 assignees__in=[request.user],
             )
             .annotate(target_week=ExtractWeek("target_date"))
@@ -236,7 +236,7 @@ class UserWorkspaceDashboardEndpoint(BaseAPIView):
 
         state_distribution = (
             Issue.issue_objects.filter(
-                workspace__slug=slug, assignees__in=[request.user]
+                workspace__slug=workspace_slug, assignees__in=[request.user]
             )
             .annotate(state_group=F("state__group"))
             .values("state_group")
@@ -246,7 +246,7 @@ class UserWorkspaceDashboardEndpoint(BaseAPIView):
 
         overdue_issues = Issue.issue_objects.filter(
             ~Q(state__group__in=["completed", "cancelled"]),
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             assignees__in=[request.user],
             target_date__lt=timezone.now(),
             completed_at__isnull=True,
@@ -255,7 +255,7 @@ class UserWorkspaceDashboardEndpoint(BaseAPIView):
         upcoming_issues = Issue.issue_objects.filter(
             ~Q(state__group__in=["completed", "cancelled"]),
             start_date__gte=timezone.now(),
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             assignees__in=[request.user],
             completed_at__isnull=True,
         ).values("id", "name", "workspace__slug", "project_id", "start_date")
@@ -281,12 +281,12 @@ class WorkspaceUserProfileStatsEndpoint(BaseAPIView):
     This endpoint returns the user profile stats
     """
 
-    def get(self, request, slug, user_id):
+    def get(self, request, workspace_slug, user_id):
         filters = issue_filters(request.query_params, "GET")
 
         state_distribution = (
             Issue.issue_objects.filter(
-                workspace__slug=slug,
+                workspace__slug=workspace_slug,
                 assignees__in=[user_id],
                 project__project_projectmember__member=request.user,
                 project__project_projectmember__is_active=True,
@@ -302,7 +302,7 @@ class WorkspaceUserProfileStatsEndpoint(BaseAPIView):
 
         priority_distribution = (
             Issue.issue_objects.filter(
-                workspace__slug=slug,
+                workspace__slug=workspace_slug,
                 assignees__in=[user_id],
                 project__project_projectmember__member=request.user,
                 project__project_projectmember__is_active=True,
@@ -326,7 +326,7 @@ class WorkspaceUserProfileStatsEndpoint(BaseAPIView):
 
         created_issues = (
             Issue.issue_objects.filter(
-                workspace__slug=slug,
+                workspace__slug=workspace_slug,
                 project__project_projectmember__member=request.user,
                 project__project_projectmember__is_active=True,
                 created_by_id=user_id,
@@ -337,7 +337,7 @@ class WorkspaceUserProfileStatsEndpoint(BaseAPIView):
 
         assigned_issues_count = (
             Issue.issue_objects.filter(
-                workspace__slug=slug,
+                workspace__slug=workspace_slug,
                 assignees__in=[user_id],
                 project__project_projectmember__member=request.user,
                 project__project_projectmember__is_active=True,
@@ -349,7 +349,7 @@ class WorkspaceUserProfileStatsEndpoint(BaseAPIView):
         pending_issues_count = (
             Issue.issue_objects.filter(
                 ~Q(state__group__in=["completed", "cancelled"]),
-                workspace__slug=slug,
+                workspace__slug=workspace_slug,
                 assignees__in=[user_id],
                 project__project_projectmember__member=request.user,
                 project__project_projectmember__is_active=True,
@@ -360,7 +360,7 @@ class WorkspaceUserProfileStatsEndpoint(BaseAPIView):
 
         completed_issues_count = (
             Issue.issue_objects.filter(
-                workspace__slug=slug,
+                workspace__slug=workspace_slug,
                 assignees__in=[user_id],
                 state__group="completed",
                 project__project_projectmember__member=request.user,
@@ -372,7 +372,7 @@ class WorkspaceUserProfileStatsEndpoint(BaseAPIView):
 
         subscribed_issues_count = (
             IssueSubscriber.objects.filter(
-                workspace__slug=slug,
+                workspace__slug=workspace_slug,
                 subscriber_id=user_id,
                 project__project_projectmember__member=request.user,
                 project__project_projectmember__is_active=True,
@@ -382,7 +382,7 @@ class WorkspaceUserProfileStatsEndpoint(BaseAPIView):
         )
 
         upcoming_cycles = CycleIssue.objects.filter(
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             cycle__start_date__gt=timezone.now().date(),
             issue__assignees__in=[
                 user_id,
@@ -390,7 +390,7 @@ class WorkspaceUserProfileStatsEndpoint(BaseAPIView):
         ).values("cycle__name", "cycle__id", "cycle__project_id")
 
         present_cycle = CycleIssue.objects.filter(
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             cycle__start_date__lt=timezone.now().date(),
             cycle__end_date__gt=timezone.now().date(),
             issue__assignees__in=[
@@ -422,12 +422,12 @@ class WorkspaceUserActivityEndpoint(BaseAPIView):
         WorkspaceEntityPermission,
     ]
 
-    def get(self, request, slug, user_id):
+    def get(self, request, workspace_slug, user_id):
         projects = request.query_params.getlist("project", [])
 
         queryset = IssueActivity.objects.filter(
             ~Q(field__in=["comment", "vote", "reaction", "draft"]),
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             project__project_projectmember__member=request.user,
             project__project_projectmember__is_active=True,
             actor=user_id,
@@ -454,7 +454,7 @@ class WorkspaceUserProfileIssuesEndpoint(BaseAPIView):
         WorkspaceViewerPermission,
     ]
 
-    def get(self, request, slug, user_id):
+    def get(self, request, workspace_slug, user_id):
         fields = [field for field in request.GET.get("fields", "").split(",") if field]
         filters = issue_filters(request.query_params, "GET")
 
@@ -474,7 +474,7 @@ class WorkspaceUserProfileIssuesEndpoint(BaseAPIView):
                 Q(assignees__in=[user_id])
                 | Q(created_by_id=user_id)
                 | Q(issue_subscribers__subscriber_id=user_id),
-                workspace__slug=slug,
+                workspace__slug=workspace_slug,
                 project__project_projectmember__member=request.user,
                 project__project_projectmember__is_active=True,
             )
@@ -600,9 +600,9 @@ class WorkspaceLabelsEndpoint(BaseAPIView):
         WorkspaceViewerPermission,
     ]
 
-    def get(self, request, slug):
+    def get(self, request, workspace_slug):
         labels = Label.objects.filter(
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             project__project_projectmember__member=request.user,
             project__project_projectmember__is_active=True,
         )
@@ -619,9 +619,9 @@ class WorkspaceStatesEndpoint(BaseAPIView):
         WorkspaceEntityPermission,
     ]
 
-    def get(self, request, slug):
+    def get(self, request, workspace_slug):
         states = State.objects.filter(
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             project__project_projectmember__member=request.user,
             project__project_projectmember__is_active=True,
         )
@@ -638,9 +638,9 @@ class WorkspaceEstimatesEndpoint(BaseAPIView):
         WorkspaceEntityPermission,
     ]
 
-    def get(self, request, slug):
+    def get(self, request, workspace_slug):
         estimate_ids = Project.objects.filter(
-            workspace__slug=slug, estimate__isnull=False
+            workspace__slug=workspace_slug, estimate__isnull=False
         ).values_list("estimate_id", flat=True)
         estimates = Estimate.objects.filter(pk__in=estimate_ids).prefetch_related(
             Prefetch(
@@ -663,9 +663,9 @@ class WorkspaceModulesEndpoint(BaseAPIView):
         WorkspaceViewerPermission,
     ]
 
-    def get(self, request, slug):
+    def get(self, request, workspace_slug):
         modules = (
-            Module.objects.filter(workspace__slug=slug)
+            Module.objects.filter(workspace__slug=workspace_slug)
             .select_related("project")
             .select_related("workspace")
             .select_related("lead")
@@ -751,9 +751,9 @@ class WorkspaceCyclesEndpoint(BaseAPIView):
         WorkspaceViewerPermission,
     ]
 
-    def get(self, request, slug):
+    def get(self, request, workspace_slug):
         cycles = (
-            Cycle.objects.filter(workspace__slug=slug)
+            Cycle.objects.filter(workspace__slug=workspace_slug)
             .select_related("project")
             .select_related("workspace")
             .select_related("owned_by")
@@ -864,10 +864,10 @@ class UserProfileProjectsStatisticsEndpoint(BaseAPIView):
     This endpoint returns the user profile along with the user's project stats
     """
 
-    def get(self, request, slug, user_id):
+    def get(self, request, workspace_slug, user_id):
         user_data = User.objects.get(pk=user_id)
         requesting_workspace_member = WorkspaceMember.objects.get(
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             member=request.user,
             is_active=True,
         )
@@ -875,7 +875,7 @@ class UserProfileProjectsStatisticsEndpoint(BaseAPIView):
         if requesting_workspace_member.role >= 1:
             projects = (
                 Project.objects.filter(
-                    workspace__slug=slug,
+                    workspace__slug=workspace_slug,
                     project_projectmember__member=request.user,
                     project_projectmember__is_active=True,
                 )

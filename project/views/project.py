@@ -56,13 +56,13 @@ class ProjectViewSet(BaseViewSet):
         sort_order = ProjectMember.objects.filter(
             member=self.request.user,
             project_id=OuterRef("pk"),
-            workspace__slug=self.kwargs.get("slug"),
+            workspace__slug=self.kwargs.get("workspace_slug"),
             is_active=True,
         ).values("sort_order")
         return self.filter_queryset(
             super()
             .get_queryset()
-            .filter(workspace__slug=self.kwargs.get("slug"))
+            .filter(workspace__slug=self.kwargs.get("workspace_slug"))
             .filter(
                 Q(project_projectmember__member=self.request.user)
                 | Q(access=EAccess.PUBLIC.value)
@@ -78,7 +78,7 @@ class ProjectViewSet(BaseViewSet):
                     ProjectFavorite.objects.filter(
                         user=self.request.user,
                         project_id=OuterRef("pk"),
-                        workspace__slug=self.kwargs.get("slug"),
+                        workspace__slug=self.kwargs.get("workspace_slug"),
                     )
                 )
             )
@@ -87,7 +87,7 @@ class ProjectViewSet(BaseViewSet):
                     ProjectMember.objects.filter(
                         member=self.request.user,
                         project_id=OuterRef("pk"),
-                        workspace__slug=self.kwargs.get("slug"),
+                        workspace__slug=self.kwargs.get("workspace_slug"),
                         is_active=True,
                     )
                 )
@@ -124,7 +124,7 @@ class ProjectViewSet(BaseViewSet):
                 is_deployed=Exists(
                     ProjectDeployBoard.objects.filter(
                         project_id=OuterRef("pk"),
-                        workspace__slug=self.kwargs.get("slug"),
+                        workspace__slug=self.kwargs.get("workspace_slug"),
                     )
                 )
             )
@@ -133,7 +133,7 @@ class ProjectViewSet(BaseViewSet):
                 Prefetch(
                     "project_projectmember",
                     queryset=ProjectMember.objects.filter(
-                        workspace__slug=self.kwargs.get("slug"),
+                        workspace__slug=self.kwargs.get("workspace_slug"),
                         is_active=True,
                     ).select_related("member"),
                     to_attr="members_list",
@@ -142,7 +142,7 @@ class ProjectViewSet(BaseViewSet):
             .distinct()
         )
 
-    def list(self, request, slug):
+    def list(self, request, workspace_slug):
         fields = [field for field in request.GET.get("fields", "").split(",") if field]
         projects = self.get_queryset().order_by("sort_order", "name")
         if request.GET.get("per_page", False) and request.GET.get("cursor", False):
@@ -158,9 +158,9 @@ class ProjectViewSet(BaseViewSet):
         ).data
         return Response(projects, status=status.HTTP_200_OK)
 
-    def create(self, request, slug):
+    def create(self, request, workspace_slug):
         try:
-            workspace = Workspace.objects.get(slug=slug)
+            workspace = Workspace.objects.get(slug=workspace_slug)
 
             serializer = ProjectSerializer(
                 data={**request.data}, context={"workspace_id": workspace.id}
@@ -269,9 +269,9 @@ class ProjectViewSet(BaseViewSet):
                 status=status.HTTP_410_GONE,
             )
 
-    def partial_update(self, request, slug, pk=None):
+    def partial_update(self, request, workspace_slug, pk=None):
         try:
-            workspace = Workspace.objects.get(slug=slug)
+            workspace = Workspace.objects.get(slug=workspace_slug)
 
             project = Project.objects.get(pk=pk)
 
@@ -321,13 +321,13 @@ class ProjectInvitationsViewset(BaseViewSet):
         return self.filter_queryset(
             super()
             .get_queryset()
-            .filter(workspace__slug=self.kwargs.get("slug"))
+            .filter(workspace__slug=self.kwargs.get("workspace_slug"))
             .filter(project_id=self.kwargs.get("project_id"))
             .select_related("project")
             .select_related("workspace", "workspace__owner")
         )
 
-    def create(self, request, slug, project_id):
+    def create(self, request, workspace_slug, project_id):
         emails = request.data.get("emails", [])
 
         # Check if email is provided
@@ -338,7 +338,7 @@ class ProjectInvitationsViewset(BaseViewSet):
             )
 
         requesting_user = ProjectMember.objects.get(
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             project_id=project_id,
             member_id=request.user.id,
         )
@@ -356,7 +356,7 @@ class ProjectInvitationsViewset(BaseViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        workspace = Workspace.objects.get(slug=slug)
+        workspace = Workspace.objects.get(slug=workspace_slug)
 
         project_invitations = []
         for email in emails:
@@ -423,13 +423,13 @@ class UserProjectInvitationsViewset(BaseViewSet):
             .select_related("workspace", "workspace__owner", "project")
         )
 
-    def create(self, request, slug):
+    def create(self, request, workspace_slug):
         project_ids = request.data.get("project_ids", [])
 
         # Get the workspace user role
         workspace_member = WorkspaceMember.objects.get(
             member=request.user,
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             is_active=True,
         )
 
@@ -438,7 +438,7 @@ class UserProjectInvitationsViewset(BaseViewSet):
 
         # If the user was already part of workspace
         _ = ProjectMember.objects.filter(
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             project_id__in=project_ids,
             member=request.user,
         ).update(is_active=True)
@@ -485,11 +485,11 @@ class ProjectJoinEndpoint(BaseAPIView):
         AllowAny,
     ]
 
-    def post(self, request, slug, project_id, pk):
+    def post(self, request, workspace_slug, project_id, pk):
         project_invite = ProjectMemberInvite.objects.get(
             pk=pk,
             project_id=project_id,
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
         )
 
         email = request.data.get("email", "")
@@ -511,7 +511,7 @@ class ProjectJoinEndpoint(BaseAPIView):
 
                 # Check if user is a part of workspace
                 workspace_member = WorkspaceMember.objects.filter(
-                    workspace__slug=slug, member=user
+                    workspace__slug=workspace_slug, member=user
                 ).first()
                 # Add him to workspace
                 if workspace_member is None:
@@ -560,9 +560,9 @@ class ProjectJoinEndpoint(BaseAPIView):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    def get(self, request, slug, project_id, pk):
+    def get(self, request, workspace_slug, project_id, pk):
         project_invitation = ProjectMemberInvite.objects.get(
-            workspace__slug=slug, project_id=project_id, pk=pk
+            workspace__slug=workspace_slug, project_id=project_id, pk=pk
         )
         serializer = ProjectMemberInviteSerializer(project_invitation)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -596,7 +596,7 @@ class ProjectMemberViewSet(BaseViewSet):
         return self.filter_queryset(
             super()
             .get_queryset()
-            .filter(workspace__slug=self.kwargs.get("slug"))
+            .filter(workspace__slug=self.kwargs.get("workspace_slug"))
             .filter(project_id=self.kwargs.get("project_id"))
             .filter()
             .select_related("project")
@@ -604,11 +604,11 @@ class ProjectMemberViewSet(BaseViewSet):
             .select_related("workspace", "workspace__owner")
         )
 
-    def create(self, request, slug, project_id):
+    def create(self, request, workspace_slug, project_id):
         members = request.data.get("members", [])
 
         # get the project
-        project = Project.objects.get(pk=project_id, workspace__slug=slug)
+        project = Project.objects.get(pk=project_id, workspace__slug=workspace_slug)
 
         if not len(members):
             return Response(
@@ -620,7 +620,7 @@ class ProjectMemberViewSet(BaseViewSet):
 
         project_members = (
             ProjectMember.objects.filter(
-                workspace__slug=slug,
+                workspace__slug=workspace_slug,
                 member_id__in=[member.get("member_id") for member in members],
             )
             .values("member_id", "sort_order")
@@ -685,11 +685,11 @@ class ProjectMemberViewSet(BaseViewSet):
         serializer = ProjectMemberRoleSerializer(project_members, many=True)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    def list(self, request, slug, project_id):
+    def list(self, request, workspace_slug, project_id):
         # Get the list of project members for the project
         project_members = ProjectMember.objects.filter(
             project_id=project_id,
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             is_active=True,
         ).select_related("project", "member", "workspace")
 
@@ -698,10 +698,10 @@ class ProjectMemberViewSet(BaseViewSet):
         )
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def partial_update(self, request, slug, project_id, pk):
+    def partial_update(self, request, workspace_slug, project_id, pk):
         project_member = ProjectMember.objects.get(
             pk=pk,
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             project_id=project_id,
             is_active=True,
         )
@@ -713,7 +713,7 @@ class ProjectMemberViewSet(BaseViewSet):
         # Check while updating user roles
         requested_project_member = ProjectMember.objects.get(
             project_id=project_id,
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             member=request.user,
             is_active=True,
         )
@@ -736,16 +736,16 @@ class ProjectMemberViewSet(BaseViewSet):
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def destroy(self, request, slug, project_id, pk):
+    def destroy(self, request, workspace_slug, project_id, pk):
         project_member = ProjectMember.objects.get(
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             project_id=project_id,
             pk=pk,
             is_active=True,
         )
         # check requesting user role
         requesting_project_member = ProjectMember.objects.get(
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             member=request.user,
             project_id=project_id,
             is_active=True,
@@ -769,9 +769,9 @@ class ProjectMemberViewSet(BaseViewSet):
         project_member.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    def leave(self, request, slug, project_id):
+    def leave(self, request, workspace_slug, project_id):
         project_member = ProjectMember.objects.get(
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             project_id=project_id,
             member=request.user,
             is_active=True,
@@ -781,7 +781,7 @@ class ProjectMemberViewSet(BaseViewSet):
         if (
             project_member.role == ERole.ADMIN.value
             and not ProjectMember.objects.filter(
-                workspace__slug=slug,
+                workspace__slug=workspace_slug,
                 project_id=project_id,
                 role=ERole.ADMIN.value,
                 is_active=True,
@@ -805,7 +805,7 @@ class ProjectIdentifierEndpoint(BaseAPIView):
         ProjectBasePermission,
     ]
 
-    def get(self, request, slug):
+    def get(self, request, workspace_slug):
         name = request.GET.get("name", "").strip().upper()
 
         if name == "":
@@ -815,7 +815,7 @@ class ProjectIdentifierEndpoint(BaseAPIView):
             )
 
         exists = ProjectIdentifier.objects.filter(
-            name=name, workspace__slug=slug
+            name=name, workspace__slug=workspace_slug
         ).values("id", "name", "project")
 
         return Response(
@@ -823,7 +823,7 @@ class ProjectIdentifierEndpoint(BaseAPIView):
             status=status.HTTP_200_OK,
         )
 
-    def delete(self, request, slug):
+    def delete(self, request, workspace_slug):
         name = request.data.get("name", "").strip().upper()
 
         if name == "":
@@ -832,13 +832,17 @@ class ProjectIdentifierEndpoint(BaseAPIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if Project.objects.filter(identifier=name, workspace__slug=slug).exists():
+        if Project.objects.filter(
+            identifier=name, workspace__slug=workspace_slug
+        ).exists():
             return Response(
                 {"error": "Cannot delete an identifier of an existing project"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        ProjectIdentifier.objects.filter(name=name, workspace__slug=slug).delete()
+        ProjectIdentifier.objects.filter(
+            name=name, workspace__slug=workspace_slug
+        ).delete()
 
         return Response(
             status=status.HTTP_204_NO_CONTENT,
@@ -846,8 +850,8 @@ class ProjectIdentifierEndpoint(BaseAPIView):
 
 
 class ProjectUserViewsEndpoint(BaseAPIView):
-    def post(self, request, slug, project_id):
-        project = Project.objects.get(pk=project_id, workspace__slug=slug)
+    def post(self, request, workspace_slug, project_id):
+        project = Project.objects.get(pk=project_id, workspace__slug=workspace_slug)
 
         project_member = ProjectMember.objects.filter(
             member=request.user,
@@ -874,10 +878,10 @@ class ProjectUserViewsEndpoint(BaseAPIView):
 
 
 class ProjectMemberUserEndpoint(BaseAPIView):
-    def get(self, request, slug, project_id):
+    def get(self, request, workspace_slug, project_id):
         project_member = ProjectMember.objects.get(
             project_id=project_id,
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             member=request.user,
             is_active=True,
         )
@@ -894,7 +898,7 @@ class ProjectFavoritesViewSet(BaseViewSet):
         return self.filter_queryset(
             super()
             .get_queryset()
-            .filter(workspace__slug=self.kwargs.get("slug"))
+            .filter(workspace__slug=self.kwargs.get("workspace_slug"))
             .filter(user=self.request.user)
             .select_related("project", "project__lead", "project__default_assignee")
             .select_related("workspace", "workspace__owner")
@@ -903,16 +907,16 @@ class ProjectFavoritesViewSet(BaseViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
-    def create(self, request, slug):
+    def create(self, request, workspace_slug):
         serializer = ProjectFavoriteSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(user=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def destroy(self, request, slug, project_id):
+    def destroy(self, request, workspace_slug, project_id):
         project_favorite = ProjectFavorite.objects.get(
-            project=project_id, user=request.user, workspace__slug=slug
+            project=project_id, user=request.user, workspace__slug=workspace_slug
         )
         project_favorite.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -961,13 +965,13 @@ class ProjectDeployBoardViewSet(BaseViewSet):
             super()
             .get_queryset()
             .filter(
-                workspace__slug=self.kwargs.get("slug"),
+                workspace__slug=self.kwargs.get("workspace_slug"),
                 project_id=self.kwargs.get("project_id"),
             )
             .select_related("project")
         )
 
-    def create(self, request, slug, project_id):
+    def create(self, request, workspace_slug, project_id):
         comments = request.data.get("comments", False)
         reactions = request.data.get("reactions", False)
         inbox = request.data.get("inbox", None)
@@ -984,7 +988,7 @@ class ProjectDeployBoardViewSet(BaseViewSet):
         )
 
         project_deploy_board, _ = ProjectDeployBoard.objects.get_or_create(
-            anchor=f"{slug}/{project_id}",
+            anchor=f"{workspace_slug}/{project_id}",
             project_id=project_id,
         )
         project_deploy_board.comments = comments
@@ -1004,9 +1008,9 @@ class UserProjectRolesEndpoint(BaseAPIView):
         WorkspaceUserPermission,
     ]
 
-    def get(self, request, slug):
+    def get(self, request, workspace_slug):
         project_members = ProjectMember.objects.filter(
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             member_id=request.user.id,
         ).values("project_id", "role")
 

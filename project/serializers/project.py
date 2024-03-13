@@ -192,16 +192,6 @@ class ProjectFavoriteSerializer(ServcyBaseSerializer):
         ]
 
 
-class ProjectMemberLiteSerializer(ServcyBaseSerializer):
-    member = UserLiteSerializer(read_only=True)
-    is_subscribed = serializers.BooleanField(read_only=True)
-
-    class Meta:
-        model = ProjectMember
-        fields = ["member", "id", "is_subscribed"]
-        read_only_fields = fields
-
-
 class ProjectDeployBoardSerializer(ServcyBaseSerializer):
     project_details = ProjectLiteSerializer(read_only=True, source="project")
     workspace_detail = WorkspaceLiteSerializer(read_only=True, source="workspace")

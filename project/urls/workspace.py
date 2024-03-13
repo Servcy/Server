@@ -19,42 +19,42 @@ from project.views import (
 
 urlpatterns = [
     path(
-        "workspace/<str:slug>/user-stats/<int:user_id>/",
+        "<str:workspace_slug>/user-stats/<int:user_id>/",
         WorkspaceUserProfileStatsEndpoint.as_view(),
         name="workspace-user-stats",
     ),
     path(
-        "workspace/<str:slug>/user-activity/<int:user_id>/",
+        "<str:workspace_slug>/user-activity/<int:user_id>/",
         WorkspaceUserActivityEndpoint.as_view(),
         name="workspace-user-activity",
     ),
     path(
-        "workspace/<str:slug>/user-issues/<int:user_id>/",
+        "<str:workspace_slug>/user-issues/<int:user_id>/",
         WorkspaceUserProfileIssuesEndpoint.as_view(),
         name="workspace-user-profile-issues",
     ),
     path(
-        "workspace/<str:slug>/labels/",
+        "<str:workspace_slug>/labels/",
         WorkspaceLabelsEndpoint.as_view(),
         name="workspace-labels",
     ),
     path(
-        "workspace/<str:slug>/states/",
+        "<str:workspace_slug>/states/",
         WorkspaceStatesEndpoint.as_view(),
         name="workspace-state",
     ),
     path(
-        "workspace/<str:slug>/estimates/",
+        "<str:workspace_slug>/estimates/",
         WorkspaceEstimatesEndpoint.as_view(),
         name="workspace-estimate",
     ),
     path(
-        "workspace/<str:slug>/modules/",
+        "<str:workspace_slug>/modules/",
         WorkspaceModulesEndpoint.as_view(),
         name="workspace-modules",
     ),
     path(
-        "workspace/<str:slug>/cycles/",
+        "<str:workspace_slug>/cycles/",
         WorkspaceCyclesEndpoint.as_view(),
         name="workspace-cycles",
     ),
@@ -69,22 +69,22 @@ urlpatterns = [
         name="user-workspace",
     ),
     path(
-        "me/workspace/<str:slug>/activity-graph/",
+        "me/<str:workspace_slug>/activity-graph/",
         UserActivityGraphEndpoint.as_view(),
         name="user-activity-graph",
     ),
     path(
-        "me/workspace/<str:slug>/issues-completed-graph/",
+        "me/<str:workspace_slug>/issues-completed-graph/",
         UserIssueCompletedGraphEndpoint.as_view(),
         name="completed-graph",
     ),
     path(
-        "workspace/<str:slug>/user-project-stats/<int:user_id>/",
+        "<str:workspace_slug>/user-project-stats/<int:user_id>/",
         UserProfileProjectsStatisticsEndpoint.as_view(),
         name="workspace-user-profile-page",
     ),
     path(
-        "me/workspace/<str:slug>/dashboard/",
+        "me/<str:workspace_slug>/dashboard/",
         UserWorkspaceDashboardEndpoint.as_view(),
         name="user-workspace-dashboard",
     ),

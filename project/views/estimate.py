@@ -16,13 +16,13 @@ class ProjectEstimatePointEndpoint(BaseAPIView):
         ProjectEntityPermission,
     ]
 
-    def get(self, request, slug, project_id):
-        project = Project.objects.get(workspace__slug=slug, pk=project_id)
+    def get(self, request, workspace_slug, project_id):
+        project = Project.objects.get(workspace__slug=workspace_slug, pk=project_id)
         if project.estimate_id is not None:
             estimate_points = EstimatePoint.objects.filter(
                 estimate_id=project.estimate_id,
                 project_id=project_id,
-                workspace__slug=slug,
+                workspace__slug=workspace_slug,
             )
             serializer = EstimatePointSerializer(estimate_points, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -36,16 +36,18 @@ class BulkEstimatePointEndpoint(BaseViewSet):
     model = Estimate
     serializer_class = EstimateSerializer
 
-    def list(self, request, slug, project_id):
+    def list(self, request, workspace_slug, project_id):
         estimates = (
-            Estimate.objects.filter(workspace__slug=slug, project_id=project_id)
+            Estimate.objects.filter(
+                workspace__slug=workspace_slug, project_id=project_id
+            )
             .prefetch_related("points")
             .select_related("workspace", "project")
         )
         serializer = EstimateReadSerializer(estimates, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def create(self, request, slug, project_id):
+    def create(self, request, workspace_slug, project_id):
         if not request.data.get("estimate", False):
             return Response(
                 {"error": "Estimate is required"},
@@ -94,9 +96,9 @@ class BulkEstimatePointEndpoint(BaseViewSet):
             status=status.HTTP_200_OK,
         )
 
-    def retrieve(self, request, slug, project_id, estimate_id):
+    def retrieve(self, request, workspace_slug, project_id, estimate_id):
         estimate = Estimate.objects.get(
-            pk=estimate_id, workspace__slug=slug, project_id=project_id
+            pk=estimate_id, workspace__slug=workspace_slug, project_id=project_id
         )
         serializer = EstimateReadSerializer(estimate)
         return Response(
@@ -104,7 +106,7 @@ class BulkEstimatePointEndpoint(BaseViewSet):
             status=status.HTTP_200_OK,
         )
 
-    def partial_update(self, request, slug, project_id, estimate_id):
+    def partial_update(self, request, workspace_slug, project_id, estimate_id):
         if not request.data.get("estimate", False):
             return Response(
                 {"error": "Estimate is required"},
@@ -135,7 +137,7 @@ class BulkEstimatePointEndpoint(BaseViewSet):
             pk__in=[
                 estimate_point.get("id") for estimate_point in estimate_points_data
             ],
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             project_id=project_id,
             estimate_id=estimate_id,
         )
@@ -169,9 +171,9 @@ class BulkEstimatePointEndpoint(BaseViewSet):
             status=status.HTTP_200_OK,
         )
 
-    def destroy(self, request, slug, project_id, estimate_id):
+    def destroy(self, request, workspace_slug, project_id, estimate_id):
         estimate = Estimate.objects.get(
-            pk=estimate_id, workspace__slug=slug, project_id=project_id
+            pk=estimate_id, workspace__slug=workspace_slug, project_id=project_id
         )
         estimate.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

@@ -9,7 +9,7 @@ from project.views import (
 
 urlpatterns = [
     path(
-        "workspace/<str:slug>/projects/<int:project_id>/views/",
+        "<str:workspace_slug>/<int:project_id>/views/",
         IssueViewViewSet.as_view(
             {
                 "get": "list",
@@ -19,7 +19,7 @@ urlpatterns = [
         name="project-view",
     ),
     path(
-        "workspace/<str:slug>/projects/<int:project_id>/views/<int:pk>/",
+        "<str:workspace_slug>/<int:project_id>/views/<int:pk>/",
         IssueViewViewSet.as_view(
             {
                 "get": "retrieve",
@@ -31,7 +31,7 @@ urlpatterns = [
         name="project-view",
     ),
     path(
-        "workspace/<str:slug>/views/",
+        "<str:workspace_slug>/views/",
         GlobalViewViewSet.as_view(
             {
                 "get": "list",
@@ -41,7 +41,7 @@ urlpatterns = [
         name="global-view",
     ),
     path(
-        "workspace/<str:slug>/views/<int:pk>/",
+        "<str:workspace_slug>/views/<int:pk>/",
         GlobalViewViewSet.as_view(
             {
                 "get": "retrieve",
@@ -53,7 +53,7 @@ urlpatterns = [
         name="global-view",
     ),
     path(
-        "workspace/<str:slug>/issues/",
+        "<str:workspace_slug>/issues/",
         GlobalViewIssuesViewSet.as_view(
             {
                 "get": "list",
@@ -62,7 +62,7 @@ urlpatterns = [
         name="global-view-issues",
     ),
     path(
-        "workspace/<str:slug>/projects/<int:project_id>/user-favorite-views/",
+        "<str:workspace_slug>/<int:project_id>/views/favorite/",
         IssueViewFavoriteViewSet.as_view(
             {
                 "get": "list",
@@ -72,7 +72,7 @@ urlpatterns = [
         name="user-favorite-view",
     ),
     path(
-        "workspace/<str:slug>/projects/<int:project_id>/user-favorite-views/<int:view_id>/",
+        "<str:workspace_slug>/<int:project_id>/views/<int:view_id>/favorite/",
         IssueViewFavoriteViewSet.as_view(
             {
                 "delete": "destroy",

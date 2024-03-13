@@ -20,16 +20,11 @@ from common.permissions import (
 from common.responses import error_response
 from common.views import BaseAPIView, BaseViewSet
 from iam.enums import ERole
-from iam.models import (
-    User,
-    Workspace,
-    WorkspaceMember,
-    WorkspaceMemberInvite,
-)
+from iam.models import User, Workspace, WorkspaceMember, WorkspaceMemberInvite
 from iam.serializers import (
     UserReadSerializer,
-    UserSettingsSerializer,
     UserSerializer,
+    UserSettingsSerializer,
     WorkspaceMemberAdminSerializer,
     WorkSpaceMemberInviteSerializer,
     WorkspaceMemberMeSerializer,
@@ -196,7 +191,7 @@ class WorkSpaceViewSet(BaseViewSet):
     def create(self, request):
         try:
             serializer = WorkSpaceSerializer(data=request.data)
-            slug = request.data.get("slug", False)
+            slug = request.data.get("workspace_slug", False)
             name = request.data.get("name", False)
             if not name or not slug:
                 return Response(
@@ -246,11 +241,11 @@ class WorkspaceInvitationsViewset(BaseViewSet):
         return self.filter_queryset(
             super()
             .get_queryset()
-            .filter(workspace__slug=self.kwargs.get("slug"))
+            .filter(workspace__slug=self.kwargs.get("workspace_slug"))
             .select_related("workspace", "workspace__owner", "created_by")
         )
 
-    def create(self, request, slug):
+    def create(self, request, workspace_slug):
         emails = request.data.get("emails", [])
         # Check if email is provided
         if not emails:
@@ -261,7 +256,7 @@ class WorkspaceInvitationsViewset(BaseViewSet):
 
         # check for role level of the requesting user
         requesting_user = WorkspaceMember.objects.get(
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             member=request.user,
             is_active=True,
         )
@@ -280,7 +275,7 @@ class WorkspaceInvitationsViewset(BaseViewSet):
             )
 
         # Get the workspace object
-        workspace = Workspace.objects.get(slug=slug)
+        workspace = Workspace.objects.get(slug=workspace_slug)
 
         # Check if user is already a member of workspace
         workspace_members = WorkspaceMember.objects.filter(
@@ -338,7 +333,7 @@ class WorkspaceInvitationsViewset(BaseViewSet):
             SendGridEmail(to_email=invitation.email).send_workspace_invitation(
                 workspace_name=workspace.name,
                 user_name=request.user.first_name or request.user.email,
-                invite_link=f"{settings.FRONTEND_URL}/workspace/invite/?invitation_id={invitation.id}&email={invitation.email}&workspace__slug={slug}",
+                invite_link=f"{settings.FRONTEND_URL}/workspace/invite/?invitation_id={invitation.id}&email={invitation.email}&workspace__slug={workspace_slug}",
             )
 
         return Response(
@@ -348,9 +343,9 @@ class WorkspaceInvitationsViewset(BaseViewSet):
             status=status.HTTP_200_OK,
         )
 
-    def destroy(self, _, slug, pk):
+    def destroy(self, _, workspace_slug, pk):
         workspace_member_invite = WorkspaceMemberInvite.objects.get(
-            pk=pk, workspace__slug=slug
+            pk=pk, workspace__slug=workspace_slug
         )
         workspace_member_invite.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -367,9 +362,9 @@ class WorkspaceJoinEndpoint(BaseAPIView):
         AllowAny,
     ]
 
-    def post(self, request, slug, pk):
+    def post(self, request, workspace_slug, pk):
         workspace_invite = WorkspaceMemberInvite.objects.get(
-            pk=pk, workspace__slug=slug
+            pk=pk, workspace__slug=workspace_slug
         )
 
         email = request.data.get("email", "")
@@ -432,9 +427,9 @@ class WorkspaceJoinEndpoint(BaseAPIView):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    def get(self, request, slug, pk):
+    def get(self, request, workspace_slug, pk):
         workspace_invitation = WorkspaceMemberInvite.objects.get(
-            workspace__slug=slug, pk=pk
+            workspace__slug=workspace_slug, pk=pk
         )
         serializer = WorkSpaceMemberInviteSerializer(workspace_invitation)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -531,17 +526,17 @@ class WorkSpaceMemberViewSet(BaseViewSet):
             super()
             .get_queryset()
             .filter(
-                workspace__slug=self.kwargs.get("slug"),
+                workspace__slug=self.kwargs.get("workspace_slug"),
                 is_active=True,
             )
             .select_related("workspace", "workspace__owner")
             .select_related("member")
         )
 
-    def list(self, request, slug):
+    def list(self, request, workspace_slug):
         workspace_member = WorkspaceMember.objects.get(
             member=request.user,
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             is_active=True,
         )
 
@@ -562,10 +557,10 @@ class WorkSpaceMemberViewSet(BaseViewSet):
             )
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def partial_update(self, request, slug, pk):
+    def partial_update(self, request, workspace_slug, pk):
         workspace_member = WorkspaceMember.objects.get(
             pk=pk,
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             is_active=True,
         )
         if request.user.id == workspace_member.member_id:
@@ -576,7 +571,7 @@ class WorkSpaceMemberViewSet(BaseViewSet):
 
         # Get the requested user role
         requested_workspace_member = WorkspaceMember.objects.get(
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             member=request.user,
             is_active=True,
         )
@@ -601,17 +596,17 @@ class WorkSpaceMemberViewSet(BaseViewSet):
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def destroy(self, request, slug, pk):
+    def destroy(self, request, workspace_slug, pk):
         # Check the user role who is deleting the user
         workspace_member = WorkspaceMember.objects.get(
             pk=pk,
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             is_active=True,
         )
 
         # check requesting user role
         requesting_workspace_member = WorkspaceMember.objects.get(
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             member=request.user,
             is_active=True,
         )
@@ -641,7 +636,7 @@ class WorkSpaceMemberViewSet(BaseViewSet):
                     ),
                 ),
             )
-            .filter(total_members=1, member_with_role=1, workspace__slug=slug)
+            .filter(total_members=1, member_with_role=1, workspace__slug=workspace_slug)
             .exists()
         ):
             return Response(
@@ -653,7 +648,7 @@ class WorkSpaceMemberViewSet(BaseViewSet):
 
         # Deactivate the users from the projects where the user is part of
         _ = ProjectMember.objects.filter(
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             member_id=workspace_member.member_id,
             is_active=True,
         ).update(is_active=False)
@@ -662,9 +657,9 @@ class WorkSpaceMemberViewSet(BaseViewSet):
         workspace_member.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    def leave(self, request, slug):
+    def leave(self, request, workspace_slug):
         workspace_member = WorkspaceMember.objects.get(
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             member=request.user,
             is_active=True,
         )
@@ -673,7 +668,7 @@ class WorkSpaceMemberViewSet(BaseViewSet):
         if (
             workspace_member.role == ERole.ADMIN.value
             and not WorkspaceMember.objects.filter(
-                workspace__slug=slug,
+                workspace__slug=workspace_slug,
                 role=ERole.ADMIN.value,
                 is_active=True,
             ).count()
@@ -697,7 +692,7 @@ class WorkSpaceMemberViewSet(BaseViewSet):
                     ),
                 ),
             )
-            .filter(total_members=1, member_with_role=1, workspace__slug=slug)
+            .filter(total_members=1, member_with_role=1, workspace__slug=workspace_slug)
             .exists()
         ):
             return Response(
@@ -709,7 +704,7 @@ class WorkSpaceMemberViewSet(BaseViewSet):
 
         # # Deactivate the users from the projects where the user is part of
         _ = ProjectMember.objects.filter(
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             member_id=workspace_member.member_id,
             is_active=True,
         ).update(is_active=False)
@@ -762,10 +757,10 @@ class WorkspaceMemberUserEndpoint(BaseAPIView):
     This endpoint returns the workspace member details of the user
     """
 
-    def get(self, request, slug):
+    def get(self, request, workspace_slug):
         workspace_member = WorkspaceMember.objects.get(
             member=request.user,
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             is_active=True,
         )
         serializer = WorkspaceMemberMeSerializer(workspace_member)
@@ -777,9 +772,9 @@ class WorkspaceMemberUserViewsEndpoint(BaseAPIView):
     This endpoint returns the workspace member views of the user
     """
 
-    def post(self, request, slug):
+    def post(self, request, workspace_slug):
         workspace_member = WorkspaceMember.objects.get(
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             member=request.user,
             is_active=True,
         )

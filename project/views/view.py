@@ -45,14 +45,14 @@ class GlobalViewViewSet(BaseViewSet):
     ]
 
     def perform_create(self, serializer):
-        workspace = Workspace.objects.get(slug=self.kwargs.get("slug"))
+        workspace = Workspace.objects.get(slug=self.kwargs.get("workspace_slug"))
         serializer.save(workspace_id=workspace.id)
 
     def get_queryset(self):
         return self.filter_queryset(
             super()
             .get_queryset()
-            .filter(workspace__slug=self.kwargs.get("slug"))
+            .filter(workspace__slug=self.kwargs.get("workspace_slug"))
             .filter(project__isnull=True)
             .select_related("workspace")
             .order_by(self.request.GET.get("order_by", "-created_at"))
@@ -73,7 +73,7 @@ class GlobalViewIssuesViewSet(BaseViewSet):
                 .annotate(count=Func(F("id"), function="Count"))
                 .values("count")
             )
-            .filter(workspace__slug=self.kwargs.get("slug"))
+            .filter(workspace__slug=self.kwargs.get("workspace_slug"))
             .filter(
                 project__project_projectmember__member=self.request.user,
                 project__project_projectmember__is_active=True,
@@ -128,7 +128,7 @@ class GlobalViewIssuesViewSet(BaseViewSet):
         )
 
     @method_decorator(gzip_page)
-    def list(self, request, slug):
+    def list(self, request, workspace_slug):
         filters = issue_filters(request.query_params, "GET")
         fields = [field for field in request.GET.get("fields", "").split(",") if field]
 
@@ -254,12 +254,12 @@ class IssueViewViewSet(BaseViewSet):
             user=self.request.user,
             view_id=OuterRef("pk"),
             project_id=self.kwargs.get("project_id"),
-            workspace__slug=self.kwargs.get("slug"),
+            workspace__slug=self.kwargs.get("workspace_slug"),
         )
         return self.filter_queryset(
             super()
             .get_queryset()
-            .filter(workspace__slug=self.kwargs.get("slug"))
+            .filter(workspace__slug=self.kwargs.get("workspace_slug"))
             .filter(project_id=self.kwargs.get("project_id"))
             .filter(
                 project__project_projectmember__member=self.request.user,
@@ -272,7 +272,7 @@ class IssueViewViewSet(BaseViewSet):
             .distinct()
         )
 
-    def list(self, request, slug, project_id):
+    def list(self, request, **kwargs):
         queryset = self.get_queryset()
         fields = [field for field in request.GET.get("fields", "").split(",") if field]
         views = IssueViewSerializer(
@@ -289,23 +289,23 @@ class IssueViewFavoriteViewSet(BaseViewSet):
         return self.filter_queryset(
             super()
             .get_queryset()
-            .filter(workspace__slug=self.kwargs.get("slug"))
+            .filter(workspace__slug=self.kwargs.get("workspace_slug"))
             .filter(user=self.request.user)
             .select_related("view")
         )
 
-    def create(self, request, slug, project_id):
+    def create(self, request, workspace_slug, project_id):
         serializer = IssueViewFavoriteSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(user=request.user, project_id=project_id)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def destroy(self, request, slug, project_id, view_id):
+    def destroy(self, request, workspace_slug, project_id, view_id):
         view_favourite = IssueViewFavorite.objects.get(
             project=project_id,
             user=request.user,
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             view_id=view_id,
         )
         view_favourite.delete()

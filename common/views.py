@@ -108,7 +108,7 @@ class BaseViewSet(TimezoneMixin, ModelViewSet, BasePaginator):
 
     @property
     def workspace_slug(self):
-        return self.kwargs.get("slug", None)
+        return self.kwargs.get("workspace_slug", None)
 
     @property
     def project_id(self):
@@ -207,7 +207,7 @@ class BaseAPIView(TimezoneMixin, APIView, BasePaginator):
 
     @property
     def workspace_slug(self):
-        return self.kwargs.get("slug", None)
+        return self.kwargs.get("workspace_slug", None)
 
     @property
     def project_id(self):

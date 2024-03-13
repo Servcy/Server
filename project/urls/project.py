@@ -17,7 +17,7 @@ from project.views import (
 
 urlpatterns = [
     path(
-        "workspace/<str:slug>/projects/",
+        "<str:workspace_slug>/projects/",
         ProjectViewSet.as_view(
             {
                 "get": "list",
@@ -27,7 +27,7 @@ urlpatterns = [
         name="project",
     ),
     path(
-        "workspace/<str:slug>/projects/<int:pk>/",
+        "<str:workspace_slug>/<int:pk>/",
         ProjectViewSet.as_view(
             {
                 "get": "retrieve",
@@ -39,12 +39,12 @@ urlpatterns = [
         name="project",
     ),
     path(
-        "workspace/<str:slug>/project-identifiers/",
+        "<str:workspace_slug>/project-identifiers/",
         ProjectIdentifierEndpoint.as_view(),
         name="project-identifiers",
     ),
     path(
-        "workspace/<str:slug>/projects/<int:project_id>/invitations/",
+        "<str:workspace_slug>/<int:project_id>/invitations/",
         ProjectInvitationsViewset.as_view(
             {
                 "get": "list",
@@ -54,7 +54,7 @@ urlpatterns = [
         name="project-member-invite",
     ),
     path(
-        "workspace/<str:slug>/projects/<int:project_id>/invitations/<int:pk>/",
+        "<str:workspace_slug>/<int:project_id>/invitations/<int:pk>/",
         ProjectInvitationsViewset.as_view(
             {
                 "get": "retrieve",
@@ -64,7 +64,7 @@ urlpatterns = [
         name="project-member-invite",
     ),
     path(
-        "me/workspace/<str:slug>/projects/invitations/",
+        "me/<str:workspace_slug>/invitations/",
         UserProjectInvitationsViewset.as_view(
             {
                 "get": "list",
@@ -74,17 +74,17 @@ urlpatterns = [
         name="user-project-invitations",
     ),
     path(
-        "me/workspace/<str:slug>/project-roles/",
+        "me/<str:workspace_slug>/project-roles/",
         UserProjectRolesEndpoint.as_view(),
         name="user-project-roles",
     ),
     path(
-        "workspace/<str:slug>/projects/<int:project_id>/join/<int:pk>/",
+        "<str:workspace_slug>/<int:project_id>/join/<int:pk>/",
         ProjectJoinEndpoint.as_view(),
         name="project-join",
     ),
     path(
-        "workspace/<str:slug>/projects/<int:project_id>/members/",
+        "<str:workspace_slug>/<int:project_id>/members/",
         ProjectMemberViewSet.as_view(
             {
                 "get": "list",
@@ -94,7 +94,7 @@ urlpatterns = [
         name="project-member",
     ),
     path(
-        "workspace/<str:slug>/projects/<int:project_id>/members/<int:pk>/",
+        "<str:workspace_slug>/<int:project_id>/members/<int:pk>/",
         ProjectMemberViewSet.as_view(
             {
                 "get": "retrieve",
@@ -105,7 +105,7 @@ urlpatterns = [
         name="project-member",
     ),
     path(
-        "workspace/<str:slug>/projects/<int:project_id>/members/leave/",
+        "<str:workspace_slug>/<int:project_id>/members/leave/",
         ProjectMemberViewSet.as_view(
             {
                 "post": "leave",
@@ -114,17 +114,17 @@ urlpatterns = [
         name="project-member",
     ),
     path(
-        "workspace/<str:slug>/projects/<int:project_id>/project-views/",
+        "<str:workspace_slug>/<int:project_id>/project-views/",
         ProjectUserViewsEndpoint.as_view(),
         name="project-view",
     ),
     path(
-        "workspace/<str:slug>/projects/<int:project_id>/project-members/me/",
+        "<str:workspace_slug>/<int:project_id>/project-members/me/",
         ProjectMemberUserEndpoint.as_view(),
         name="project-member-view",
     ),
     path(
-        "workspace/<str:slug>/user-favorite-projects/",
+        "<str:workspace_slug>/user-favorite-projects/",
         ProjectFavoritesViewSet.as_view(
             {
                 "get": "list",
@@ -134,7 +134,7 @@ urlpatterns = [
         name="project-favorite",
     ),
     path(
-        "workspace/<str:slug>/user-favorite-projects/<int:project_id>/",
+        "<str:workspace_slug>/user-favorite-projects/<int:project_id>/",
         ProjectFavoritesViewSet.as_view(
             {
                 "delete": "destroy",
@@ -148,7 +148,7 @@ urlpatterns = [
         name="project-covers",
     ),
     path(
-        "workspace/<str:slug>/projects/<int:project_id>/project-deploy-boards/",
+        "<str:workspace_slug>/<int:project_id>/project-deploy-boards/",
         ProjectDeployBoardViewSet.as_view(
             {
                 "get": "list",
@@ -158,7 +158,7 @@ urlpatterns = [
         name="project-deploy-board",
     ),
     path(
-        "workspace/<str:slug>/projects/<int:project_id>/project-deploy-boards/<int:pk>/",
+        "<str:workspace_slug>/<int:project_id>/project-deploy-boards/<int:pk>/",
         ProjectDeployBoardViewSet.as_view(
             {
                 "get": "retrieve",

@@ -49,12 +49,12 @@ class PageViewSet(BaseViewSet):
             user=self.request.user,
             page_id=OuterRef("pk"),
             project_id=self.kwargs.get("project_id"),
-            workspace__slug=self.kwargs.get("slug"),
+            workspace__slug=self.kwargs.get("workspace_slug"),
         )
         return self.filter_queryset(
             super()
             .get_queryset()
-            .filter(workspace__slug=self.kwargs.get("slug"))
+            .filter(workspace__slug=self.kwargs.get("workspace_slug"))
             .filter(project_id=self.kwargs.get("project_id"))
             .filter(
                 project__project_projectmember__member=self.request.user,
@@ -72,7 +72,7 @@ class PageViewSet(BaseViewSet):
             .distinct()
         )
 
-    def create(self, request, slug, project_id):
+    def create(self, request, workspace_slug, project_id):
         serializer = PageSerializer(
             data=request.data,
             context={"project_id": project_id, "owned_by_id": request.user.id},
@@ -83,9 +83,11 @@ class PageViewSet(BaseViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def partial_update(self, request, slug, project_id, pk):
+    def partial_update(self, request, workspace_slug, project_id, pk):
         try:
-            page = Page.objects.get(pk=pk, workspace__slug=slug, project_id=project_id)
+            page = Page.objects.get(
+                pk=pk, workspace__slug=workspace_slug, project_id=project_id
+            )
 
             if page.is_locked:
                 return Response(
@@ -96,7 +98,7 @@ class PageViewSet(BaseViewSet):
             parent = request.data.get("parent", None)
             if parent:
                 _ = Page.objects.get(
-                    pk=parent, workspace__slug=slug, project_id=project_id
+                    pk=parent, workspace__slug=workspace_slug, project_id=project_id
                 )
 
             if (
@@ -123,18 +125,18 @@ class PageViewSet(BaseViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-    def lock(self, request, slug, project_id, page_id):
+    def lock(self, request, workspace_slug, project_id, page_id):
         page = Page.objects.filter(
-            pk=page_id, workspace__slug=slug, project_id=project_id
+            pk=page_id, workspace__slug=workspace_slug, project_id=project_id
         ).first()
 
         page.is_locked = True
         page.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    def unlock(self, request, slug, project_id, page_id):
+    def unlock(self, request, workspace_slug, project_id, page_id):
         page = Page.objects.filter(
-            pk=page_id, workspace__slug=slug, project_id=project_id
+            pk=page_id, workspace__slug=workspace_slug, project_id=project_id
         ).first()
 
         page.is_locked = False
@@ -142,13 +144,15 @@ class PageViewSet(BaseViewSet):
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    def list(self, request, slug, project_id):
+    def list(self, request, workspace_slug, project_id):
         queryset = self.get_queryset().filter(archived_at__isnull=True)
         pages = PageSerializer(queryset, many=True).data
         return Response(pages, status=status.HTTP_200_OK)
 
-    def archive(self, request, slug, project_id, page_id):
-        page = Page.objects.get(pk=page_id, workspace__slug=slug, project_id=project_id)
+    def archive(self, request, workspace_slug, project_id, page_id):
+        page = Page.objects.get(
+            pk=page_id, workspace__slug=workspace_slug, project_id=project_id
+        )
 
         if (
             ProjectMember.objects.filter(
@@ -168,8 +172,10 @@ class PageViewSet(BaseViewSet):
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    def unarchive(self, request, slug, project_id, page_id):
-        page = Page.objects.get(pk=page_id, workspace__slug=slug, project_id=project_id)
+    def unarchive(self, request, workspace_slug, project_id, page_id):
+        page = Page.objects.get(
+            pk=page_id, workspace__slug=workspace_slug, project_id=project_id
+        )
 
         if (
             ProjectMember.objects.filter(
@@ -194,17 +200,19 @@ class PageViewSet(BaseViewSet):
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    def archive_list(self, request, slug, project_id):
+    def archive_list(self, request, workspace_slug, project_id):
         pages = Page.objects.filter(
             project_id=project_id,
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
         ).filter(archived_at__isnull=False)
 
         pages = PageSerializer(pages, many=True).data
         return Response(pages, status=status.HTTP_200_OK)
 
-    def destroy(self, request, slug, project_id, pk):
-        page = Page.objects.get(pk=pk, workspace__slug=slug, project_id=project_id)
+    def destroy(self, request, workspace_slug, project_id, pk):
+        page = Page.objects.get(
+            pk=pk, workspace__slug=workspace_slug, project_id=project_id
+        )
 
         if (
             ProjectMember.objects.filter(
@@ -228,7 +236,7 @@ class PageViewSet(BaseViewSet):
 
         # remove parent from all the children
         _ = Page.objects.filter(
-            parent_id=pk, project_id=project_id, workspace__slug=slug
+            parent_id=pk, project_id=project_id, workspace__slug=workspace_slug
         ).update(parent=None)
 
         page.delete()
@@ -248,23 +256,23 @@ class PageFavoriteViewSet(BaseViewSet):
             super()
             .get_queryset()
             .filter(archived_at__isnull=True)
-            .filter(workspace__slug=self.kwargs.get("slug"))
+            .filter(workspace__slug=self.kwargs.get("workspace_slug"))
             .filter(user=self.request.user)
             .select_related("page", "page__owned_by")
         )
 
-    def create(self, request, slug, project_id):
+    def create(self, request, workspace_slug, project_id):
         serializer = PageFavoriteSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(user=request.user, project_id=project_id)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def destroy(self, request, slug, project_id, page_id):
+    def destroy(self, request, workspace_slug, project_id, page_id):
         page_favorite = PageFavorite.objects.get(
             project=project_id,
             user=request.user,
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             page_id=page_id,
         )
         page_favorite.delete()
@@ -279,16 +287,16 @@ class PageLogEndpoint(BaseAPIView):
     serializer_class = PageLogSerializer
     model = PageLog
 
-    def post(self, request, slug, project_id, page_id):
+    def post(self, request, workspace_slug, project_id, page_id):
         serializer = PageLogSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(project_id=project_id, page_id=page_id)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def patch(self, request, slug, project_id, page_id, transaction):
+    def patch(self, request, workspace_slug, project_id, page_id, transaction):
         page_transaction = PageLog.objects.get(
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             project_id=project_id,
             page_id=page_id,
             transaction=transaction,
@@ -301,9 +309,9 @@ class PageLogEndpoint(BaseAPIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request, slug, project_id, page_id, transaction):
+    def delete(self, request, workspace_slug, project_id, page_id, transaction):
         transaction = PageLog.objects.get(
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             project_id=project_id,
             page_id=page_id,
             transaction=transaction,
@@ -319,12 +327,12 @@ class SubPagesEndpoint(BaseAPIView):
     ]
 
     @method_decorator(gzip_page)
-    def get(self, request, slug, project_id, page_id):
+    def get(self, request, workspace_slug, project_id, page_id):
         pages = (
             PageLog.objects.filter(
                 page_id=page_id,
                 project_id=project_id,
-                workspace__slug=slug,
+                workspace__slug=workspace_slug,
                 entity_name__in=["forward_link", "back_link"],
             )
             .select_related("project")

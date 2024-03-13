@@ -10,7 +10,7 @@ from project.views import (
 
 urlpatterns = [
     path(
-        "workspace/<str:slug>/projects/<int:project_id>/modules/",
+        "<str:workspace_slug>/<int:project_id>/modules/",
         ModuleViewSet.as_view(
             {
                 "get": "list",
@@ -20,7 +20,7 @@ urlpatterns = [
         name="project-modules",
     ),
     path(
-        "workspace/<str:slug>/projects/<int:project_id>/modules/<int:pk>/",
+        "<str:workspace_slug>/<int:project_id>/modules/<int:pk>/",
         ModuleViewSet.as_view(
             {
                 "get": "retrieve",
@@ -32,7 +32,7 @@ urlpatterns = [
         name="project-modules",
     ),
     path(
-        "workspace/<str:slug>/projects/<int:project_id>/issues/<int:issue_id>/modules/",
+        "<str:workspace_slug>/<int:project_id>/issues/<int:issue_id>/modules/",
         ModuleIssueViewSet.as_view(
             {
                 "post": "create_issue_modules",
@@ -41,7 +41,7 @@ urlpatterns = [
         name="issue-module",
     ),
     path(
-        "workspace/<str:slug>/projects/<int:project_id>/modules/<int:module_id>/issues/",
+        "<str:workspace_slug>/<int:project_id>/modules/<int:module_id>/issues/",
         ModuleIssueViewSet.as_view(
             {
                 "post": "create_module_issues",
@@ -51,7 +51,7 @@ urlpatterns = [
         name="project-module-issues",
     ),
     path(
-        "workspace/<str:slug>/projects/<int:project_id>/modules/<int:module_id>/issues/<int:issue_id>/",
+        "<str:workspace_slug>/<int:project_id>/modules/<int:module_id>/issues/<int:issue_id>/",
         ModuleIssueViewSet.as_view(
             {
                 "get": "retrieve",
@@ -63,7 +63,7 @@ urlpatterns = [
         name="project-module-issues",
     ),
     path(
-        "workspace/<str:slug>/projects/<int:project_id>/modules/<int:module_id>/module-links/",
+        "<str:workspace_slug>/<int:project_id>/modules/<int:module_id>/links/",
         ModuleLinkViewSet.as_view(
             {
                 "get": "list",
@@ -73,7 +73,7 @@ urlpatterns = [
         name="project-issue-module-links",
     ),
     path(
-        "workspace/<str:slug>/projects/<int:project_id>/modules/<int:module_id>/module-links/<int:pk>/",
+        "<str:workspace_slug>/<int:project_id>/modules/<int:module_id>/links/<int:pk>/",
         ModuleLinkViewSet.as_view(
             {
                 "get": "retrieve",
@@ -85,7 +85,7 @@ urlpatterns = [
         name="project-issue-module-links",
     ),
     path(
-        "workspace/<str:slug>/projects/<int:project_id>/user-favorite-modules/",
+        "<str:workspace_slug>/<int:project_id>/modules/favorite/",
         ModuleFavoriteViewSet.as_view(
             {
                 "get": "list",
@@ -95,7 +95,7 @@ urlpatterns = [
         name="user-favorite-module",
     ),
     path(
-        "workspace/<str:slug>/projects/<int:project_id>/user-favorite-modules/<int:module_id>/",
+        "<str:workspace_slug>/<int:project_id>/modules/<int:module_id>/favorite/",
         ModuleFavoriteViewSet.as_view(
             {
                 "delete": "destroy",
@@ -104,7 +104,7 @@ urlpatterns = [
         name="user-favorite-module",
     ),
     path(
-        "workspace/<str:slug>/projects/<int:project_id>/modules/<int:module_id>/user-properties/",
+        "<str:workspace_slug>/<int:project_id>/modules/<int:module_id>/user/properties/",
         ModuleUserPropertiesEndpoint.as_view(),
         name="cycle-user-filters",
     ),

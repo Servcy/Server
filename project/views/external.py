@@ -1,5 +1,3 @@
-import os
-
 from django.conf import settings
 from openai import OpenAI
 from rest_framework import status

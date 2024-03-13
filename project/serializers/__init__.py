@@ -60,7 +60,6 @@ from .project import (
     ProjectLiteSerializer,
     ProjectMemberAdminSerializer,
     ProjectMemberInviteSerializer,
-    ProjectMemberLiteSerializer,
     ProjectMemberRoleSerializer,
     ProjectMemberSerializer,
     ProjectPublicMemberSerializer,
