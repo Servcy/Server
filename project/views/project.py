@@ -168,13 +168,13 @@ class ProjectViewSet(BaseViewSet):
                 serializer.save()
 
                 # Add the user as Administrator to the project
-                _ = ProjectMember.objects.create(
+                ProjectMember.objects.create(
                     project_id=serializer.data["id"],
                     member=request.user,
                     role=ERole.ADMIN.value,
                 )
                 # Also create the issue property for the user
-                _ = IssueProperty.objects.create(
+                IssueProperty.objects.create(
                     project_id=serializer.data["id"],
                     user=request.user,
                 )
