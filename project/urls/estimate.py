@@ -4,12 +4,12 @@ from project.views import BulkEstimatePointEndpoint, ProjectEstimatePointEndpoin
 
 urlpatterns = [
     path(
-        "workspaces/<str:slug>/projects/<int:project_id>/project-estimates/",
+        "workspace/<str:slug>/projects/<int:project_id>/project-estimates/",
         ProjectEstimatePointEndpoint.as_view(),
         name="project-estimate-points",
     ),
     path(
-        "workspaces/<str:slug>/projects/<int:project_id>/estimates/",
+        "workspace/<str:slug>/projects/<int:project_id>/estimates/",
         BulkEstimatePointEndpoint.as_view(
             {
                 "get": "list",
@@ -19,7 +19,7 @@ urlpatterns = [
         name="bulk-create-estimate-points",
     ),
     path(
-        "workspaces/<str:slug>/projects/<int:project_id>/estimates/<int:estimate_id>/",
+        "workspace/<str:slug>/projects/<int:project_id>/estimates/<int:estimate_id>/",
         BulkEstimatePointEndpoint.as_view(
             {
                 "get": "retrieve",

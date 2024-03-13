@@ -4,7 +4,7 @@ from project.views import StateViewSet
 
 urlpatterns = [
     path(
-        "workspaces/<str:slug>/projects/<int:project_id>/states/",
+        "workspace/<str:slug>/projects/<int:project_id>/states/",
         StateViewSet.as_view(
             {
                 "get": "list",
@@ -14,7 +14,7 @@ urlpatterns = [
         name="project-states",
     ),
     path(
-        "workspaces/<str:slug>/projects/<int:project_id>/states/<int:pk>/",
+        "workspace/<str:slug>/projects/<int:project_id>/states/<int:pk>/",
         StateViewSet.as_view(
             {
                 "get": "retrieve",
@@ -25,7 +25,7 @@ urlpatterns = [
         name="project-state",
     ),
     path(
-        "workspaces/<str:slug>/projects/<int:project_id>/states/<int:pk>/mark-default/",
+        "workspace/<str:slug>/projects/<int:project_id>/states/<int:pk>/mark-default/",
         StateViewSet.as_view(
             {
                 "post": "mark_as_default",

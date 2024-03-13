@@ -9,7 +9,7 @@ from project.views import (
 
 urlpatterns = [
     path(
-        "workspaces/<str:slug>/projects/<int:project_id>/views/",
+        "workspace/<str:slug>/projects/<int:project_id>/views/",
         IssueViewViewSet.as_view(
             {
                 "get": "list",
@@ -19,7 +19,7 @@ urlpatterns = [
         name="project-view",
     ),
     path(
-        "workspaces/<str:slug>/projects/<int:project_id>/views/<int:pk>/",
+        "workspace/<str:slug>/projects/<int:project_id>/views/<int:pk>/",
         IssueViewViewSet.as_view(
             {
                 "get": "retrieve",
@@ -31,7 +31,7 @@ urlpatterns = [
         name="project-view",
     ),
     path(
-        "workspaces/<str:slug>/views/",
+        "workspace/<str:slug>/views/",
         GlobalViewViewSet.as_view(
             {
                 "get": "list",
@@ -41,7 +41,7 @@ urlpatterns = [
         name="global-view",
     ),
     path(
-        "workspaces/<str:slug>/views/<int:pk>/",
+        "workspace/<str:slug>/views/<int:pk>/",
         GlobalViewViewSet.as_view(
             {
                 "get": "retrieve",
@@ -53,7 +53,7 @@ urlpatterns = [
         name="global-view",
     ),
     path(
-        "workspaces/<str:slug>/issues/",
+        "workspace/<str:slug>/issues/",
         GlobalViewIssuesViewSet.as_view(
             {
                 "get": "list",
@@ -62,7 +62,7 @@ urlpatterns = [
         name="global-view-issues",
     ),
     path(
-        "workspaces/<str:slug>/projects/<int:project_id>/user-favorite-views/",
+        "workspace/<str:slug>/projects/<int:project_id>/user-favorite-views/",
         IssueViewFavoriteViewSet.as_view(
             {
                 "get": "list",
@@ -72,7 +72,7 @@ urlpatterns = [
         name="user-favorite-view",
     ),
     path(
-        "workspaces/<str:slug>/projects/<int:project_id>/user-favorite-views/<int:view_id>/",
+        "workspace/<str:slug>/projects/<int:project_id>/user-favorite-views/<int:view_id>/",
         IssueViewFavoriteViewSet.as_view(
             {
                 "delete": "destroy",

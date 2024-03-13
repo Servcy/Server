@@ -18,7 +18,7 @@ urlpatterns = [
         name="user-notification-preferences",
     ),
     path(
-        "workspaces/<str:slug>/users/notifications/",
+        "workspace/<str:slug>/users/notifications/",
         NotificationViewSet.as_view(
             {
                 "get": "list",
@@ -27,7 +27,7 @@ urlpatterns = [
         name="notifications",
     ),
     path(
-        "workspaces/<str:slug>/users/notifications/<int:pk>/",
+        "workspace/<str:slug>/users/notifications/<int:pk>/",
         NotificationViewSet.as_view(
             {
                 "get": "retrieve",
@@ -38,7 +38,7 @@ urlpatterns = [
         name="notifications",
     ),
     path(
-        "workspaces/<str:slug>/users/notifications/<int:pk>/read/",
+        "workspace/<str:slug>/users/notifications/<int:pk>/read/",
         NotificationViewSet.as_view(
             {
                 "post": "mark_read",
@@ -48,7 +48,7 @@ urlpatterns = [
         name="notifications",
     ),
     path(
-        "workspaces/<str:slug>/users/notifications/<int:pk>/archive/",
+        "workspace/<str:slug>/users/notifications/<int:pk>/archive/",
         NotificationViewSet.as_view(
             {
                 "post": "archive",
@@ -58,12 +58,12 @@ urlpatterns = [
         name="notifications",
     ),
     path(
-        "workspaces/<str:slug>/unread/",
+        "workspace/<str:slug>/unread/",
         UnreadNotificationEndpoint.as_view(),
         name="unread-notifications",
     ),
     path(
-        "workspaces/<str:slug>/users/notifications/mark-all-read/",
+        "workspace/<str:slug>/users/notifications/mark-all-read/",
         MarkAllReadNotificationViewSet.as_view(
             {
                 "post": "create",

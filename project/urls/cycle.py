@@ -11,7 +11,7 @@ from project.views import (
 
 urlpatterns = [
     path(
-        "workspaces/<str:slug>/projects/<int:project_id>/cycles/",
+        "workspace/<str:slug>/projects/<int:project_id>/cycles/",
         CycleViewSet.as_view(
             {
                 "get": "list",
@@ -21,7 +21,7 @@ urlpatterns = [
         name="project-cycle",
     ),
     path(
-        "workspaces/<str:slug>/projects/<int:project_id>/cycles/<int:pk>/",
+        "workspace/<str:slug>/projects/<int:project_id>/cycles/<int:pk>/",
         CycleViewSet.as_view(
             {
                 "get": "retrieve",
@@ -33,7 +33,7 @@ urlpatterns = [
         name="project-cycle",
     ),
     path(
-        "workspaces/<str:slug>/projects/<int:project_id>/cycles/<int:cycle_id>/cycle-issues/",
+        "workspace/<str:slug>/projects/<int:project_id>/cycles/<int:cycle_id>/cycle-issues/",
         CycleIssueViewSet.as_view(
             {
                 "get": "list",
@@ -43,7 +43,7 @@ urlpatterns = [
         name="project-issue-cycle",
     ),
     path(
-        "workspaces/<str:slug>/projects/<int:project_id>/cycles/<int:cycle_id>/cycle-issues/<int:issue_id>/",
+        "workspace/<str:slug>/projects/<int:project_id>/cycles/<int:cycle_id>/cycle-issues/<int:issue_id>/",
         CycleIssueViewSet.as_view(
             {
                 "get": "retrieve",
@@ -55,12 +55,12 @@ urlpatterns = [
         name="project-issue-cycle",
     ),
     path(
-        "workspaces/<str:slug>/projects/<int:project_id>/cycles/date-check/",
+        "workspace/<str:slug>/projects/<int:project_id>/cycles/date-check/",
         CycleDateCheckEndpoint.as_view(),
         name="project-cycle-date",
     ),
     path(
-        "workspaces/<str:slug>/projects/<int:project_id>/user-favorite-cycles/",
+        "workspace/<str:slug>/projects/<int:project_id>/user-favorite-cycles/",
         CycleFavoriteViewSet.as_view(
             {
                 "get": "list",
@@ -70,7 +70,7 @@ urlpatterns = [
         name="user-favorite-cycle",
     ),
     path(
-        "workspaces/<str:slug>/projects/<int:project_id>/user-favorite-cycles/<int:cycle_id>/",
+        "workspace/<str:slug>/projects/<int:project_id>/user-favorite-cycles/<int:cycle_id>/",
         CycleFavoriteViewSet.as_view(
             {
                 "delete": "destroy",
@@ -79,12 +79,12 @@ urlpatterns = [
         name="user-favorite-cycle",
     ),
     path(
-        "workspaces/<str:slug>/projects/<int:project_id>/cycles/<int:cycle_id>/transfer-issues/",
+        "workspace/<str:slug>/projects/<int:project_id>/cycles/<int:cycle_id>/transfer-issues/",
         TransferCycleIssueEndpoint.as_view(),
         name="transfer-issues",
     ),
     path(
-        "workspaces/<str:slug>/projects/<int:project_id>/cycles/<int:cycle_id>/user-properties/",
+        "workspace/<str:slug>/projects/<int:project_id>/cycles/<int:cycle_id>/user-properties/",
         CycleUserPropertiesEndpoint.as_view(),
         name="cycle-user-filters",
     ),
