@@ -67,7 +67,7 @@ urlpatterns = [
         name="workspace",
     ),
     path(
-        "<str:workspace_slug>",
+        "<str:slug>",
         WorkSpaceViewSet.as_view(
             {
                 "put": "update",
