@@ -59,7 +59,7 @@ urlpatterns = [
         name="workspace-cycles",
     ),
     path(
-        "users/me/activities/",
+        "me/activities/",
         UserActivityEndpoint.as_view(),
         name="user-activities",
     ),
@@ -69,12 +69,12 @@ urlpatterns = [
         name="user-workspace",
     ),
     path(
-        "users/me/workspace/<str:slug>/activity-graph/",
+        "me/workspace/<str:slug>/activity-graph/",
         UserActivityGraphEndpoint.as_view(),
         name="user-activity-graph",
     ),
     path(
-        "users/me/workspace/<str:slug>/issues-completed-graph/",
+        "me/workspace/<str:slug>/issues-completed-graph/",
         UserIssueCompletedGraphEndpoint.as_view(),
         name="completed-graph",
     ),
@@ -84,7 +84,7 @@ urlpatterns = [
         name="workspace-user-profile-page",
     ),
     path(
-        "users/me/workspace/<str:slug>/dashboard/",
+        "me/workspace/<str:slug>/dashboard/",
         UserWorkspaceDashboardEndpoint.as_view(),
         name="user-workspace-dashboard",
     ),

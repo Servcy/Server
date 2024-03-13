@@ -64,7 +64,7 @@ urlpatterns = [
         name="project-member-invite",
     ),
     path(
-        "users/me/workspace/<str:slug>/projects/invitations/",
+        "me/workspace/<str:slug>/projects/invitations/",
         UserProjectInvitationsViewset.as_view(
             {
                 "get": "list",
@@ -74,7 +74,7 @@ urlpatterns = [
         name="user-project-invitations",
     ),
     path(
-        "users/me/workspace/<str:slug>/project-roles/",
+        "me/workspace/<str:slug>/project-roles/",
         UserProjectRolesEndpoint.as_view(),
         name="user-project-roles",
     ),
