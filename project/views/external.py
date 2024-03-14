@@ -16,7 +16,7 @@ class GPTIntegrationEndpoint(BaseAPIView):
         ProjectEntityPermission,
     ]
 
-    def post(self, request, slug, project_id):
+    def post(self, request, workspace_slug, project_id):
         prompt = request.data.get("prompt", False)
         task = request.data.get("task", False)
         if not task:
@@ -32,7 +32,7 @@ class GPTIntegrationEndpoint(BaseAPIView):
             model=settings.OPENAI_MODEL_ID,
             messages=[{"role": "user", "content": final_text}],
         )
-        workspace = Workspace.objects.get(slug=slug)
+        workspace = Workspace.objects.get(slug=workspace_slug)
         project = Project.objects.get(pk=project_id)
         text = response.choices[0].message.content.strip()
         text_html = text.replace("\n", "<br/>")
