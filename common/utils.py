@@ -3,7 +3,6 @@ import logging
 import random
 import string
 from collections import defaultdict
-from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Any, Dict, Union
 
@@ -55,52 +54,6 @@ class CommonUtils:
                 key = key_type(key)
             result_dict[key] = item
         return result_dict
-
-    @staticmethod
-    def format_date(date, date_type, only_date=None):
-        """
-        Function to format date
-        :param date:
-        :param date_type:
-        :param only_date:
-        :return: Formatted date (date)
-        """
-        try:
-            if date_type == "start_date":
-                date = (
-                    datetime.strptime(date, settings.HUMAN_DATE_FORMAT)
-                    + timedelta(days=0)
-                ).date()
-            elif date_type == "end_date":
-                if only_date is not None:
-                    date = (
-                        datetime.strptime(date, settings.HUMAN_DATE_FORMAT)
-                        + timedelta(days=0)
-                    ).date()
-                else:
-                    date = (
-                        datetime.strptime(date, settings.HUMAN_DATE_FORMAT)
-                        + timedelta(days=1)
-                    ).date()
-        except:
-            if date_type == "start_date":
-                date = datetime.strptime(
-                    "01/01/1900", settings.HUMAN_DATE_FORMAT
-                ).date()
-            elif date_type == "end_date":
-                date = datetime.strptime(
-                    "01/01/2100", settings.HUMAN_DATE_FORMAT
-                ).date()
-        return date
-
-    @staticmethod
-    def check_date(date_chk, return_none=False):
-        try:
-            if not date_chk:
-                return None if return_none else "-"
-            return date_chk.date().strftime(settings.HUMAN_DATE_FORMAT)
-        except:
-            return None
 
     @staticmethod
     def check_date_time(date_chk, return_blank=False):

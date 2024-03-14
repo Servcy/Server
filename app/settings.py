@@ -109,9 +109,9 @@ REST_FRAMEWORK = {
         "anon": "60/minute",
         "user": "120/minute",
     },
-    "DATE_INPUT_FORMATS": ["%d/%m/%Y"],
-    "DATETIME_FORMAT": "%d/%m/%Y %H:%M",
-    "DATE_FORMAT": "%d/%m/%Y",
+    "DATE_INPUT_FORMATS": ["%d-%m-%Y"],
+    "DATETIME_FORMAT": "%d-%m-%Y %H:%M",
+    "DATE_FORMAT": "%d-%m-%Y",
     "EXCEPTION_HANDLER": "common.exceptions.servcy_exception_handler",
 }
 
