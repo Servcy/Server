@@ -106,12 +106,9 @@ REST_FRAMEWORK = {
         "rest_framework.throttling.UserRateThrottle",  # for authenticated users
     ),
     "DEFAULT_THROTTLE_RATES": {
-        "anon": "60/minute",
+        "anon": "30/minute",
         "user": "120/minute",
     },
-    "DATE_INPUT_FORMATS": ["%d-%m-%Y"],
-    "DATETIME_FORMAT": "%d-%m-%Y %H:%M",
-    "DATE_FORMAT": "%d-%m-%Y",
     "EXCEPTION_HANDLER": "common.exceptions.servcy_exception_handler",
 }
 
