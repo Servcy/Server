@@ -219,7 +219,6 @@ def send_email_notification(
                 SendGridEmail(receiver.email).send_issue_activity(
                     subject=subject,
                     body=text_content,
-                    media_type="text/html",
                 )
                 EmailNotificationLog.objects.filter(
                     pk__in=email_notification_ids

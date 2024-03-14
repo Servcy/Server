@@ -19,6 +19,8 @@ class SendGridEmail:
         self.client = SendGridAPIClient(SENDGRID_API_KEY)
 
     def send_new_signup_notification(self, dynamic_template_data):
+        if settings.DEBUG:
+            return 200
         message = Mail(
             from_email=self.from_email,
             to_emails=self.to_email,
@@ -29,6 +31,8 @@ class SendGridEmail:
         return response.status_code
 
     def send_workspace_invitation(self, workspace_name, user_name, invite_link):
+        if settings.DEBUG:
+            return 200
         message = Mail(
             from_email=self.from_email,
             to_emails=self.to_email,
@@ -47,6 +51,8 @@ class SendGridEmail:
         """
         Send an email with the analytics export
         """
+        if settings.DEBUG:
+            return 200
         message = Mail(
             from_email=self.from_email,
             to_emails=self.to_email,
@@ -66,10 +72,12 @@ class SendGridEmail:
         response = self.client.send(message)
         return response.status_code
 
-    def send_issue_activity(self, subject, body, media_type="text/html"):
+    def send_issue_activity(self, subject, body):
         """
         Send an email with the issue activity
         """
+        if settings.DEBUG:
+            return 200
         message = Mail(
             from_email=self.from_email,
             to_emails=self.to_email,
