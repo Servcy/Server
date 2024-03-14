@@ -5,10 +5,9 @@ from notification.models import UserNotificationPreference
 
 
 class AccountsRepository:
-    def __init__(self, input: str, input_type: str, display_name: str = ""):
+    def __init__(self, input: str, input_type: str):
         self.input = input
         self.input_type = input_type
-        self.display_name = display_name
 
     def create(self):
         user = User.objects.create_user(
@@ -17,7 +16,6 @@ class AccountsRepository:
                 f"+{self.input}" if self.input_type == "phone_number" else None
             ),
             username=self.input if self.input_type == "email" else f"+{self.input}",
-            display_name=self.display_name,
             password=None,
         )
         UserNotificationPreference.objects.create(
