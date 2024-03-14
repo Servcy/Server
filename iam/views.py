@@ -250,33 +250,12 @@ class WorkspaceInvitationsViewset(BaseViewSet):
 
     def create(self, request, workspace_slug):
         emails = request.data.get("emails", [])
-        # Check if email is provided
         if not emails:
             return Response(
                 {"error": "Emails are required"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        # check for role level of the requesting user
-        requesting_user = WorkspaceMember.objects.get(
-            workspace__slug=workspace_slug,
-            member=request.user,
-            is_active=True,
-        )
-        # Check if any invited user has an higher role
-        if len(
-            [
-                email
-                for email in emails
-                if int(email.get("role", ERole.MEMBER.value)) > requesting_user.role
-            ]
-        ):
-            return Response(
-                {"error": "You cannot invite a user with higher role"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        # Get the workspace object
         workspace = Workspace.objects.get(slug=workspace_slug)
-        # Check if user is already a member of workspace
         workspace_members = WorkspaceMember.objects.filter(
             workspace=workspace,
             member__email__in=[email.get("email") for email in emails],
