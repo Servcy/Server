@@ -44,7 +44,7 @@ class AuthenticationView(BaseAPIView):
                     error_message="input and input_type are required!",
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            if not settings.DEBUG:
+            if not settings.DEBUG and input not in settings.TEST_ACCOUNTS:
                 client = self._initialize_twilio_client()
                 if input_type == "email":
                     send_authentication_code_email(client, input)
@@ -80,7 +80,7 @@ class AuthenticationView(BaseAPIView):
                         error_message="otp, input and input_type are required!",
                         status=status.HTTP_406_NOT_ACCEPTABLE,
                     )
-                if not settings.DEBUG:
+                if not settings.DEBUG and input not in settings.TEST_ACCOUNTS:
                     client = self._initialize_twilio_client()
                     verification_check = self._verify_code(
                         client, otp, input, input_type
