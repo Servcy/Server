@@ -107,7 +107,7 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_THROTTLE_RATES": {
         "anon": "30/minute",
-        "user": "120/minute",
+        "user": "300/minute",
     },
     "EXCEPTION_HANDLER": "common.exceptions.servcy_exception_handler",
 }
