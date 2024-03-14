@@ -5,17 +5,19 @@ from notification.models import UserNotificationPreference
 
 
 class AccountsRepository:
-    def __init__(self, input: str, input_type: str):
+    def __init__(self, input: str, input_type: str, display_name: str = ""):
         self.input = input
         self.input_type = input_type
+        self.display_name = display_name
 
-    def create(self, input: str = None, input_type: str = None):
-        input = input or self.input
-        input_type = input_type or self.input_type
+    def create(self):
         user = User.objects.create_user(
-            email=input if input_type == "email" else None,
-            phone_number=f"+{input}" if input_type == "phone_number" else None,
-            username=input if input_type == "email" else f"+{input}",
+            email=self.input if self.input_type == "email" else None,
+            phone_number=(
+                f"+{self.input}" if self.input_type == "phone_number" else None
+            ),
+            username=self.input if self.input_type == "email" else f"+{self.input}",
+            display_name=self.display_name,
             password=None,
         )
         UserNotificationPreference.objects.create(
@@ -28,12 +30,10 @@ class AccountsRepository:
         )
         return user
 
-    def get(self, input: str = None, input_type: str = None):
+    def get(self):
         try:
-            input = input or self.input
-            input_type = input_type or self.input_type
             user = User.objects.get(
-                username=input if input_type == "email" else f"+{input}"
+                username=self.input if self.input_type == "email" else f"+{input}"
             )
         except User.DoesNotExist:
             user = None
