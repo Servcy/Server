@@ -70,7 +70,7 @@ def servcy_exception_handler(exception, context):
     logger.exception("An error occurred in the API.", extra=log_data, exc_info=True)
 
     # Notify New Relic
-    notice_error(exception)
+    notice_error()
 
     # Use DRF's default exception handler
     response = exception_handler(exception, context)
