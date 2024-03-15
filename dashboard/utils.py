@@ -31,11 +31,11 @@ from project.serializers import IssueActivitySerializer, IssueSerializer
 from project.utils.filters import issue_filters
 
 
-def dashboard_overview_stats(self, request, slug):
+def dashboard_overview_stats(self, request, workspace_slug):
     assigned_issues = Issue.issue_objects.filter(
         project__project_projectmember__is_active=True,
         project__project_projectmember__member=request.user,
-        workspace__slug=slug,
+        workspace__slug=workspace_slug,
         assignees__in=[request.user],
     ).count()
 
@@ -44,19 +44,19 @@ def dashboard_overview_stats(self, request, slug):
         target_date__lt=timezone.now().date(),
         project__project_projectmember__is_active=True,
         project__project_projectmember__member=request.user,
-        workspace__slug=slug,
+        workspace__slug=workspace_slug,
         assignees__in=[request.user],
     ).count()
 
     created_issues_count = Issue.issue_objects.filter(
-        workspace__slug=slug,
+        workspace__slug=workspace_slug,
         project__project_projectmember__is_active=True,
         project__project_projectmember__member=request.user,
         created_by_id=request.user.id,
     ).count()
 
     completed_issues_count = Issue.issue_objects.filter(
-        workspace__slug=slug,
+        workspace__slug=workspace_slug,
         project__project_projectmember__is_active=True,
         project__project_projectmember__member=request.user,
         assignees__in=[request.user],
@@ -74,14 +74,14 @@ def dashboard_overview_stats(self, request, slug):
     )
 
 
-def dashboard_assigned_issues(self, request, slug):
+def dashboard_assigned_issues(self, request, workspace_slug):
     filters = issue_filters(request.query_params, "GET")
     issue_type = request.GET.get("issue_type", None)
 
     # get all the assigned issues
     assigned_issues = (
         Issue.issue_objects.filter(
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             project__project_projectmember__member=request.user,
             project__project_projectmember__is_active=True,
             assignees__in=[request.user],
@@ -229,14 +229,14 @@ def dashboard_assigned_issues(self, request, slug):
     )
 
 
-def dashboard_created_issues(self, request, slug):
+def dashboard_created_issues(self, request, workspace_slug):
     filters = issue_filters(request.query_params, "GET")
     issue_type = request.GET.get("issue_type", None)
 
     # get all the assigned issues
     created_issues = (
         Issue.issue_objects.filter(
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             project__project_projectmember__member=request.user,
             project__project_projectmember__is_active=True,
             created_by=request.user,
@@ -371,12 +371,12 @@ def dashboard_created_issues(self, request, slug):
     )
 
 
-def dashboard_issues_by_state_groups(self, request, slug):
+def dashboard_issues_by_state_groups(self, request, workspace_slug):
     filters = issue_filters(request.query_params, "GET")
     state_order = ["backlog", "unstarted", "started", "completed", "cancelled"]
     issues_by_state_groups = (
         Issue.issue_objects.filter(
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             project__project_projectmember__is_active=True,
             project__project_projectmember__member=request.user,
             assignees__in=[request.user],
@@ -401,13 +401,13 @@ def dashboard_issues_by_state_groups(self, request, slug):
     return Response(output_data, status=status.HTTP_200_OK)
 
 
-def dashboard_issues_by_priority(self, request, slug):
+def dashboard_issues_by_priority(self, request, workspace_slug):
     filters = issue_filters(request.query_params, "GET")
     priority_order = ["urgent", "high", "medium", "low", "none"]
 
     issues_by_priority = (
         Issue.issue_objects.filter(
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             project__project_projectmember__is_active=True,
             project__project_projectmember__member=request.user,
             assignees__in=[request.user],
@@ -432,10 +432,10 @@ def dashboard_issues_by_priority(self, request, slug):
     return Response(output_data, status=status.HTTP_200_OK)
 
 
-def dashboard_recent_activity(self, request, slug):
+def dashboard_recent_activity(self, request, workspace_slug):
     queryset = IssueActivity.objects.filter(
         ~Q(field__in=["comment", "vote", "reaction", "draft"]),
-        workspace__slug=slug,
+        workspace__slug=workspace_slug,
         project__project_projectmember__member=request.user,
         project__project_projectmember__is_active=True,
         actor=request.user,
@@ -447,10 +447,10 @@ def dashboard_recent_activity(self, request, slug):
     )
 
 
-def dashboard_recent_projects(self, request, slug):
+def dashboard_recent_projects(self, request, workspace_slug):
     project_ids = (
         IssueActivity.objects.filter(
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             project__project_projectmember__member=request.user,
             project__project_projectmember__is_active=True,
             actor=request.user,
@@ -467,7 +467,7 @@ def dashboard_recent_projects(self, request, slug):
         additional_projects = Project.objects.filter(
             project_projectmember__member=request.user,
             project_projectmember__is_active=True,
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
         ).exclude(id__in=unique_project_ids)
 
         # Append additional project IDs to the existing list
@@ -479,18 +479,18 @@ def dashboard_recent_projects(self, request, slug):
     )
 
 
-def dashboard_recent_collaborators(self, request, slug):
+def dashboard_recent_collaborators(self, request, workspace_slug):
     # Fetch all project IDs where the user belongs to
     user_projects = Project.objects.filter(
         project_projectmember__member=request.user,
         project_projectmember__is_active=True,
-        workspace__slug=slug,
+        workspace__slug=workspace_slug,
     ).values_list("id", flat=True)
 
     # Fetch all users who have performed an activity in the projects where the user exists
     users_with_activities = (
         IssueActivity.objects.filter(
-            workspace__slug=slug,
+            workspace__slug=workspace_slug,
             project_id__in=user_projects,
         )
         .values("actor")
@@ -527,7 +527,7 @@ def dashboard_recent_collaborators(self, request, slug):
                 ProjectMember.objects.filter(
                     ~Q(member=request.user),
                     project_id__in=user_projects,
-                    workspace__slug=slug,
+                    workspace__slug=workspace_slug,
                 )
                 .exclude(member__in=[user["actor"] for user in users_with_activities])
                 .values_list("member", flat=True)
