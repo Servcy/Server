@@ -1,22 +1,20 @@
 import re
-import uuid
 from datetime import timedelta
 
 from django.utils import timezone
 
 
-def filter_valid_uuids(uuid_list):
+def filter_valid_ids(id_list):
     """
     Filter valid uuids from a list of strings
     """
-    valid_uuids = []
-    for uuid_str in uuid_list:
+    valid_ids = []
+    for id in id_list:
         try:
-            uuid_obj = uuid.UUID(uuid_str)
-            valid_uuids.append(uuid_obj)
+            valid_ids.append(int(id))
         except ValueError:
             pass
-    return valid_uuids
+    return valid_ids
 
 
 def string_date_filter(filter, duration, subsequent, term, date_filter, offset):
@@ -80,7 +78,7 @@ def filter_state(params: dict, filter: dict, method: str) -> dict:
     """
     if method == "GET":
         states = [item for item in params.get("state").split(",") if item != "null"]
-        states = filter_valid_uuids(states)
+        states = filter_valid_ids(states)
         if len(states) and "" not in states:
             filter["state__in"] = states
     else:
@@ -146,7 +144,7 @@ def filter_priority(params: dict, filter: dict, method: str) -> dict:
 def filter_parent(params: dict, filter: dict, method: str) -> dict:
     if method == "GET":
         parents = [item for item in params.get("parent").split(",") if item != "null"]
-        parents = filter_valid_uuids(parents)
+        parents = filter_valid_ids(parents)
         if len(parents) and "" not in parents:
             filter["parent__in"] = parents
     else:
@@ -162,7 +160,7 @@ def filter_parent(params: dict, filter: dict, method: str) -> dict:
 def filter_labels(params: dict, filter: dict, method: str) -> dict:
     if method == "GET":
         labels = [item for item in params.get("labels").split(",") if item != "null"]
-        labels = filter_valid_uuids(labels)
+        labels = filter_valid_ids(labels)
         if len(labels) and "" not in labels:
             filter["labels__in"] = labels
     else:
@@ -180,7 +178,7 @@ def filter_assignees(params: dict, filter: dict, method: str) -> dict:
         assignees = [
             item for item in params.get("assignees").split(",") if item != "null"
         ]
-        assignees = filter_valid_uuids(assignees)
+        assignees = filter_valid_ids(assignees)
         if len(assignees) and "" not in assignees:
             filter["assignees__in"] = assignees
     else:
@@ -199,7 +197,7 @@ def filter_mentions(params: dict, filter: dict, method: str) -> dict:
         mentions = [
             item for item in params.get("mentions").split(",") if item != "null"
         ]
-        mentions = filter_valid_uuids(mentions)
+        mentions = filter_valid_ids(mentions)
         if len(mentions) and "" not in mentions:
             filter["issue_mention__mention__id__in"] = mentions
     else:
@@ -218,7 +216,7 @@ def filter_created_by(params: dict, filter: dict, method: str) -> dict:
         created_bys = [
             item for item in params.get("created_by").split(",") if item != "null"
         ]
-        created_bys = filter_valid_uuids(created_bys)
+        created_bys = filter_valid_ids(created_bys)
         if len(created_bys) and "" not in created_bys:
             filter["created_by__in"] = created_bys
     else:
@@ -350,7 +348,7 @@ def filter_project(params: dict, filter: dict, method: str) -> dict:
     """Filter issues by project"""
     if method == "GET":
         projects = [item for item in params.get("project").split(",") if item != "null"]
-        projects = filter_valid_uuids(projects)
+        projects = filter_valid_ids(projects)
         if len(projects) and "" not in projects:
             filter["project__in"] = projects
     else:
@@ -367,7 +365,7 @@ def filter_cycle(params: dict, filter: dict, method: str) -> dict:
     """Filter issues by cycle"""
     if method == "GET":
         cycles = [item for item in params.get("cycle").split(",") if item != "null"]
-        cycles = filter_valid_uuids(cycles)
+        cycles = filter_valid_ids(cycles)
         if len(cycles) and "" not in cycles:
             filter["issue_cycle__cycle_id__in"] = cycles
     else:
@@ -384,7 +382,7 @@ def filter_module(params: dict, filter: dict, method: str) -> dict:
     """Filter issues by module"""
     if method == "GET":
         modules = [item for item in params.get("module").split(",") if item != "null"]
-        modules = filter_valid_uuids(modules)
+        modules = filter_valid_ids(modules)
         if len(modules) and "" not in modules:
             filter["issue_module__module_id__in"] = modules
     else:
@@ -446,7 +444,7 @@ def filter_subscribed_issues(params: dict, filter: dict, method: str) -> dict:
         subscribers = [
             item for item in params.get("subscriber").split(",") if item != "null"
         ]
-        subscribers = filter_valid_uuids(subscribers)
+        subscribers = filter_valid_ids(subscribers)
         if len(subscribers) and "" not in subscribers:
             filter["issue_subscribers__subscriber_id__in"] = subscribers
     else:
