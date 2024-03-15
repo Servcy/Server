@@ -207,12 +207,17 @@ class WorkSpaceViewSet(BaseViewSet):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             if serializer.is_valid():
-                serializer.save(owner=request.user)
-                # Create Workspace member
-                _ = WorkspaceMember.objects.create(
+                serializer.save(
+                    owner=request.user,
+                    created_by=request.user,
+                    updated_by=request.user,
+                )
+                WorkspaceMember.objects.create(
                     workspace_id=serializer.data["id"],
                     member=request.user,
                     role=ERole.ADMIN.value,
+                    created_by=request.user,
+                    updated_by=request.user,
                 )
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(
@@ -288,6 +293,7 @@ class WorkspaceInvitationsViewset(BaseViewSet):
                     ),
                     role=email.get("role", ERole.MEMBER.value),
                     created_by=request.user,
+                    updated_by=request.user,
                 )
                 invite.save()
             except ValidationError:
@@ -618,6 +624,7 @@ class WorkSpaceMemberViewSet(BaseViewSet):
         ).update(is_active=False)
 
         workspace_member.is_active = False
+        workspace_member.updated_by = request.user
         workspace_member.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -743,6 +750,7 @@ class WorkspaceMemberUserViewsEndpoint(BaseAPIView):
             is_active=True,
         )
         workspace_member.view_props = request.data.get("view_props", {})
+        workspace_member.updated_by = request.user
         workspace_member.save()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
