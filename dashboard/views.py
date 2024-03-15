@@ -166,7 +166,7 @@ class DashboardEndpoint(BaseAPIView):
             response = func(
                 self,
                 request=request,
-                workspace__slug=workspace_slug,
+                workspace_slug=workspace_slug,
             )
             if isinstance(response, Response):
                 return response
