@@ -82,12 +82,13 @@ class DashboardEndpoint(BaseAPIView):
                 dashboard, created = Dashboard.objects.get_or_create(
                     type_identifier=dashboard_type,
                     owned_by=request.user,
-                    created_by=request.user,
-                    updated_by=request.user,
                     is_default=True,
                 )
 
                 if created:
+                    dashboard.created_by = request.user
+                    dashboard.updated_by = request.user
+                    dashboard.save()
                     widgets_to_fetch = [
                         "overview_stats",
                         "assigned_issues",

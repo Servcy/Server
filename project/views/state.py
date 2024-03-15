@@ -36,7 +36,9 @@ class StateViewSet(BaseViewSet):
     def create(self, request, workspace_slug, project_id):
         serializer = StateSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(project_id=project_id)
+            serializer.save(
+                project_id=project_id, created_by=request.user, updated_by=request.user
+            )
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

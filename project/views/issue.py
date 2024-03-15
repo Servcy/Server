@@ -1540,6 +1540,8 @@ class IssueSubscriberViewSet(BaseViewSet):
             issue_id=issue_id,
             subscriber_id=request.user.id,
             project_id=project_id,
+            created_by=request.user,
+            updated_by=request.user,
         )
         serializer = IssueSubscriberSerializer(subscriber)
         return Response(serializer.data, status=status.HTTP_201_CREATED)

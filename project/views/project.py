@@ -168,16 +168,23 @@ class ProjectViewSet(BaseViewSet):
             )
             if serializer.is_valid():
                 with transaction.atomic():
-                    serializer.save()
+                    serializer.save(
+                        created_by=self.request.user,
+                        updated_by=self.request.user,
+                    )
                     # Add the user as Administrator to the project
                     ProjectMember.objects.create(
                         project_id=serializer.data["id"],
                         member=request.user,
                         role=ERole.ADMIN.value,
+                        created_by=request.user,
+                        updated_by=request.user,
                     )
                     # Also create the issue property for the user
                     IssueProperty.objects.create(
                         project_id=serializer.data["id"],
+                        created_by=request.user,
+                        updated_by=request.user,
                         user=request.user,
                     )
                     if serializer.data["lead"] is not None and str(
@@ -186,12 +193,16 @@ class ProjectViewSet(BaseViewSet):
                         ProjectMember.objects.create(
                             project_id=serializer.data["id"],
                             member_id=serializer.data["lead"],
+                            created_by=request.user,
+                            updated_by=request.user,
                             role=ERole.ADMIN.value,
                         )
                         # Also create the issue property for the user
                         IssueProperty.objects.create(
                             project_id=serializer.data["id"],
                             user_id=serializer.data["lead"],
+                            created_by=request.user,
+                            updated_by=request.user,
                         )
                     # Default states
                     State.objects.bulk_create(
@@ -493,6 +504,8 @@ class ProjectJoinEndpoint(BaseAPIView):
                             if project_invite.role >= ERole.ADMIN.value
                             else project_invite.role
                         ),
+                        created_by=self.request.user,
+                        updated_by=self.request.user,
                     )
                 else:
                     # Else make him active
@@ -509,6 +522,8 @@ class ProjectJoinEndpoint(BaseAPIView):
                         workspace_id=project_invite.workspace_id,
                         member=user,
                         role=project_invite.role,
+                        created_by=self.request.user,
+                        updated_by=self.request.user,
                     )
                 else:
                     project_member.is_active = True
@@ -877,12 +892,20 @@ class ProjectFavoritesViewSet(BaseViewSet):
         )
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        serializer.save(
+            user=self.request.user,
+            created_by=self.request.user,
+            updated_by=self.request.user,
+        )
 
     def create(self, request, workspace_slug):
         serializer = ProjectFavoriteSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(user=request.user)
+            serializer.save(
+                user=request.user,
+                created_by=self.request.user,
+                updated_by=self.request.user,
+            )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -936,6 +959,7 @@ class ProjectDeployBoardViewSet(BaseViewSet):
         project_deploy_board.reactions = reactions
         project_deploy_board.inbox = inbox
         project_deploy_board.votes = votes
+        project_deploy_board.updated_by = request.user
         project_deploy_board.views = views
 
         project_deploy_board.save()

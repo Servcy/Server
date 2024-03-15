@@ -79,7 +79,10 @@ class PageViewSet(BaseViewSet):
         )
 
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(
+                created_by=self.request.user,
+                updated_by=self.request.user,
+            )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -264,7 +267,12 @@ class PageFavoriteViewSet(BaseViewSet):
     def create(self, request, workspace_slug, project_id):
         serializer = PageFavoriteSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(user=request.user, project_id=project_id)
+            serializer.save(
+                user=request.user,
+                project_id=project_id,
+                created_by=self.request.user,
+                updated_by=self.request.user,
+            )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -290,7 +298,12 @@ class PageLogEndpoint(BaseAPIView):
     def post(self, request, workspace_slug, project_id, page_id):
         serializer = PageLogSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(project_id=project_id, page_id=page_id)
+            serializer.save(
+                project_id=project_id,
+                page_id=page_id,
+                created_by=self.request.user,
+                updated_by=self.request.user,
+            )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

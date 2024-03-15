@@ -46,7 +46,11 @@ class GlobalViewViewSet(BaseViewSet):
 
     def perform_create(self, serializer):
         workspace = Workspace.objects.get(slug=self.kwargs.get("workspace_slug"))
-        serializer.save(workspace_id=workspace.id)
+        serializer.save(
+            workspace_id=workspace.id,
+            created_by=self.request.user,
+            updated_by=self.request.user,
+        )
 
     def get_queryset(self):
         return self.filter_queryset(
@@ -247,7 +251,11 @@ class IssueViewViewSet(BaseViewSet):
     ]
 
     def perform_create(self, serializer):
-        serializer.save(project_id=self.kwargs.get("project_id"))
+        serializer.save(
+            project_id=self.kwargs.get("project_id"),
+            created_by=self.request.user,
+            updated_by=self.request.user,
+        )
 
     def get_queryset(self):
         subquery = IssueViewFavorite.objects.filter(
@@ -297,7 +305,12 @@ class IssueViewFavoriteViewSet(BaseViewSet):
     def create(self, request, workspace_slug, project_id):
         serializer = IssueViewFavoriteSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(user=request.user, project_id=project_id)
+            serializer.save(
+                user=request.user,
+                project_id=project_id,
+                created_by=self.request.user,
+                updated_by=self.request.user,
+            )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
