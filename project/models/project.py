@@ -5,7 +5,6 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from app.models import CreatorUpdaterModel, TimeStampedModel
-from common.file_field import file_size_validator, upload_path
 
 from .base import ProjectBaseModel
 

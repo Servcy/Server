@@ -1,6 +1,5 @@
 import logging
 import traceback
-import uuid
 from time import time
 
 import requests
@@ -29,7 +28,6 @@ class DocumentViewSet(BaseViewSet):
         serializer.save(
             created_by=self.request.user,
             updated_by=self.request.user,
-            uid=uuid.uuid4().hex,
         )
 
     def get_queryset(self):

@@ -118,7 +118,6 @@ def send_email_notification(
     :param email_notification_ids: This is the list of email notification ids
     :return: None
     """
-    # Convert UUIDs to a sorted, concatenated string
     sorted_ids = sorted(email_notification_ids)
     ids_str = "_".join(str(id) for id in sorted_ids)
     lock_id = f"send_email_notif_{issue_id}_{receiver_id}_{ids_str}"
