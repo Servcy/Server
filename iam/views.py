@@ -437,6 +437,7 @@ class UserWorkspaceInvitationsViewSet(BaseViewSet):
                     member=request.user,
                     role=invitation.role,
                     created_by=request.user,
+                    updated_by=request.user,
                 )
                 for invitation in workspace_invitations
             ],
@@ -553,7 +554,9 @@ class WorkSpaceMemberViewSet(BaseViewSet):
         )
 
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(
+                updated_by=request.user,
+            )
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

@@ -25,7 +25,7 @@ from project.models import (
 logger = logging.getLogger(__name__)
 
 
-def update_mentions_for_issue(issue, project, new_mentions, removed_mention):
+def update_mentions_for_issue(issue, project, new_mentions, removed_mention, actor_id):
     """
     This function is used to update the mentions for the issue
     """
@@ -39,6 +39,8 @@ def update_mentions_for_issue(issue, project, new_mentions, removed_mention):
                 issue=issue,
                 project=project,
                 workspace_id=project.workspace_id,
+                created_by_id=actor_id,
+                updated_by_id=actor_id,
             )
         )
 
@@ -182,6 +184,8 @@ def create_mention_notification(
         receiver_id=mention_id,
         entity_identifier=issue_id,
         entity_name="issue",
+        created_by_id=actor_id,
+        updated_by_id=actor_id,
         project=project,
         message=notification_comment,
         data={
@@ -451,6 +455,8 @@ def notifications(
                 mention_subscribers + comment_mention_subscribers,
                 batch_size=100,
                 ignore_conflicts=True,
+                created_by_id=actor_id,
+                updated_by_id=actor_id,
             )
             last_activity = (
                 IssueActivity.objects.filter(issue_id=issue_id)
@@ -604,6 +610,8 @@ def notifications(
                                 bulk_email_logs.append(
                                     EmailNotificationLog(
                                         triggered_by_id=actor_id,
+                                        created_by_id=actor_id,
+                                        updated_by_id=actor_id,
                                         receiver_id=subscriber,
                                         entity_identifier=issue_id,
                                         entity_name="issue",
@@ -645,6 +653,7 @@ def notifications(
                 project=project,
                 new_mentions=new_mentions,
                 removed_mention=removed_mention,
+                actor_id=actor_id,
             )
             # Bulk create notifications
             Notification.objects.bulk_create(bulk_notifications, batch_size=100)

@@ -101,6 +101,7 @@ class DocumentViewSet(BaseViewSet):
             }
         )
         instance.is_deleted = True
+        instance.updated_by = request.user
         instance.save()
         return Response(status=204)
 
@@ -112,6 +113,7 @@ class DocumentViewSet(BaseViewSet):
             }
         )
         instance.is_deleted = False
+        instance.updated_by = request.user
         instance.save()
         return Response(status=200)
 

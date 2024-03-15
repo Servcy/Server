@@ -205,6 +205,7 @@ class ProjectViewSet(BaseViewSet):
                                 group=state["group"],
                                 default=state.get("default", False),
                                 created_by=request.user,
+                                updated_by=request.user,
                             )
                             for state in DEFAULT_STATES
                         ]
@@ -343,6 +344,7 @@ class ProjectInvitationsViewset(BaseViewSet):
                         ),
                         role=email.get("role", ERole.MEMBER.value),
                         created_by=request.user,
+                        updated_by=request.user,
                     )
                 )
             except ValidationError:
@@ -421,6 +423,7 @@ class UserProjectInvitationsViewset(BaseViewSet):
                     ),
                     workspace=workspace,
                     created_by=request.user,
+                    updated_by=request.user,
                 )
                 for project_id in project_ids
             ],
@@ -434,6 +437,7 @@ class UserProjectInvitationsViewset(BaseViewSet):
                     user=request.user,
                     workspace=workspace,
                     created_by=request.user,
+                    updated_by=request.user,
                 )
                 for project_id in project_ids
             ],
@@ -631,6 +635,8 @@ class ProjectMemberViewSet(BaseViewSet):
                     user_id=member.get("member_id"),
                     project_id=project_id,
                     workspace_id=project.workspace_id,
+                    created_by=request.user,
+                    updated_by=request.user,
                 )
             )
 

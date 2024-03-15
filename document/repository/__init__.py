@@ -7,12 +7,6 @@ class DocumentRepository:
         return Document.objects.create(**kwargs)
 
     @staticmethod
-    def add_documents(documents: list[dict]):
-        return Document.objects.bulk_create(
-            [Document(**document) for document in documents]
-        )
-
-    @staticmethod
     def remove_documents(document_ids: list[int]):
         documents = Document.objects.filter(id__in=document_ids)
         for document in documents:

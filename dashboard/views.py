@@ -46,21 +46,28 @@ class DashboardEndpoint(BaseAPIView):
     def create(self, request, **kwargs):
         serializer = DashboardSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(
+                created_by=self.request.user,
+                updated_by=self.request.user,
+            )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def patch(self, request, **kwargs):
         serializer = DashboardSerializer(data=request.data, partial=True)
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(
+                updated_by=self.request.user,
+            )
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, **kwargs):
         serializer = DashboardSerializer(data=request.data, partial=True)
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(
+                updated_by=self.request.user,
+            )
             return Response(serializer.data, status=status.HTTP_204_NO_CONTENT)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -75,6 +82,8 @@ class DashboardEndpoint(BaseAPIView):
                 dashboard, created = Dashboard.objects.get_or_create(
                     type_identifier=dashboard_type,
                     owned_by=request.user,
+                    created_by=request.user,
+                    updated_by=request.user,
                     is_default=True,
                 )
 
@@ -100,6 +109,8 @@ class DashboardEndpoint(BaseAPIView):
                                 DashboardWidget(
                                     widget_id=widget,
                                     dashboard_id=dashboard.id,
+                                    created_by=request.user,
+                                    updated_by=request.user,
                                 )
                             )
 
@@ -193,6 +204,7 @@ class WidgetsEndpoint(BaseAPIView):
             "sort_order", dashboard_widget.sort_order
         )
         dashboard_widget.filters = request.data.get("filters", dashboard_widget.filters)
+        dashboard_widget.updated_by = request.user
         dashboard_widget.save()
         return Response({"message": "successfully updated"}, status=status.HTTP_200_OK)
 
@@ -373,7 +385,11 @@ class AnalyticViewViewset(BaseViewSet):
 
     def perform_create(self, serializer):
         workspace = Workspace.objects.get(slug=self.kwargs.get("workspace_slug"))
-        serializer.save(workspace_id=workspace.id)
+        serializer.save(
+            workspace_id=workspace.id,
+            created_by=self.request.user,
+            updated_by=self.request.user,
+        )
 
     def get_queryset(self):
         return self.filter_queryset(
