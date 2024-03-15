@@ -33,7 +33,7 @@ class Dashboard(TimeStampedModel, CreatorUpdaterModel):
         ordering = ("-created_at",)
 
 
-class Widget(TimeStampedModel, CreatorUpdaterModel):
+class Widget(TimeStampedModel):
     key = models.CharField(max_length=255)
     filters = models.JSONField(default=dict)
 
