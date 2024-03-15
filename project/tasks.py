@@ -1563,8 +1563,6 @@ def delete_draft_issue_activity(
             verb="deleted",
             actor_id=actor_id,
             created_by_id=actor_id,
-            created_by_id=actor_id,
-            updated_by_id=actor_id,
             updated_by_id=actor_id,
             epoch=epoch,
         )
