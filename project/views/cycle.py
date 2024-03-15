@@ -65,6 +65,8 @@ class CycleViewSet(BaseViewSet):
         serializer.save(
             project_id=self.kwargs.get("project_id"),
             owned_by=self.request.user,
+            created_by=self.request.user,
+            updated_by=self.request.user,
         )
 
     def get_queryset(self):
@@ -361,6 +363,8 @@ class CycleViewSet(BaseViewSet):
                 serializer.save(
                     project_id=project_id,
                     owned_by=request.user,
+                    created_by=self.request.user,
+                    updated_by=self.request.user,
                 )
                 cycle = (
                     self.get_queryset()
@@ -928,7 +932,12 @@ class CycleFavoriteViewSet(BaseViewSet):
     def create(self, request, workspace_slug, project_id):
         serializer = CycleFavoriteSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(user=request.user, project_id=project_id)
+            serializer.save(
+                user=request.user,
+                project_id=project_id,
+                created_by=self.request.user,
+                updated_by=self.request.user,
+            )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

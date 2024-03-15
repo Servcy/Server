@@ -67,7 +67,11 @@ class BulkEstimatePointEndpoint(BaseViewSet):
             return Response(
                 estimate_serializer.errors, status=status.HTTP_400_BAD_REQUEST
             )
-        estimate = estimate_serializer.save(project_id=project_id)
+        estimate = estimate_serializer.save(
+            project_id=project_id,
+            created_by=self.request.user,
+            updated_by=self.request.user,
+        )
         estimate_points = EstimatePoint.objects.bulk_create(
             [
                 EstimatePoint(
@@ -129,7 +133,9 @@ class BulkEstimatePointEndpoint(BaseViewSet):
                 estimate_serializer.errors, status=status.HTTP_400_BAD_REQUEST
             )
 
-        estimate = estimate_serializer.save()
+        estimate = estimate_serializer.save(
+            updated_by=self.request.user,
+        )
 
         estimate_points_data = request.data.get("estimate_points", [])
 

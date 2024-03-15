@@ -164,7 +164,10 @@ class ModuleViewSet(BaseViewSet):
         )
 
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(
+                created_by=self.request.user,
+                updated_by=self.request.user,
+            )
 
             module = (
                 self.get_queryset()
@@ -360,7 +363,9 @@ class ModuleViewSet(BaseViewSet):
         )
 
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(
+                updated_by=self.request.user,
+            )
             module = queryset.values(
                 # Required fields
                 "id",
@@ -641,6 +646,8 @@ class ModuleLinkViewSet(BaseViewSet):
         serializer.save(
             project_id=self.kwargs.get("project_id"),
             module_id=self.kwargs.get("module_id"),
+            created_by=self.request.user,
+            updated_by=self.request.user,
         )
 
     def get_queryset(self):
@@ -675,7 +682,12 @@ class ModuleFavoriteViewSet(BaseViewSet):
     def create(self, request, workspace_slug, project_id):
         serializer = ModuleFavoriteSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(user=request.user, project_id=project_id)
+            serializer.save(
+                user=request.user,
+                project_id=project_id,
+                created_by=self.request.user,
+                updated_by=self.request.user,
+            )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

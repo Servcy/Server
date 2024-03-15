@@ -448,7 +448,10 @@ class IssueViewSet(BaseViewSet):
         )
 
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(
+                created_by=self.request.user,
+                updated_by=self.request.user,
+            )
 
             # Track the issue
             issue_activity.delay(
@@ -554,7 +557,9 @@ class IssueViewSet(BaseViewSet):
         requested_data = json.dumps(self.request.data, cls=DjangoJSONEncoder)
         serializer = IssueCreateSerializer(issue, data=request.data, partial=True)
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(
+                updated_by=self.request.user,
+            )
             issue_activity.delay(
                 type="issue.activity.updated",
                 requested_data=requested_data,
@@ -690,6 +695,8 @@ class IssueCommentViewSet(BaseViewSet):
                 project_id=project_id,
                 issue_id=issue_id,
                 actor=request.user,
+                created_by=self.request.user,
+                updated_by=self.request.user,
             )
             issue_activity.delay(
                 type="comment.activity.created",
@@ -720,7 +727,9 @@ class IssueCommentViewSet(BaseViewSet):
             issue_comment, data=request.data, partial=True
         )
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(
+                updated_by=self.request.user,
+            )
             issue_activity.delay(
                 type="comment.activity.updated",
                 requested_data=requested_data,
@@ -800,7 +809,11 @@ class LabelViewSet(BaseViewSet):
         try:
             serializer = LabelSerializer(data=request.data)
             if serializer.is_valid():
-                serializer.save(project_id=project_id)
+                serializer.save(
+                    project_id=project_id,
+                    created_by=self.request.user,
+                    updated_by=self.request.user,
+                )
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except IntegrityError:
@@ -1040,6 +1053,8 @@ class IssueLinkViewSet(BaseViewSet):
             serializer.save(
                 project_id=project_id,
                 issue_id=issue_id,
+                created_by=self.request.user,
+                updated_by=self.request.user,
             )
             issue_activity.delay(
                 type="link.activity.created",
@@ -1146,7 +1161,12 @@ class IssueAttachmentEndpoint(BaseAPIView):
     def post(self, request, workspace_slug, project_id, issue_id):
         serializer = IssueAttachmentSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(project_id=project_id, issue_id=issue_id)
+            serializer.save(
+                project_id=project_id,
+                issue_id=issue_id,
+                created_by=self.request.user,
+                updated_by=self.request.user,
+            )
             issue_activity.delay(
                 type="attachment.activity.created",
                 requested_data=None,
@@ -1574,6 +1594,8 @@ class IssueReactionViewSet(BaseViewSet):
             serializer.save(
                 issue_id=issue_id,
                 project_id=project_id,
+                created_by=self.request.user,
+                updated_by=self.request.user,
                 actor=request.user,
             )
             issue_activity.delay(
@@ -1643,6 +1665,8 @@ class CommentReactionViewSet(BaseViewSet):
         if serializer.is_valid():
             serializer.save(
                 project_id=project_id,
+                created_by=self.request.user,
+                updated_by=self.request.user,
                 actor_id=request.user.id,
                 comment_id=comment_id,
             )
@@ -2048,7 +2072,11 @@ class IssueDraftViewSet(BaseViewSet):
         )
 
         if serializer.is_valid():
-            serializer.save(is_draft=True)
+            serializer.save(
+                is_draft=True,
+                created_by=self.request.user,
+                updated_by=self.request.user,
+            )
 
             # Track the issue
             issue_activity.delay(
