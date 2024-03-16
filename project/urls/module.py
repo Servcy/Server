@@ -104,7 +104,7 @@ urlpatterns = [
         name="user-favorite-module",
     ),
     path(
-        "<str:workspace_slug>/<int:project_id>/modules/<int:module_id>/user/properties/",
+        "<str:workspace_slug>/<int:project_id>/modules/<int:module_id>/user-properties/",
         ModuleUserPropertiesEndpoint.as_view(),
         name="cycle-user-filters",
     ),
