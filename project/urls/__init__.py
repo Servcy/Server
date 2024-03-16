@@ -1,6 +1,3 @@
-from django.urls import include, path
-from rest_framework import routers
-
 from .cycle import urlpatterns as cycle_urls
 from .estimate import urlpatterns as estimate_urls
 from .external import urlpatterns as external_urls
@@ -15,10 +12,7 @@ from .workspace import urlpatterns as workspace_urls
 
 urlpatterns = []
 
-router = routers.DefaultRouter(trailing_slash=False)
-
 urlpatterns = [
-    path("", include(router.urls)),
     *cycle_urls,
     *estimate_urls,
     *external_urls,

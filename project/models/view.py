@@ -40,6 +40,12 @@ class IssueView(ProjectBaseModel):
     description = models.TextField(verbose_name="View Description", blank=True)
     query = models.JSONField(verbose_name="View Query")
     filters = models.JSONField(default=dict)
+    project = models.ForeignKey(
+        "project.Project",
+        models.CASCADE,
+        related_name="project_%(class)s",
+        null=True,
+    )
     display_filters = models.JSONField(default=dict)
     display_properties = models.JSONField(default=dict)
     access = models.PositiveSmallIntegerField(
