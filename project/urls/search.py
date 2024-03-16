@@ -4,7 +4,7 @@ from project.views import GlobalSearchEndpoint, IssueSearchEndpoint
 
 urlpatterns = [
     path(
-        "<str:workspace_slug>/search/",
+        "<str:workspace_slug>/search",
         GlobalSearchEndpoint.as_view(),
         name="global-search",
     ),
