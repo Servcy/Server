@@ -2,11 +2,10 @@ import jwt
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.db.models import Exists, F, Func, OuterRef, Prefetch, Q, Subquery
 from django.utils import timezone
 from rest_framework import serializers, status
-from django.db import transaction
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
@@ -16,10 +15,10 @@ from common.permissions import (
     ProjectMemberPermission,
     WorkspaceUserPermission,
 )
+from common.states import DEFAULT_STATES
 from common.views import BaseAPIView, BaseViewSet
 from iam.enums import EAccess, ERole
 from iam.models import User, Workspace, WorkspaceMember
-from common.states import DEFAULT_STATES
 from project.models import (
     Cycle,
     IssueProperty,
