@@ -25,7 +25,7 @@ urlpatterns = [
         name="project-state",
     ),
     path(
-        "<str:workspace_slug>/<int:project_id>/states/<int:pk>/mark/default",
+        "<str:workspace_slug>/<int:project_id>/states/<int:pk>/mark-default",
         StateViewSet.as_view(
             {
                 "post": "mark_as_default",

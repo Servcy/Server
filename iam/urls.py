@@ -42,17 +42,17 @@ urlpatterns = [
         name="user-onboard",
     ),
     path(
-        "me/tour/completed",
+        "me/tour-completed",
         UpdateUserTourCompletedEndpoint.as_view(),
         name="user-tour",
     ),
     path(
-        "me/last/visited/workspace/project",
+        "me/last-visited-workspace",
         UserLastProjectWithWorkspaceEndpoint.as_view(),
         name="workspace-project-details",
     ),
     path(
-        "workspace/slug/check",
+        "workspace-slug-check",
         WorkSpaceAvailabilityCheckEndpoint.as_view(),
         name="workspace-availability",
     ),

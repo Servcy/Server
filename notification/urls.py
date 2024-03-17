@@ -13,7 +13,7 @@ router = routers.DefaultRouter(trailing_slash=False)
 urlpatterns = [
     path("", include(router.urls)),
     path(
-        "me/preferences",
+        "preferences",
         UserNotificationPreferenceEndpoint.as_view(),
         name="user-notification-preferences",
     ),

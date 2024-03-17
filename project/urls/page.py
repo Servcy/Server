@@ -30,7 +30,7 @@ urlpatterns = [
         name="project-pages",
     ),
     path(
-        "<str:workspace_slug>/<int:project_id>/pages/favorite/",
+        "<str:workspace_slug>/<int:project_id>/favorite-pages/",
         PageFavoriteViewSet.as_view(
             {
                 "get": "list",

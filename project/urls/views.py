@@ -62,7 +62,7 @@ urlpatterns = [
         name="global-view-issues",
     ),
     path(
-        "<str:workspace_slug>/<int:project_id>/views/favorite/",
+        "<str:workspace_slug>/<int:project_id>/favorite-view/",
         IssueViewFavoriteViewSet.as_view(
             {
                 "get": "list",
