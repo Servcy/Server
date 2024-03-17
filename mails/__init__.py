@@ -1,6 +1,6 @@
 from django.conf import settings
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Attachment, Mail
+from sendgrid import SendGridAPIClient, file_name
+from sendgrid.helpers.mail import Attachment, Mail, disposition, file_type
 
 SENDGRID_API_KEY = settings.SENDGRID_API_KEY
 SEND_EMAIL_ENDPOINT = settings.SEND_EMAIL_ENDPOINT
@@ -66,10 +66,11 @@ class SendGridEmail:
         message.template_id = SENDGRID_ANALYTICS_EXPORT_TEMPLATE_ID
         message.add_attachment(
             Attachment(
-                FileContent=csv_buffer.getvalue(),
-                FileName=f"{slug}_Analytics.csv",
-                FileType="text/csv",
-                Disposition="attachment",
+                csv_buffer.getvalue(),
+                f"{slug}_Analytics.csv",
+                "text/csv",
+                "attachment",
+                None,
             )
         )
         response = self.client.send(message)
