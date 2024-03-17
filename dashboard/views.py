@@ -15,13 +15,9 @@ from rest_framework import status
 from common.analytics_plot import ExtractMonth, build_graph_plot
 from common.permissions import WorkSpaceAdminPermission
 from common.responses import Response, error_response
-from common.views import BaseAPIView, BaseViewSet
-from dashboard.models import Analytic, Dashboard, DashboardWidget, Widget
-from dashboard.serializers import (
-    AnalyticSerializer,
-    DashboardSerializer,
-    WidgetSerializer,
-)
+from common.views import BaseAPIView
+from dashboard.models import Dashboard, DashboardWidget, Widget
+from dashboard.serializers import DashboardSerializer, WidgetSerializer
 from dashboard.tasks import analytics_export_task
 from dashboard.utils import (
     dashboard_assigned_issues,
@@ -210,11 +206,7 @@ class WidgetsEndpoint(BaseAPIView):
         return Response({"message": "successfully updated"}, status=status.HTTP_200_OK)
 
 
-class AnalyticsEndpoint(BaseAPIView):
-    """
-    AnalyticsEndpoint allows to get the analytics for the workspace
-    """
-
+class WorkspaceStatsEndpoint(BaseAPIView):
     permission_classes = [
         WorkSpaceAdminPermission,
     ]
@@ -373,38 +365,7 @@ class AnalyticsEndpoint(BaseAPIView):
         )
 
 
-class AnalyticViewViewset(BaseViewSet):
-    """
-    AnalyticViewViewset allows to perform CRUD operations on Analytic model
-    """
-
-    permission_classes = [
-        WorkSpaceAdminPermission,
-    ]
-    model = Analytic
-    serializer_class = AnalyticSerializer
-
-    def perform_create(self, serializer):
-        workspace = Workspace.objects.get(slug=self.kwargs.get("workspace_slug"))
-        serializer.save(
-            workspace_id=workspace.id,
-            created_by=self.request.user,
-            updated_by=self.request.user,
-        )
-
-    def get_queryset(self):
-        return self.filter_queryset(
-            super()
-            .get_queryset()
-            .filter(workspace__slug=self.kwargs.get("workspace_slug"))
-        )
-
-
-class DefaultAnalyticsEndpoint(BaseAPIView):
-    """
-    Get the default analytics for the workspace
-    """
-
+class DefaultWorkspaceStatsEndpoint(BaseAPIView):
     permission_classes = [
         WorkSpaceAdminPermission,
     ]

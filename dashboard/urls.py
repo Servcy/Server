@@ -1,12 +1,11 @@
 from django.urls import path
 
 from dashboard.views import (
-    AnalyticsEndpoint,
-    AnalyticViewViewset,
     DashboardEndpoint,
-    DefaultAnalyticsEndpoint,
+    DefaultWorkspaceStatsEndpoint,
     ExportAnalyticsEndpoint,
     WidgetsEndpoint,
+    WorkspaceStatsEndpoint,
 )
 
 urlpatterns = [
@@ -30,22 +29,17 @@ urlpatterns = [
     # Analytics
     path(
         "<str:workspace_slug>/analytics",
-        AnalyticsEndpoint.as_view(),
+        WorkspaceStatsEndpoint.as_view(),
         name="servcy-analytics",
     ),
     path(
-        "<str:workspace_slug>/analytics/export",
+        "<str:workspace_slug>/export-analytics",
         ExportAnalyticsEndpoint.as_view(),
         name="export-analytics",
     ),
     path(
-        "<str:workspace_slug>/analytics/view",
-        AnalyticViewViewset.as_view({"get": "list", "post": "create"}),
-        name="analytic-view",
-    ),
-    path(
-        "<str:workspace_slug>/analytics/default",
-        DefaultAnalyticsEndpoint.as_view(),
+        "<str:workspace_slug>/default-analytics",
+        DefaultWorkspaceStatsEndpoint.as_view(),
         name="default-analytics",
     ),
 ]

@@ -66,19 +66,3 @@ class DashboardWidget(TimeStampedModel, CreatorUpdaterModel):
         verbose_name_plural = "Dashboard Widgets"
         db_table = "dashboard_widget"
         ordering = ("-created_at",)
-
-
-class Analytic(TimeStampedModel, CreatorUpdaterModel):
-    workspace = models.ForeignKey(
-        "iam.Workspace", related_name="analytics", on_delete=models.CASCADE
-    )
-    name = models.CharField(max_length=255)
-    description = models.TextField(blank=True)
-    query = models.JSONField()
-    query_dict = models.JSONField(default=dict)
-
-    class Meta:
-        verbose_name = "Analytic"
-        verbose_name_plural = "Analytics"
-        db_table = "analytic"
-        ordering = ("-created_at",)
