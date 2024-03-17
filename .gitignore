@@ -10,6 +10,7 @@
 # Editors
 .idea
 *.vscode
+.zed
 
 # Project
 servcy/__pycache__/*.*
