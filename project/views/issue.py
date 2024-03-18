@@ -35,6 +35,7 @@ from common.permissions import (
     ProjectMemberPermission,
 )
 from common.views import BaseAPIView, BaseViewSet
+from iam.enums import ERole
 from project.models import (
     CommentReaction,
     Issue,
@@ -841,12 +842,24 @@ class LabelViewSet(BaseViewSet):
 
 
 class BulkDeleteIssuesEndpoint(BaseAPIView):
-    permission_classes = [
-        ProjectEntityPermission,
-    ]
-
     def delete(self, request, workspace_slug):
-        issue_ids = request.data.get("issue_ids", [])
+        data = request.data
+        not_enough_permissions = False
+        issue_ids = []
+        for project_id in data:
+            if (
+                not ProjectMember.objects.filter(
+                    workspace__slug=workspace_slug,
+                    member=request.user,
+                    project_id=project_id,
+                    is_active=True,
+                )
+                .exclude(role=ERole.GUEST.value)
+                .exists()
+            ):
+                not_enough_permissions = True
+                continue
+            issue_ids.extend(data[project_id])
 
         if not len(issue_ids):
             return Response(
@@ -864,7 +877,9 @@ class BulkDeleteIssuesEndpoint(BaseAPIView):
 
         return Response(
             {"message": f"{total_issues} issues were deleted"},
-            status=status.HTTP_200_OK,
+            status=status.HTTP_200_OK
+            if not not_enough_permissions
+            else status.HTTP_403_FORBIDDEN,
         )
 
 
