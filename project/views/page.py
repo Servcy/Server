@@ -19,14 +19,15 @@ from project.serializers import (
 
 
 def unarchive_archive_page_and_descendants(page_id, archived_at):
-    # Your SQL query
+    # TODO: Use Django ORM to update the page and its descendants
+    # DANGER: This is a raw SQL query and should be used with caution
     sql = """
     WITH RECURSIVE descendants AS (
-        SELECT id FROM pages WHERE id = %s
+        SELECT id FROM page WHERE id = %s
         UNION ALL
-        SELECT pages.id FROM pages, descendants WHERE pages.parent_id = descendants.id
+        SELECT page.id FROM page, descendants WHERE page.parent_id = descendants.id
     )
-    UPDATE pages SET archived_at = %s WHERE id IN (SELECT id FROM descendants);
+    UPDATE page SET archived_at = %s WHERE id IN (SELECT id FROM descendants);
     """
 
     # Execute the SQL query
