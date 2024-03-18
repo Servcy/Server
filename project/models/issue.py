@@ -255,7 +255,7 @@ class IssueLink(ProjectBaseModel):
 
 class IssueAttachment(ProjectBaseModel):
     meta_data = models.JSONField(default=dict)
-    asset = models.FileField(
+    file = models.FileField(
         upload_to=upload_path,
         validators=[
             file_size_validator,
