@@ -845,7 +845,7 @@ class BulkDeleteIssuesEndpoint(BaseAPIView):
         ProjectEntityPermission,
     ]
 
-    def delete(self, request, workspace_slug, project_id):
+    def delete(self, request, workspace_slug):
         issue_ids = request.data.get("issue_ids", [])
 
         if not len(issue_ids):
@@ -855,7 +855,7 @@ class BulkDeleteIssuesEndpoint(BaseAPIView):
             )
 
         issues = Issue.issue_objects.filter(
-            workspace__slug=workspace_slug, project_id=project_id, pk__in=issue_ids
+            workspace__slug=workspace_slug, pk__in=issue_ids
         )
 
         total_issues = len(issues)
