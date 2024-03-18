@@ -76,9 +76,9 @@ urlpatterns = [
         name="project-bulk-labels",
     ),
     path(
-        "<str:workspace_slug>/<int:project_id>/issues/delete/",
+        "<str:workspace_slug>/issues/delete/",
         BulkDeleteIssuesEndpoint.as_view(),
-        name="project-issues-bulk",
+        name="delete-issues-bulk",
     ),
     path(
         "<str:workspace_slug>/<int:project_id>/issues/<int:issue_id>/sub/",
