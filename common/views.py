@@ -212,10 +212,13 @@ class BaseAPIView(TimezoneMixin, APIView, BasePaginator):
     @property
     def project_id(self):
         project_id = self.kwargs.get("project_id", None)
+        path_info = self.request.path_info
         if project_id:
             return project_id
-        if resolve(self.request.path_info).url_name == "project":
+        if resolve(path_info).url_name == "project":
             return self.kwargs.get("pk", None)
+        if self.request.method == "GET":
+            return self.request.query_params.get("project_id", None)
 
     @property
     def fields(self):

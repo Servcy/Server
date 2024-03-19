@@ -211,7 +211,7 @@ class WidgetsEndpoint(BaseAPIView):
 
 class WorkspaceStatsEndpoint(BaseAPIView):
     permission_classes = [
-        WorkSpaceAdminPermission,
+        WorkspaceOrProjectAdminPermission,
     ]
 
     def get(self, request, workspace_slug):
