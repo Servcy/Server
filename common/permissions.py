@@ -174,7 +174,7 @@ class WorkspaceOrProjectAdminPermission(BasePermission):
         if not project_id:
             return WorkspaceMember.objects.filter(
                 member=request.user,
-                workspace__slug=view.workspace_slug,
+                workspace__slug=workspace_slug,
                 role=ERole.ADMIN.value,
                 is_active=True,
             ).exists()
@@ -182,16 +182,16 @@ class WorkspaceOrProjectAdminPermission(BasePermission):
         return (
             WorkspaceMember.objects.filter(
                 member=request.user,
-                workspace__slug=view.workspace_slug,
+                workspace__slug=workspace_slug,
                 role=ERole.ADMIN.value,
                 is_active=True,
             ).exists()
             or ProjectMember.objects.filter(
                 member=request.user,
-                workspace__slug=view.workspace_slug,
+                workspace__slug=workspace_slug,
                 role=ERole.ADMIN.value,
                 is_active=True,
-                project_id=view.project_id,
+                project_id=project_id,
             ).exists()
         )
 
