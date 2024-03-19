@@ -130,6 +130,7 @@ class UserLiteSerializer(ServcyBaseSerializer):
             "id",
             "first_name",
             "last_name",
+            "display_name",
             "avatar",
         ]
         read_only_fields = [
