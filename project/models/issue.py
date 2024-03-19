@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
-from django.core.validators import MaxValueValidator, MinValueValidator
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -38,7 +38,7 @@ class Issue(ProjectBaseModel):
         related_name="state_issue",
     )
     estimate_point = models.IntegerField(
-        validators=[MinValueValidator(0), MaxValueValidator(7)],
+        validators=[MinValueValidator(0)],
         null=True,
         blank=True,
     )
