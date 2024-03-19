@@ -76,7 +76,7 @@ def get_removed_mentions(requested_instance, current_instance):
     return removed_mentions
 
 
-def extract_mentions_as_subscribers(project_id, issue_id, mentions):
+def extract_mentions_as_subscribers(project_id, issue_id, mentions, actor_id):
     """
     This function is used to extract the mentions as subscribers
     - project_id is the id of the project
@@ -107,6 +107,8 @@ def extract_mentions_as_subscribers(project_id, issue_id, mentions):
                     project_id=project_id,
                     issue_id=issue_id,
                     subscriber_id=mention_id,
+                    created_by_id=actor_id,
+                    updated_by_id=actor_id,
                 )
             )
     return bulk_mention_subscribers
@@ -268,6 +270,7 @@ def notifications(
                 project_id=project_id,
                 issue_id=issue_id,
                 mentions=requested_mentions,
+                actor_id=actor_id,
             )
             for issue_activity in issue_activities_created:
                 issue_comment = issue_activity.get("issue_comment")
@@ -287,6 +290,7 @@ def notifications(
                 project_id=project_id,
                 issue_id=issue_id,
                 mentions=all_comment_mentions,
+                actor_id=actor_id,
             )
             """
             We will not send subscription activity notification to the below mentioned user sets
@@ -455,8 +459,6 @@ def notifications(
                 mention_subscribers + comment_mention_subscribers,
                 batch_size=100,
                 ignore_conflicts=True,
-                created_by_id=actor_id,
-                updated_by_id=actor_id,
             )
             last_activity = (
                 IssueActivity.objects.filter(issue_id=issue_id)
