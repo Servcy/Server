@@ -1,6 +1,9 @@
+import base64
+import io
+
 from django.conf import settings
-from sendgrid import SendGridAPIClient, file_name
-from sendgrid.helpers.mail import Attachment, Mail, disposition, file_type
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Attachment, Mail
 
 SENDGRID_API_KEY = settings.SENDGRID_API_KEY
 SEND_EMAIL_ENDPOINT = settings.SEND_EMAIL_ENDPOINT
@@ -50,12 +53,12 @@ class SendGridEmail:
         response = self.client.send(message)
         return response.status_code
 
-    def send_analytics_export(self, slug, csv_buffer):
+    def send_analytics_export(self, slug, csv_buffer: io.StringIO):
         """
         Send an email with the analytics export
         """
-        if settings.DEBUG:
-            return 200
+        # if settings.DEBUG:
+        #     return 200
         message = Mail(
             from_email=self.from_email,
             to_emails=self.to_email,
@@ -66,7 +69,7 @@ class SendGridEmail:
         message.template_id = SENDGRID_ANALYTICS_EXPORT_TEMPLATE_ID
         message.add_attachment(
             Attachment(
-                csv_buffer.getvalue(),
+                base64.b64encode(csv_buffer.getvalue().encode()).decode(),
                 f"{slug}_Analytics.csv",
                 "text/csv",
                 "attachment",
