@@ -163,6 +163,39 @@ class WorkSpaceAdminPermission(BasePermission):
         ).exists()
 
 
+class WorkspaceOrProjectAdminPermission(BasePermission):
+    def has_permission(self, request, view):
+        if request.user.is_anonymous:
+            return False
+
+        project_id = view.project_id
+        workspace_slug = view.workspace_slug
+
+        if not project_id:
+            return WorkspaceMember.objects.filter(
+                member=request.user,
+                workspace__slug=view.workspace_slug,
+                role=ERole.ADMIN.value,
+                is_active=True,
+            ).exists()
+
+        return (
+            WorkspaceMember.objects.filter(
+                member=request.user,
+                workspace__slug=view.workspace_slug,
+                role=ERole.ADMIN.value,
+                is_active=True,
+            ).exists()
+            or ProjectMember.objects.filter(
+                member=request.user,
+                workspace__slug=view.workspace_slug,
+                role=ERole.ADMIN.value,
+                is_active=True,
+                project_id=view.project_id,
+            ).exists()
+        )
+
+
 class WorkspaceEntityPermission(BasePermission):
     def has_permission(self, request, view):
         if request.user.is_anonymous:

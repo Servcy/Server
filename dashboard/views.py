@@ -13,7 +13,10 @@ from django.utils import timezone
 from rest_framework import status
 
 from common.analytics_plot import ExtractMonth, build_graph_plot
-from common.permissions import WorkSpaceAdminPermission
+from common.permissions import (
+    WorkSpaceAdminPermission,
+    WorkspaceOrProjectAdminPermission,
+)
 from common.responses import Response, error_response
 from common.views import BaseAPIView
 from dashboard.models import Dashboard, DashboardWidget, Widget
@@ -367,7 +370,7 @@ class WorkspaceStatsEndpoint(BaseAPIView):
 
 class DefaultWorkspaceStatsEndpoint(BaseAPIView):
     permission_classes = [
-        WorkSpaceAdminPermission,
+        WorkspaceOrProjectAdminPermission,
     ]
 
     def get(self, request, workspace_slug):
