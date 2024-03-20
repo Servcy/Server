@@ -1,3 +1,4 @@
+from enum import unique
 import random
 import string
 
@@ -149,6 +150,7 @@ class WorkspaceMember(TimeStampedModel, CreatorUpdaterModel):
 
     class Meta:
         db_table = "workspace_member"
+        unique_together = ("member", "workspace")
         verbose_name = "Workspace Member"
         verbose_name_plural = "Workspace Members"
 
