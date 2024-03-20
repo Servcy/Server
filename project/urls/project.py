@@ -4,7 +4,6 @@ from project.views import (
     ProjectDeployBoardViewSet,
     ProjectFavoritesViewSet,
     ProjectIdentifierEndpoint,
-    ProjectInvitationsViewset,
     ProjectJoinEndpoint,
     ProjectMemberUserEndpoint,
     ProjectMemberViewSet,
@@ -43,30 +42,9 @@ urlpatterns = [
         name="project-identifiers",
     ),
     path(
-        "<str:workspace_slug>/<int:project_id>/invitations/",
-        ProjectInvitationsViewset.as_view(
-            {
-                "get": "list",
-                "post": "create",
-            },
-        ),
-        name="project-member-invite",
-    ),
-    path(
-        "<str:workspace_slug>/<int:project_id>/invitations/<int:pk>/",
-        ProjectInvitationsViewset.as_view(
-            {
-                "get": "retrieve",
-                "delete": "destroy",
-            }
-        ),
-        name="project-member-invite",
-    ),
-    path(
         "me/<str:workspace_slug>/invitations/",
         UserProjectInvitationsViewset.as_view(
             {
-                "get": "list",
                 "post": "create",
             },
         ),

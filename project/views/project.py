@@ -284,123 +284,7 @@ class ProjectViewSet(BaseViewSet):
             )
 
 
-class ProjectInvitationsViewset(BaseViewSet):
-    serializer_class = ProjectMemberInviteSerializer
-    model = ProjectMemberInvite
-
-    search_fields = []
-
-    permission_classes = [
-        ProjectBasePermission,
-    ]
-
-    def get_queryset(self):
-        return self.filter_queryset(
-            super()
-            .get_queryset()
-            .filter(workspace__slug=self.kwargs.get("workspace_slug"))
-            .filter(project_id=self.kwargs.get("project_id"))
-            .select_related("project")
-            .select_related("workspace", "workspace__owner")
-        )
-
-    def create(self, request, workspace_slug, project_id):
-        emails = request.data.get("emails", [])
-
-        # Check if email is provided
-        if not emails:
-            return Response(
-                {"error": "Emails are required"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        requesting_user = ProjectMember.objects.get(
-            workspace__slug=workspace_slug,
-            project_id=project_id,
-            member_id=request.user.id,
-        )
-
-        # Check if any invited user has an higher role
-        if len(
-            [
-                email
-                for email in emails
-                if int(email.get("role", ERole.MEMBER.value)) > requesting_user.role
-            ]
-        ):
-            return Response(
-                {"error": "You cannot invite a user with higher role"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        workspace = Workspace.objects.get(slug=workspace_slug)
-
-        project_invitations = []
-        for email in emails:
-            try:
-                validate_email(email.get("email"))
-                project_invitations.append(
-                    ProjectMemberInvite(
-                        email=email.get("email").strip().lower(),
-                        project_id=project_id,
-                        workspace_id=workspace.id,
-                        token=jwt.encode(
-                            {
-                                "email": email,
-                                "timestamp": timezone.now().timestamp(),
-                            },
-                            settings.SECRET_KEY,
-                            algorithm="HS256",
-                        ),
-                        role=email.get("role", ERole.MEMBER.value),
-                        created_by=request.user,
-                        updated_by=request.user,
-                    )
-                )
-            except ValidationError:
-                return Response(
-                    {
-                        "error": f"Invalid email - {email} provided a valid email address is required to send the invite"
-                    },
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-        # Create workspace member invite
-        project_invitations = ProjectMemberInvite.objects.bulk_create(
-            project_invitations, batch_size=1, ignore_conflicts=True
-        )
-        current_site = request.META.get("HTTP_ORIGIN")
-
-        # Send invitations
-        for invitation in project_invitations:
-            project_invitations.delay(
-                invitation.email,
-                project_id,
-                invitation.token,
-                current_site,
-                request.user.email,
-            )
-
-        return Response(
-            {
-                "message": "Email sent successfully",
-            },
-            status=status.HTTP_200_OK,
-        )
-
-
 class UserProjectInvitationsViewset(BaseViewSet):
-    serializer_class = ProjectMemberInviteSerializer
-    model = ProjectMemberInvite
-
-    def get_queryset(self):
-        return self.filter_queryset(
-            super()
-            .get_queryset()
-            .filter(email=self.request.user.email)
-            .select_related("workspace", "workspace__owner", "project")
-        )
-
     def create(self, request, workspace_slug):
         project_ids = request.data.get("project_ids", [])
 
@@ -415,7 +299,7 @@ class UserProjectInvitationsViewset(BaseViewSet):
         workspace = workspace_member.workspace
 
         # If the user was already part of workspace
-        _ = ProjectMember.objects.filter(
+        ProjectMember.objects.filter(
             workspace__slug=workspace_slug,
             project_id__in=project_ids,
             member=request.user,
