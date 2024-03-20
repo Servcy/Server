@@ -99,28 +99,6 @@ class ProjectBaseModel(CreatorUpdaterModel, TimeStampedModel):
         super(ProjectBaseModel, self).save(*args, **kwargs)
 
 
-class ProjectMemberInvite(ProjectBaseModel):
-    email = models.CharField(max_length=255)
-    accepted = models.BooleanField(default=False)
-    token = models.CharField(max_length=255)
-    role = models.PositiveSmallIntegerField(
-        choices=(
-            (2, "Admin"),
-            (1, "Member"),
-            (0, "Guest"),
-        ),
-        default=1,
-    )
-    message = models.TextField(null=True)
-    responded_at = models.DateTimeField(null=True)
-
-    class Meta:
-        verbose_name = "Project Member Invite"
-        verbose_name_plural = "Project Member Invites"
-        db_table = "project_member_invite"
-        ordering = ("-created_at",)
-
-
 class ProjectMember(ProjectBaseModel):
     member = models.ForeignKey(
         settings.AUTH_USER_MODEL,

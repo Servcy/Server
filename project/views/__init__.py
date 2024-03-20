@@ -39,8 +39,6 @@ from .project import (
     ProjectDeployBoardViewSet,
     ProjectFavoritesViewSet,
     ProjectIdentifierEndpoint,
-    ProjectInvitationsViewset,
-    ProjectJoinEndpoint,
     ProjectMemberUserEndpoint,
     ProjectMemberViewSet,
     ProjectUserViewsEndpoint,

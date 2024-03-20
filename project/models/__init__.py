@@ -34,7 +34,6 @@ from .project import (
     ProjectFavorite,
     ProjectIdentifier,
     ProjectMember,
-    ProjectMemberInvite,
     ProjectPublicMember,
 )
 from .state import State
