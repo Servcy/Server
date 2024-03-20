@@ -12,7 +12,6 @@ from project.models import (
     ProjectFavorite,
     ProjectIdentifier,
     ProjectMember,
-    ProjectMemberInvite,
     ProjectPublicMember,
 )
 
@@ -165,15 +164,6 @@ class ProjectMemberRoleSerializer(ServcyDynamicBaseSerializer):
     class Meta:
         model = ProjectMember
         fields = ("id", "role", "member", "project")
-
-
-class ProjectMemberInviteSerializer(ServcyBaseSerializer):
-    project = ProjectLiteSerializer(read_only=True)
-    workspace = WorkspaceLiteSerializer(read_only=True)
-
-    class Meta:
-        model = ProjectMemberInvite
-        fields = "__all__"
 
 
 class ProjectIdentifierSerializer(ServcyBaseSerializer):

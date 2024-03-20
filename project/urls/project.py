@@ -4,7 +4,6 @@ from project.views import (
     ProjectDeployBoardViewSet,
     ProjectFavoritesViewSet,
     ProjectIdentifierEndpoint,
-    ProjectJoinEndpoint,
     ProjectMemberUserEndpoint,
     ProjectMemberViewSet,
     ProjectUserViewsEndpoint,
@@ -54,11 +53,6 @@ urlpatterns = [
         "me/<str:workspace_slug>/project-roles/",
         UserProjectRolesEndpoint.as_view(),
         name="user-project-roles",
-    ),
-    path(
-        "<str:workspace_slug>/<int:project_id>/join/<int:pk>/",
-        ProjectJoinEndpoint.as_view(),
-        name="project-join",
     ),
     path(
         "<str:workspace_slug>/<int:project_id>/members/",
