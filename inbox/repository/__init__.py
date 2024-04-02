@@ -61,6 +61,26 @@ class InboxRepository:
         """
         Get unread count of the user.
         """
-        return Inbox.objects.filter(
-            user_integration__user_id=user_id, is_read=False, is_archived=False
+        unread_messages = Inbox.objects.filter(
+            user_integration__user_id=user_id,
+            is_read=False,
+            is_archived=False,
+            category="message",
         ).count()
+        unread_notifications = Inbox.objects.filter(
+            user_integration__user_id=user_id,
+            is_read=False,
+            is_archived=False,
+            category="notification",
+        ).count()
+        unread_comments = Inbox.objects.filter(
+            user_integration__user_id=user_id,
+            is_read=False,
+            is_archived=False,
+            category="comment",
+        ).count()
+        return {
+            "message": unread_messages,
+            "notification": unread_notifications,
+            "comment": unread_comments,
+        }

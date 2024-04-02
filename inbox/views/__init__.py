@@ -48,7 +48,7 @@ class InboxViewSet(BaseViewSet):
             inbox_service = InboxService(user=user, user_id=user_id)
             count = inbox_service.get_unread_count()
             return success_response(
-                results={"count": count},
+                results=count,
                 success_message="Unread count fetched successfully",
                 status=status.HTTP_200_OK,
             )
