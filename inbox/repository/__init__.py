@@ -57,7 +57,7 @@ class InboxRepository:
         return Inbox.objects.filter(id__in=item_ids).delete()
 
     @staticmethod
-    def get_unread_count(user_id: int) -> int:
+    def get_unread_count(user_id: int) -> dict:
         """
         Get unread count of the user.
         """

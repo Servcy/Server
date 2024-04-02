@@ -89,5 +89,5 @@ class InboxService(DataTableBase):
         )
         return self
 
-    def get_unread_count(self) -> int:
+    def get_unread_count(self) -> dict:
         return InboxRepository.get_unread_count(user_id=self.user_id)
