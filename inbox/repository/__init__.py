@@ -55,3 +55,12 @@ class InboxRepository:
         Archive an item in the inbox.
         """
         return Inbox.objects.filter(id__in=item_ids).delete()
+
+    @staticmethod
+    def get_unread_count(user_id: int) -> int:
+        """
+        Get unread count of the user.
+        """
+        return Inbox.objects.filter(
+            user_integration__user_id=user_id, is_read=False, is_archived=False
+        ).count()

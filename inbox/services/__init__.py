@@ -88,3 +88,6 @@ class InboxService(DataTableBase):
             Q(title__icontains=self.search) | Q(body__icontains=self.search)
         )
         return self
+
+    def get_unread_count(self) -> int:
+        return InboxRepository.get_unread_count(user_id=self.user_id)

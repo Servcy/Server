@@ -40,6 +40,24 @@ class InboxViewSet(BaseViewSet):
                 logger_message="Error while fetching inbox",
             )
 
+    @action(detail=False, methods=["get"], url_path="unread-count")
+    def unread_count(self, request):
+        try:
+            user_id = request.user.id
+            user = request.user
+            inbox_service = InboxService(user=user, user_id=user_id)
+            count = inbox_service.get_unread_count()
+            return success_response(
+                results={"count": count},
+                success_message="Unread count fetched successfully",
+                status=status.HTTP_200_OK,
+            )
+        except Exception:
+            return error_response(
+                logger=logger,
+                logger_message="Error while fetching unread count",
+            )
+
     @action(detail=False, methods=["post"], url_path="read")
     def read_item(self, request):
         try:
