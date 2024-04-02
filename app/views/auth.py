@@ -3,17 +3,12 @@ import logging
 from django.conf import settings
 from rest_framework import status
 from rest_framework.response import Response
-from twilio.base.exceptions import TwilioRestException
-from twilio.rest import Client
 
-from app.utils.auth import (
-    send_authentication_code_email,
-    send_authentication_code_phone,
-)
 from common.responses import error_response, success_response
 from common.views import BaseAPIView
 from iam.serializers import JWTTokenSerializer
 from iam.services.accounts import AccountsService
+from mails import SendGridEmail
 
 logger = logging.getLogger(__name__)
 
@@ -21,12 +16,6 @@ logger = logging.getLogger(__name__)
 class AuthenticationView(BaseAPIView):
     authentication_classes = []
     permission_classes = []
-
-    def _initialize_twilio_client(self):
-        """Initialize and return the Twilio client."""
-        account_sid = settings.TWILIO_ACCOUNT_SID
-        auth_token = settings.TWILIO_AUTH_TOKEN
-        return Client(account_sid, auth_token)
 
     def get(self, request):
         """Send OTP code to email or phone number."""
@@ -37,19 +26,15 @@ class AuthenticationView(BaseAPIView):
                     status=status.HTTP_201_CREATED,
                 )
             payload = request.query_params
-            input = payload.get("input")
-            input_type = payload.get("input_type")
-            if not input_type or not input:
+            email = payload.get("input")
+            if not email:
                 return error_response(
-                    error_message="input and input_type are required!",
+                    error_message="Email is required!",
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             if not settings.DEBUG and input not in settings.TEST_ACCOUNTS:
-                client = self._initialize_twilio_client()
-                if input_type == "email":
-                    send_authentication_code_email(client, input)
-                else:
-                    send_authentication_code_phone(client, f"+{input}", True)
+                otp = AccountsService(email, "email").create_login_otp(otp)
+                SendGridEmail(email).send_login_otp(otp)
             return success_response(
                 success_message="Verification code has been sent!",
                 status=status.HTTP_201_CREATED,
@@ -68,28 +53,22 @@ class AuthenticationView(BaseAPIView):
             type = payload.get("type", None)
             login_success = False
             if type == "google":
-                input_type = "email"
-                input = payload.get("email", None)
+                email = payload.get("email", None)
                 login_success = True
             else:
                 otp = payload.get("otp", None)
-                input = payload.get("input", None)
-                input_type = payload.get("input_type", None)
-                if not otp or not input_type or not input:
+                email = payload.get("input", None)
+                if not otp or not email:
                     return error_response(
-                        error_message="otp, input and input_type are required!",
+                        error_message="otp, and email are required!",
                         status=status.HTTP_406_NOT_ACCEPTABLE,
                     )
-                if not settings.DEBUG and input not in settings.TEST_ACCOUNTS:
-                    client = self._initialize_twilio_client()
-                    verification_check = self._verify_code(
-                        client, otp, input, input_type
-                    )
-                    login_success = verification_check.status == "approved"
+                if not settings.DEBUG and email not in settings.TEST_ACCOUNTS:
+                    login_success = AccountsService.verify_login_otp(email, otp)
                 else:
                     login_success = True
             if login_success:
-                account_service = AccountsService(input, input_type)
+                account_service = AccountsService(email, "email")
                 user = account_service.create_user_account()
                 refresh_token = JWTTokenSerializer.get_token(user)
                 tokens = {
@@ -99,30 +78,12 @@ class AuthenticationView(BaseAPIView):
                 return Response(tokens, status.HTTP_200_OK)
             else:
                 return error_response(
-                    error_message="Invalid input!",
+                    error_message="Invalid email!",
                     status=status.HTTP_401_UNAUTHORIZED,
                 )
-        except TwilioRestException:
-            return error_response(
-                error_message="An error occurred while verifying verification code.",
-                logger_message="An error occurred while verifying verification code.",
-                status=status.HTTP_401_UNAUTHORIZED,
-            )
         except Exception:
             return error_response(
                 logger=logger,
                 logger_message="An error occurred while verifying verification code.",
                 error_message="An error occurred while verifying verification code.",
             )
-
-    def _verify_code(self, client, otp, input, input_type):
-        """Helper method to verify OTP code."""
-        if input_type == "email":
-            verification_check = client.verify.services(
-                settings.TWILLIO_VERIFY_SERVICE_ID
-            ).verification_checks.create(to=input, code=otp)
-        else:
-            verification_check = client.verify.services(
-                settings.TWILLIO_VERIFY_SERVICE_ID
-            ).verification_checks.create(to=f"+{input}", code=otp)
-        return verification_check

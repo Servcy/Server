@@ -1,6 +1,6 @@
 from django.utils import timezone
 
-from iam.models import User
+from iam.models import LoginOTP, User
 from notification.models import UserNotificationPreference
 
 
@@ -41,3 +41,15 @@ class AccountsRepository:
         user.last_login = timezone.now()
         user.save()
         return user
+
+    def create_login_otp(self, otp: int):
+        LoginOTP.objects.create(input=self.input, otp=otp)
+
+    @staticmethod
+    def verify_login_otp(email, otp):
+        try:
+            login_otp = LoginOTP.objects.get(input=email, otp=otp)
+        except LoginOTP.DoesNotExist:
+            return False
+        login_otp.delete()
+        return True

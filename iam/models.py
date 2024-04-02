@@ -80,6 +80,17 @@ class User(AbstractBaseUser, PermissionsMixin, TimeStampedModel):
         ordering = ("-created_at",)
 
 
+class LoginOTP(TimeStampedModel):
+    input = models.CharField(max_length=255, null=False, blank=False)
+    otp = models.CharField(max_length=8, null=False, blank=False)
+    is_verified = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = "login_otp"
+        verbose_name = "Login OTP"
+        verbose_name_plural = "Login OTPs"
+
+
 class Workspace(TimeStampedModel, CreatorUpdaterModel):
     name = models.CharField(max_length=150, verbose_name="Workspace Name")
     logo = models.URLField(blank=False, null=True, default=None)
