@@ -33,7 +33,7 @@ class AuthenticationView(BaseAPIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             if not settings.DEBUG and input not in settings.TEST_ACCOUNTS:
-                otp = AccountsService(email, "email").create_login_otp(otp)
+                otp = AccountsService(email, "email").create_login_otp()
                 SendGridEmail(email).send_login_otp(otp)
             return success_response(
                 success_message="Verification code has been sent!",
