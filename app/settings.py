@@ -382,6 +382,10 @@ CRONJOBS = [
         "*/5 * * * *",
         "notification.scripts.stack_email_notification.main",
     ),
+    (
+        "*/5 * * * *",
+        "iam.scripts.remove_stale_otps",
+    ),
 ]
 
 

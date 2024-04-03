@@ -83,7 +83,6 @@ class User(AbstractBaseUser, PermissionsMixin, TimeStampedModel):
 class LoginOTP(TimeStampedModel):
     input = models.CharField(max_length=255, null=False, blank=False)
     otp = models.CharField(max_length=8, null=False, blank=False)
-    is_verified = models.BooleanField(default=False)
 
     class Meta:
         db_table = "login_otp"
