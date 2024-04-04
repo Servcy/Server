@@ -14,7 +14,7 @@ def success_response(
     return Response(
         {
             "detail": success_message,
-            "results": json.dumps(results),
+            "results": results,
         },
         status=status,
     )
