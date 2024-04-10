@@ -268,7 +268,7 @@ class ProjectViewSet(BaseViewSet):
                             EstimatePoint(
                                 key=point["key"],
                                 value=point["value"],
-                                description=point["description"],
+                                description="",
                                 estimate=estimate,
                                 project=project,
                                 workspace=workspace,
