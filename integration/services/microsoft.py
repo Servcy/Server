@@ -49,11 +49,7 @@ class MicrosoftService:
         response = method(url, **kwargs).json()
         if "error" in response:
             raise ExternalIntegrationException(
-                "An error occurred while making request to Microsoft",
-                extra={
-                    "error": response.get("error"),
-                    "error_description": response.get("error_description"),
-                },
+                f"An error occurred while making request to Microsoft ::: {response.get('error')} {response.get('error_description')}",
             )
         return response
 
