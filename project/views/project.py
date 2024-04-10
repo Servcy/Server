@@ -18,6 +18,7 @@ from project.models import (
     IssueProperty,
     Module,
     Project,
+    ProjectTemplate,
     ProjectDeployBoard,
     ProjectFavorite,
     ProjectIdentifier,
@@ -31,8 +32,17 @@ from project.serializers import (
     ProjectMemberAdminSerializer,
     ProjectMemberRoleSerializer,
     ProjectMemberSerializer,
+    ProjectTemplateSerializer,
     ProjectSerializer,
 )
+
+
+class ProjectTemplateViewSet(BaseViewSet):
+    serializer_class = ProjectTemplateSerializer
+    model = ProjectTemplate
+    permission_classes = [
+        ProjectBasePermission,
+    ]
 
 
 class ProjectViewSet(BaseViewSet):

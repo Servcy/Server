@@ -57,6 +57,7 @@ from .project import (
     ProjectFavoriteSerializer,
     ProjectIdentifierSerializer,
     ProjectListSerializer,
+    ProjectTemplateSerializer,
     ProjectLiteSerializer,
     ProjectMemberAdminSerializer,
     ProjectMemberRoleSerializer,

@@ -9,6 +9,7 @@ from project.views import (
     ProjectUserViewsEndpoint,
     ProjectViewSet,
     UserProjectInvitationsViewset,
+    ProjectTemplateViewSet,
     UserProjectRolesEndpoint,
 )
 
@@ -34,6 +35,16 @@ urlpatterns = [
             }
         ),
         name="project",
+    ),
+    path(
+        "<str:workspace_slug>/project-template/",
+        ProjectTemplateViewSet.as_view(
+            {
+                "get": "retrieve",
+                "patch": "partial_update",
+            }
+        ),
+        name="project-template",
     ),
     path(
         "<str:workspace_slug>/project-identifiers/",

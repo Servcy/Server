@@ -9,11 +9,23 @@ from iam.serializers import (
 from project.models import (
     Project,
     ProjectDeployBoard,
+    ProjectTemplate,
     ProjectFavorite,
     ProjectIdentifier,
     ProjectMember,
     ProjectPublicMember,
 )
+
+
+class ProjectTemplateSerializer(ServcyBaseSerializer):
+    workspace_detail = WorkspaceLiteSerializer(source="workspace", read_only=True)
+
+    class Meta:
+        model = ProjectTemplate
+        fields = "__all__"
+        read_only_fields = [
+            "workspace",
+        ]
 
 
 class ProjectSerializer(ServcyBaseSerializer):

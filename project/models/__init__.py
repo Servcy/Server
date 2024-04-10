@@ -32,6 +32,7 @@ from .project import (
     ProjectBaseModel,
     ProjectDeployBoard,
     ProjectFavorite,
+    ProjectTemplate,
     ProjectIdentifier,
     ProjectMember,
     ProjectPublicMember,
