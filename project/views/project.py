@@ -20,6 +20,7 @@ from project.models import (
     Module,
     Project,
     ProjectTemplate,
+    Label,
     ProjectDeployBoard,
     ProjectFavorite,
     ProjectIdentifier,
@@ -246,6 +247,24 @@ class ProjectViewSet(BaseViewSet):
                         self.get_queryset().filter(pk=serializer.data["id"]).first()
                     )
                     serializer = ProjectListSerializer(project)
+                    project_template = ProjectTemplate.objects.get(
+                        workspace__slug=workspace_slug,
+                    )
+                    labels = project_template.labels
+                    project_labels = []
+                    for label in labels:
+                        project_labels.append(
+                            Label(
+                                name=label["name"],
+                                color=label["color"],
+                                description="",
+                                parent=None,
+                                project=project,
+                                workspace=workspace,
+                                created_by=request.user,
+                                updated_by=request.user,
+                            )
+                        )
                     return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(
                 serializer.errors,
