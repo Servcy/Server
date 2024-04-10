@@ -21,6 +21,8 @@ from project.models import (
     Project,
     ProjectTemplate,
     Label,
+    Estimate,
+    EstimatePoint,
     ProjectDeployBoard,
     ProjectFavorite,
     ProjectIdentifier,
@@ -251,6 +253,30 @@ class ProjectViewSet(BaseViewSet):
                         workspace__slug=workspace_slug,
                     )
                     labels = project_template.labels
+                    estimates = project_template.estimates
+                    estimate = Estimate.objects.create(
+                        name=estimates["name"],
+                        description=estimates["description"],
+                        project=project,
+                        workspace=workspace,
+                        created_by=request.user,
+                        updated_by=request.user,
+                    )
+                    estimate_points = []
+                    for point in estimates["points"]:
+                        estimate_points.append(
+                            EstimatePoint(
+                                key=point["key"],
+                                value=point["value"],
+                                description=point["description"],
+                                estimate=estimate,
+                                project=project,
+                                workspace=workspace,
+                                created_by=request.user,
+                                updated_by=request.user,
+                            )
+                        )
+                    EstimatePoint.objects.bulk_create(estimate_points)
                     project_labels = []
                     for label in labels:
                         project_labels.append(
@@ -265,6 +291,8 @@ class ProjectViewSet(BaseViewSet):
                                 updated_by=request.user,
                             )
                         )
+                    project.estimate = estimate
+                    project.save()
                     return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(
                 serializer.errors,
