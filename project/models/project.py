@@ -9,6 +9,10 @@ from app.models import CreatorUpdaterModel, TimeStampedModel
 from .base import ProjectBaseModel
 
 
+def get_anchor():
+    return uuid4().hex
+
+
 class Project(TimeStampedModel, CreatorUpdaterModel):
     name = models.CharField(max_length=255, verbose_name="Project Name")
     description = models.TextField(verbose_name="Project Description", blank=True)
@@ -179,10 +183,6 @@ class ProjectIdentifier(CreatorUpdaterModel, TimeStampedModel):
         ordering = ("-created_at",)
 
 
-def get_anchor():
-    return uuid4().hex
-
-
 class ProjectDeployBoard(ProjectBaseModel):
     anchor = models.CharField(
         max_length=255, unique=True, db_index=True, default=get_anchor
@@ -213,3 +213,20 @@ class ProjectPublicMember(ProjectBaseModel):
         verbose_name_plural = "Project Public Members"
         db_table = "project_public_member"
         ordering = ("-created_at",)
+
+
+class ProjectTemplate(TimeStampedModel, CreatorUpdaterModel):
+    workspace = models.ForeignKey(
+        "iam.Workspace",
+        on_delete=models.CASCADE,
+        related_name="workspace_default_props",
+        unique=True,
+    )
+    labels = models.JSONField(default=dict)
+    estimates = models.JSONField(default=dict)
+    states = models.JSONField(default=dict)
+
+    class Meta:
+        db_table = "project_template"
+        verbose_name = "Project Template"
+        verbose_name_plural = "Project Templates"
