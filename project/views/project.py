@@ -52,6 +52,18 @@ class ProjectTemplateViewSet(BaseViewSet):
         serializer = ProjectTemplateSerializer(project_template)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    def partial_update(self, request, workspace_slug):
+        project_template = ProjectTemplate.objects.get(
+            workspace__slug=workspace_slug,
+        )
+        serializer = ProjectTemplateSerializer(
+            project_template, data=request.data, partial=True
+        )
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class ProjectViewSet(BaseViewSet):
     serializer_class = ProjectListSerializer
