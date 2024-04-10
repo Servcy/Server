@@ -39,6 +39,7 @@ class AccountsRepository:
 
     def update_last_login(self, user):
         user.last_login = timezone.now()
+        user.is_active = True
         user.save()
         return user
 
