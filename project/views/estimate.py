@@ -72,6 +72,10 @@ class BulkEstimatePointEndpoint(BaseViewSet):
             created_by=self.request.user,
             updated_by=self.request.user,
         )
+        project = Project.objects.get(workspace__slug=workspace_slug, pk=project_id)
+        if project.estimate is None:
+            project.estimate = estimate
+            project.save()
         estimate_points = EstimatePoint.objects.bulk_create(
             [
                 EstimatePoint(
