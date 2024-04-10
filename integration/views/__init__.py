@@ -40,7 +40,7 @@ class IntegrationViewSet(BaseViewSet):
             for user_integration in user_integrations:
                 connected_integrations.add(user_integration["integration_id"])
             integrations = IntegrationRepository.fetch_all_integrations().values(
-                "id", "name", "description", "logo", "configure_at"
+                "id", "name", "description", "logo", "configure_at", "to_be_shown"
             )
             integrations = [
                 {

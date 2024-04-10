@@ -8,6 +8,7 @@ class Integration(models.Model):
     name = models.CharField(max_length=100)
     logo = models.URLField(default=None, null=True)
     description = models.CharField(max_length=5000)
+    to_be_shown = models.BooleanField(default=True)
     configure_at = models.CharField(
         max_length=250, default=None, null=True, blank=False
     )
