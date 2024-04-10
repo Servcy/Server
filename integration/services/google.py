@@ -142,6 +142,9 @@ class GoogleService(BaseService):
             integration_id=integration.id,
             user_id=user_id,
             account_id=self._user_info["email"],
+            configuration={
+                "whitelisted_emails": ["*@*"],
+            },
             meta_data={
                 "token": self._token,
                 "user_info": self._user_info,

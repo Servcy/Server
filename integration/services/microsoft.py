@@ -105,6 +105,9 @@ class MicrosoftService:
             account_id=email,
             meta_data={"token": self._token, "subscription": self._subscription},
             account_display_name=email,
+            configuration={
+                "whitelisted_emails": ["*@*"],
+            },
         )
 
     def is_active(self, meta_data, **kwargs) -> bool:
