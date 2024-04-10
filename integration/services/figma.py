@@ -166,26 +166,3 @@ class FigmaService(BaseService):
                 f"Failed to create webhooks for the following teams: {', '.join(failed_webhooks)}"
             )
         return success_webhooks, success_webhook_teams
-
-    def add_comment(self, file_key: str, comment_id: str, message: str):
-        """
-        Add comment to Figma file.
-
-        Args:
-        - file_key: The file key.
-        - comment_id: The comment id.
-        - message: The comment message.
-        """
-        headers = {
-            "Authorization": f"Bearer {self._token['access_token']}",
-        }
-        data = {
-            "message": message,
-            "comment_id": comment_id,
-        }
-        self._make_request(
-            "POST",
-            f"v1/files/{file_key}/comments",
-            headers=headers,
-            json=data,
-        )

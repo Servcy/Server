@@ -301,27 +301,3 @@ class NotionService(BaseService):
             "GET", self._NOTION_BOT_USER, headers=headers, data={}
         )
         return response.json().get("results", [])
-
-    def add_comment(
-        self,
-        comment: str,
-        discussion_id: str,
-    ):
-        data = {
-            "discussion_id": discussion_id,
-            "rich_text": [
-                {
-                    "text": {
-                        "content": comment,
-                    },
-                },
-            ],
-        }
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {self._token['access_token']}",
-            "Notion-Version": "2022-02-22",
-        }
-        response = requests.post(url=self._NOTION_COMMENTS, json=data, headers=headers)
-        response_json = response.json()
-        return response_json
