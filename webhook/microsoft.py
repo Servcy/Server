@@ -53,12 +53,13 @@ def microsoft(request):
             user_integration["configuration"] is not None
             and mail["from"]["emailAddress"]["address"]
         )
-        if sender_email not in user_integration["configuration"].get(
-            "whitelisted_emails", []
-        ) and f"*@{sender_email.split('@')[1]}" not in user_integration[
-            "configuration"
-        ].get(
-            "whitelisted_emails", []
+        if (
+            sender_email
+            not in user_integration["configuration"].get("whitelisted_emails", [])
+            and f"*@{sender_email.split('@')[1]}"
+            not in user_integration["configuration"].get("whitelisted_emails", [])
+            and "*@*"
+            not in user_integration["configuration"].get("whitelisted_emails", [])
         ):
             return HttpResponse(status=200)
         mail_has_attachments = mail.get("hasAttachments", False)

@@ -19,6 +19,9 @@ class GoogleMailRepository:
         elif f"*@{email.split('@')[1]}" in whitelisted_emails:
             # for wildcard emails e.g. *@domain.com
             return True
+        elif "*@*" in whitelisted_emails:
+            # for all emails
+            return True
         return False
 
     @staticmethod
