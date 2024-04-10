@@ -7,6 +7,7 @@ from common.permissions import (
     ProjectBasePermission,
     ProjectLitePermission,
     ProjectMemberPermission,
+    WorkSpaceAdminPermission,
     WorkspaceUserPermission,
 )
 from common.states import DEFAULT_STATES
@@ -41,8 +42,15 @@ class ProjectTemplateViewSet(BaseViewSet):
     serializer_class = ProjectTemplateSerializer
     model = ProjectTemplate
     permission_classes = [
-        ProjectBasePermission,
+        WorkSpaceAdminPermission,
     ]
+
+    def retrieve(self, request, workspace_slug):
+        project_template = ProjectTemplate.objects.get(
+            workspace__slug=workspace_slug,
+        )
+        serializer = ProjectTemplateSerializer(project_template)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class ProjectViewSet(BaseViewSet):
