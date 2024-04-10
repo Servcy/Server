@@ -215,151 +215,154 @@ class ProjectPublicMember(ProjectBaseModel):
         ordering = ("-created_at",)
 
 
+def get_default_labels():
+    return [
+        {
+            "name": "Bug",
+            "color": "#d73a4a",
+            "sort_order": 65535,
+        },
+        {
+            "name": "Feature Request",
+            "color": "#a2eeef",
+            "sort_order": 75535,
+        },
+        {
+            "name": "Enhancement",
+            "color": "#84b6eb",
+            "sort_order": 85535,
+        },
+        {
+            "name": "Documentation",
+            "color": "#bfdadc",
+            "sort_order": 95535,
+        },
+        {
+            "name": "Design",
+            "color": "#f9c513",
+            "sort_order": 105535,
+        },
+        {
+            "name": "Performance",
+            "color": "#5752d9",
+            "sort_order": 115535,
+        },
+        {
+            "name": "Security",
+            "color": "#e99695",
+            "sort_order": 125535,
+        },
+        {
+            "name": "Testing",
+            "color": "#f9d0c4",
+            "sort_order": 135535,
+        },
+        {
+            "name": "Refactor",
+            "color": "#fad8c7",
+            "sort_order": 145535,
+        },
+        {
+            "name": "Critical",
+            "color": "#e12d2d",
+            "sort_order": 155535,
+        },
+        {
+            "name": "Wontfix",
+            "color": "#ffffff",
+            "sort_order": 165535,
+        },
+        {
+            "name": "Question",
+            "color": "#cc317c",
+            "sort_order": 175535,
+        },
+        {
+            "name": "Help Wanted",
+            "color": "#128A0C",
+            "sort_order": 185535,
+        },
+        {
+            "name": "Good First Issue",
+            "color": "#7057ff",
+            "sort_order": 195535,
+        },
+        {
+            "name": "Backend",
+            "color": "#d4c5f9",
+            "sort_order": 205535,
+        },
+        {
+            "name": "Frontend",
+            "color": "#bfd4f2",
+            "sort_order": 215535,
+        },
+        {
+            "name": "API",
+            "color": "#b2b7ff",
+            "sort_order": 225535,
+        },
+        {
+            "name": "DevOps",
+            "color": "#1d76db",
+            "sort_order": 235535,
+        },
+    ]
+
+
+def get_default_estimates():
+    return {
+        "points": [
+            {
+                "key": 0,
+                "description": "",
+                "value": "1",
+                "estimate": 4,
+            },
+            {
+                "key": 5,
+                "description": "",
+                "value": "13",
+                "estimate": 4,
+            },
+            {
+                "key": 1,
+                "description": "",
+                "value": "2",
+                "estimate": 4,
+            },
+            {
+                "key": 2,
+                "description": "",
+                "value": "3",
+                "estimate": 4,
+            },
+            {
+                "key": 3,
+                "description": "",
+                "value": "5",
+                "estimate": 4,
+            },
+            {
+                "key": 4,
+                "description": "",
+                "value": "8",
+                "estimate": 4,
+            },
+        ],
+        "name": "Effort Estimate",
+        "description": "An estimate model using Fibonacci sequence for measuring development effort.",
+    }
+
+
 class ProjectTemplate(TimeStampedModel, CreatorUpdaterModel):
-    workspace = models.ForeignKey(
+    workspace = models.OneToOneField(
         "iam.Workspace",
         on_delete=models.CASCADE,
         related_name="workspace_default_props",
-        unique=True,
     )
-    labels = models.JSONField(
-        default=[
-            {
-                "name": "Bug",
-                "color": "#d73a4a",
-                "sort_order": 65535,
-            },
-            {
-                "name": "Feature Request",
-                "color": "#a2eeef",
-                "sort_order": 75535,
-            },
-            {
-                "name": "Enhancement",
-                "color": "#84b6eb",
-                "sort_order": 85535,
-            },
-            {
-                "name": "Documentation",
-                "color": "#bfdadc",
-                "sort_order": 95535,
-            },
-            {
-                "name": "Design",
-                "color": "#f9c513",
-                "sort_order": 105535,
-            },
-            {
-                "name": "Performance",
-                "color": "#5752d9",
-                "sort_order": 115535,
-            },
-            {
-                "name": "Security",
-                "color": "#e99695",
-                "sort_order": 125535,
-            },
-            {
-                "name": "Testing",
-                "color": "#f9d0c4",
-                "sort_order": 135535,
-            },
-            {
-                "name": "Refactor",
-                "color": "#fad8c7",
-                "sort_order": 145535,
-            },
-            {
-                "name": "Critical",
-                "color": "#e12d2d",
-                "sort_order": 155535,
-            },
-            {
-                "name": "Wontfix",
-                "color": "#ffffff",
-                "sort_order": 165535,
-            },
-            {
-                "name": "Question",
-                "color": "#cc317c",
-                "sort_order": 175535,
-            },
-            {
-                "name": "Help Wanted",
-                "color": "#128A0C",
-                "sort_order": 185535,
-            },
-            {
-                "name": "Good First Issue",
-                "color": "#7057ff",
-                "sort_order": 195535,
-            },
-            {
-                "name": "Backend",
-                "color": "#d4c5f9",
-                "sort_order": 205535,
-            },
-            {
-                "name": "Frontend",
-                "color": "#bfd4f2",
-                "sort_order": 215535,
-            },
-            {
-                "name": "API",
-                "color": "#b2b7ff",
-                "sort_order": 225535,
-            },
-            {
-                "name": "DevOps",
-                "color": "#1d76db",
-                "sort_order": 235535,
-            },
-        ]
-    )
-    estimates = models.JSONField(
-        default={
-            "points": [
-                {
-                    "key": 0,
-                    "description": "",
-                    "value": "1",
-                    "estimate": 4,
-                },
-                {
-                    "key": 5,
-                    "description": "",
-                    "value": "13",
-                    "estimate": 4,
-                },
-                {
-                    "key": 1,
-                    "description": "",
-                    "value": "2",
-                    "estimate": 4,
-                },
-                {
-                    "key": 2,
-                    "description": "",
-                    "value": "3",
-                    "estimate": 4,
-                },
-                {
-                    "key": 3,
-                    "description": "",
-                    "value": "5",
-                    "estimate": 4,
-                },
-                {
-                    "key": 4,
-                    "description": "",
-                    "value": "8",
-                    "estimate": 4,
-                },
-            ],
-            "name": "Effort Estimate",
-            "description": "An estimate model using Fibonacci sequence for measuring development effort.",
-        }
-    )
+    labels = models.JSONField(default=get_default_labels)
+    estimates = models.JSONField(default=get_default_estimates)
 
     class Meta:
         db_table = "project_template"
