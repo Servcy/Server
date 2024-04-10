@@ -32,7 +32,7 @@ from iam.serializers import (
     WorkSpaceSerializer,
 )
 from integration.repository import IntegrationRepository
-from project.models import Issue, Project, ProjectMember
+from project.models import Issue, Project, ProjectMember, ProjectTemplate
 from project.serializers import ProjectMemberSerializer
 
 logger = logging.getLogger(__name__)
@@ -216,6 +216,11 @@ class WorkSpaceViewSet(BaseViewSet):
                     workspace_id=serializer.data["id"],
                     member=request.user,
                     role=ERole.ADMIN.value,
+                    created_by=request.user,
+                    updated_by=request.user,
+                )
+                ProjectTemplate.objects.create(
+                    workspace_id=serializer.data["id"],
                     created_by=request.user,
                     updated_by=request.user,
                 )
