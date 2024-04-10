@@ -291,6 +291,7 @@ class ProjectViewSet(BaseViewSet):
                                 updated_by=request.user,
                             )
                         )
+                    Label.objects.bulk_create(project_labels)
                     project.estimate = estimate
                     project.save()
                     return Response(serializer.data, status=status.HTTP_201_CREATED)
