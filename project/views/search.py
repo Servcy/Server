@@ -35,6 +35,7 @@ class GlobalSearchEndpoint(BaseAPIView):
             Project.objects.filter(
                 q,
                 project_projectmember__member=self.request.user,
+                archived_at__isnull=True,
                 project_projectmember__is_active=True,
                 workspace__slug=workspace_slug,
             )

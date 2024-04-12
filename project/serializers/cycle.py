@@ -20,6 +20,7 @@ class CycleWriteSerializer(ServcyBaseSerializer):
         model = Cycle
         fields = "__all__"
         read_only_fields = [
+            "archived_at",
             "workspace",
             "project",
             "owned_by",

@@ -35,6 +35,7 @@ class ModuleWriteSerializer(ServcyBaseSerializer):
             "project",
             "created_by",
             "updated_by",
+            "archived_at",
             "created_at",
             "updated_at",
         ]

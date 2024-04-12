@@ -436,6 +436,7 @@ def dashboard_recent_activity(self, request, workspace_slug):
     queryset = IssueActivity.objects.filter(
         ~Q(field__in=["comment", "vote", "reaction", "draft"]),
         workspace__slug=workspace_slug,
+        project__archived_at__isnull=True,
         project__project_projectmember__member=request.user,
         project__project_projectmember__is_active=True,
         actor=request.user,
@@ -453,6 +454,7 @@ def dashboard_recent_projects(self, request, workspace_slug):
             workspace__slug=workspace_slug,
             project__project_projectmember__member=request.user,
             project__project_projectmember__is_active=True,
+            project__archived_at__isnull=True,
             actor=request.user,
         )
         .values_list("project_id", flat=True)
@@ -467,6 +469,7 @@ def dashboard_recent_projects(self, request, workspace_slug):
         additional_projects = Project.objects.filter(
             project_projectmember__member=request.user,
             project_projectmember__is_active=True,
+            project__archived_at__isnull=True,
             workspace__slug=workspace_slug,
         ).exclude(id__in=unique_project_ids)
 
@@ -484,6 +487,7 @@ def dashboard_recent_collaborators(self, request, workspace_slug):
     user_projects = Project.objects.filter(
         project_projectmember__member=request.user,
         project_projectmember__is_active=True,
+        archived_at__isnull=True,
         workspace__slug=workspace_slug,
     ).values_list("id", flat=True)
 
@@ -492,6 +496,7 @@ def dashboard_recent_collaborators(self, request, workspace_slug):
         IssueActivity.objects.filter(
             workspace__slug=workspace_slug,
             project_id__in=user_projects,
+            project__archived_at__isnull=True,
         )
         .values("actor")
         .exclude(actor=request.user)
@@ -528,6 +533,7 @@ def dashboard_recent_collaborators(self, request, workspace_slug):
                     ~Q(member=request.user),
                     project_id__in=user_projects,
                     workspace__slug=workspace_slug,
+                    project__archived_at__isnull=True,
                 )
                 .exclude(member__in=[user["actor"] for user in users_with_activities])
                 .values_list("member", flat=True)

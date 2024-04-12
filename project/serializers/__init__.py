@@ -57,13 +57,13 @@ from .project import (
     ProjectFavoriteSerializer,
     ProjectIdentifierSerializer,
     ProjectListSerializer,
-    ProjectTemplateSerializer,
     ProjectLiteSerializer,
     ProjectMemberAdminSerializer,
     ProjectMemberRoleSerializer,
     ProjectMemberSerializer,
     ProjectPublicMemberSerializer,
     ProjectSerializer,
+    ProjectTemplateSerializer,
 )
 from .state import StateLiteSerializer, StateSerializer
 from .view import GlobalViewSerializer, IssueViewFavoriteSerializer, IssueViewSerializer

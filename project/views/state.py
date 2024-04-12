@@ -25,6 +25,7 @@ class StateViewSet(BaseViewSet):
             .filter(project_id=self.kwargs.get("project_id"))
             .filter(
                 project__project_projectmember__member=self.request.user,
+                project__archived_at__isnull=True,
                 project__project_projectmember__is_active=True,
             )
             .filter(~Q(name="Triage"))

@@ -1,6 +1,7 @@
 from django.urls import path
 
 from project.views import (
+    ModuleArchiveUnarchiveEndpoint,
     ModuleFavoriteViewSet,
     ModuleIssueViewSet,
     ModuleLinkViewSet,
@@ -107,5 +108,15 @@ urlpatterns = [
         "<str:workspace_slug>/<int:project_id>/modules/<int:module_id>/user-properties/",
         ModuleUserPropertiesEndpoint.as_view(),
         name="cycle-user-filters",
+    ),
+    path(
+        "<str:workspace_slug>/<int:project_id>/modules/<int:module_id>/archive/",
+        ModuleArchiveUnarchiveEndpoint.as_view(),
+        name="module-archive-unarchive",
+    ),
+    path(
+        "<str:workspace_slug>/<int:project_id>/archived-modules/",
+        ModuleArchiveUnarchiveEndpoint.as_view(),
+        name="module-archive-unarchive",
     ),
 ]

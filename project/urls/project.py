@@ -1,15 +1,16 @@
 from django.urls import path
 
 from project.views import (
+    ProjectArchiveUnarchiveEndpoint,
     ProjectDeployBoardViewSet,
     ProjectFavoritesViewSet,
     ProjectIdentifierEndpoint,
     ProjectMemberUserEndpoint,
     ProjectMemberViewSet,
+    ProjectTemplateViewSet,
     ProjectUserViewsEndpoint,
     ProjectViewSet,
     UserProjectInvitationsViewset,
-    ProjectTemplateViewSet,
     UserProjectRolesEndpoint,
 )
 
@@ -74,6 +75,11 @@ urlpatterns = [
             }
         ),
         name="project-member",
+    ),
+    path(
+        "<str:workspace_slug>/<int:project_id>/archive/",
+        ProjectArchiveUnarchiveEndpoint.as_view(),
+        name="project-archive-unarchive",
     ),
     path(
         "<str:workspace_slug>/<int:project_id>/members/<int:pk>/",

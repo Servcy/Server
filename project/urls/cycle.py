@@ -1,6 +1,7 @@
 from django.urls import path
 
 from project.views import (
+    CycleArchiveUnarchiveEndpoint,
     CycleDateCheckEndpoint,
     CycleFavoriteViewSet,
     CycleIssueViewSet,
@@ -10,6 +11,16 @@ from project.views import (
 )
 
 urlpatterns = [
+    path(
+        "<str:workspace_slug>/<int:project_id>/cycles/<int:cycle_id>/archive/",
+        CycleArchiveUnarchiveEndpoint.as_view(),
+        name="cycle-archive-unarchive",
+    ),
+    path(
+        "<str:workspace_slug>/<int:project_id>/archived-cycles/",
+        CycleArchiveUnarchiveEndpoint.as_view(),
+        name="cycle-archive-unarchive",
+    ),
     path(
         "<str:workspace_slug>/<int:project_id>/cycles/",
         CycleViewSet.as_view(

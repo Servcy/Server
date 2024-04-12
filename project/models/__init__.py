@@ -32,10 +32,10 @@ from .project import (
     ProjectBaseModel,
     ProjectDeployBoard,
     ProjectFavorite,
-    ProjectTemplate,
     ProjectIdentifier,
     ProjectMember,
     ProjectPublicMember,
+    ProjectTemplate,
 )
 from .state import State
 from .view import GlobalView, IssueView, IssueViewFavorite

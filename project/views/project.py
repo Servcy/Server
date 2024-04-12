@@ -1,5 +1,6 @@
 from django.db import IntegrityError, transaction
 from django.db.models import Exists, F, Func, OuterRef, Prefetch, Q, Subquery
+from django.utils import timezone
 from rest_framework import serializers, status
 from rest_framework.response import Response
 
@@ -16,18 +17,18 @@ from iam.enums import EAccess, ERole
 from iam.models import Workspace, WorkspaceMember
 from project.models import (
     Cycle,
-    IssueProperty,
-    Module,
-    Project,
-    ProjectTemplate,
-    Label,
     Estimate,
     EstimatePoint,
+    Issue,
+    IssueProperty,
+    Label,
+    Module,
+    Project,
     ProjectDeployBoard,
     ProjectFavorite,
-    Issue,
     ProjectIdentifier,
     ProjectMember,
+    ProjectTemplate,
     State,
 )
 from project.serializers import (
@@ -37,8 +38,8 @@ from project.serializers import (
     ProjectMemberAdminSerializer,
     ProjectMemberRoleSerializer,
     ProjectMemberSerializer,
-    ProjectTemplateSerializer,
     ProjectSerializer,
+    ProjectTemplateSerializer,
 )
 
 
@@ -82,6 +83,7 @@ class ProjectViewSet(BaseViewSet):
         project = (
             self.get_queryset()
             .filter(pk=pk)
+            .filter(archived_at__isnull=True)
             .annotate(
                 total_issues=Issue.issue_objects.filter(
                     project_id=self.kwargs.get("pk"),
@@ -389,6 +391,12 @@ class ProjectViewSet(BaseViewSet):
 
             project = Project.objects.get(pk=pk)
 
+            if project.archived_at:
+                return Response(
+                    {"error": "Archived projects cannot be updated"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
             serializer = ProjectSerializer(
                 project,
                 data={**request.data},
@@ -479,6 +487,24 @@ class UserProjectInvitationsViewset(BaseViewSet):
             {"message": "Projects joined successfully"},
             status=status.HTTP_201_CREATED,
         )
+
+
+class ProjectArchiveUnarchiveEndpoint(BaseAPIView):
+    permission_classes = [
+        ProjectBasePermission,
+    ]
+
+    def post(self, request, workspace_slug, project_id):
+        project = Project.objects.get(pk=project_id, workspace__slug=workspace_slug)
+        project.archived_at = timezone.now()
+        project.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def delete(self, request, workspace_slug, project_id):
+        project = Project.objects.get(pk=project_id, workspace__slug=workspace_slug)
+        project.archived_at = None
+        project.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class ProjectMemberViewSet(BaseViewSet):

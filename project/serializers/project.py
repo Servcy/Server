@@ -9,11 +9,11 @@ from iam.serializers import (
 from project.models import (
     Project,
     ProjectDeployBoard,
-    ProjectTemplate,
     ProjectFavorite,
     ProjectIdentifier,
     ProjectMember,
     ProjectPublicMember,
+    ProjectTemplate,
 )
 
 

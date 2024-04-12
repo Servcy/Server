@@ -29,6 +29,7 @@ from rest_framework.response import Response
 from common.paginator import BasePaginator
 from common.permissions import WorkspaceEntityPermission, WorkspaceViewerPermission
 from common.views import BaseAPIView
+from iam.enums import ERole
 from iam.models import User, Workspace, WorkspaceMember
 from iam.serializers import WorkSpaceSerializer
 from project.models import (
@@ -330,6 +331,7 @@ class WorkspaceUserProfileStatsEndpoint(BaseAPIView):
                 subscriber_id=user_id,
                 project__project_projectmember__member=request.user,
                 project__project_projectmember__is_active=True,
+                project__archived_at__isnull=True,
             )
             .filter(**filters)
             .count()
@@ -384,6 +386,7 @@ class WorkspaceUserActivityEndpoint(BaseAPIView):
             workspace__slug=workspace_slug,
             project__project_projectmember__member=request.user,
             project__project_projectmember__is_active=True,
+            project__archived_at__isnull=True,
             actor=user_id,
         ).select_related("actor", "workspace", "issue", "project")
 
@@ -557,6 +560,7 @@ class WorkspaceLabelsEndpoint(BaseAPIView):
     def get(self, request, workspace_slug):
         labels = Label.objects.filter(
             workspace__slug=workspace_slug,
+            project__archived_at__isnull=True,
             project__project_projectmember__member=request.user,
             project__project_projectmember__is_active=True,
         )
@@ -578,6 +582,7 @@ class WorkspaceStatesEndpoint(BaseAPIView):
             workspace__slug=workspace_slug,
             project__project_projectmember__member=request.user,
             project__project_projectmember__is_active=True,
+            project__archived_at__isnull=True,
         )
         serializer = StateSerializer(states, many=True).data
         return Response(serializer, status=status.HTTP_200_OK)
@@ -826,12 +831,13 @@ class UserProfileProjectsStatisticsEndpoint(BaseAPIView):
             is_active=True,
         )
         projects = []
-        if requesting_workspace_member.role >= 1:
+        if requesting_workspace_member.role >= ERole.MEMBER.value:
             projects = (
                 Project.objects.filter(
                     workspace__slug=workspace_slug,
                     project_projectmember__member=request.user,
                     project_projectmember__is_active=True,
+                    archived_at__isnull=True,
                 )
                 .annotate(
                     created_issues=Count(

@@ -1,4 +1,5 @@
 from .cycle import (
+    CycleArchiveUnarchiveEndpoint,
     CycleDateCheckEndpoint,
     CycleFavoriteViewSet,
     CycleIssueViewSet,
@@ -28,6 +29,7 @@ from .issue import (
     SubIssuesEndpoint,
 )
 from .module import (
+    ModuleArchiveUnarchiveEndpoint,
     ModuleFavoriteViewSet,
     ModuleIssueViewSet,
     ModuleLinkViewSet,
@@ -36,13 +38,14 @@ from .module import (
 )
 from .page import PageFavoriteViewSet, PageLogEndpoint, PageViewSet, SubPagesEndpoint
 from .project import (
+    ProjectArchiveUnarchiveEndpoint,
     ProjectDeployBoardViewSet,
     ProjectFavoritesViewSet,
     ProjectIdentifierEndpoint,
     ProjectMemberUserEndpoint,
     ProjectMemberViewSet,
-    ProjectUserViewsEndpoint,
     ProjectTemplateViewSet,
+    ProjectUserViewsEndpoint,
     ProjectViewSet,
     UserProjectInvitationsViewset,
     UserProjectRolesEndpoint,

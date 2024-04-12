@@ -609,6 +609,7 @@ class IssueActivityEndpoint(BaseAPIView):
             .filter(
                 ~Q(field__in=["comment", "vote", "reaction", "draft"]),
                 project__project_projectmember__member=self.request.user,
+                project__archived_at__isnull=True,
                 project__project_projectmember__is_active=True,
                 workspace__slug=workspace_slug,
             )
@@ -620,6 +621,7 @@ class IssueActivityEndpoint(BaseAPIView):
             .filter(
                 project__project_projectmember__member=self.request.user,
                 project__project_projectmember__is_active=True,
+                project__archived_at__isnull=True,
                 workspace__slug=workspace_slug,
             )
             .filter(**filters)
@@ -672,6 +674,7 @@ class IssueCommentViewSet(BaseViewSet):
             .filter(
                 project__project_projectmember__member=self.request.user,
                 project__project_projectmember__is_active=True,
+                project__archived_at__isnull=True,
             )
             .select_related("project")
             .select_related("workspace")
@@ -831,6 +834,7 @@ class LabelViewSet(BaseViewSet):
             .filter(project_id=self.kwargs.get("project_id"))
             .filter(
                 project__project_projectmember__member=self.request.user,
+                project__archived_at__isnull=True,
                 project__project_projectmember__is_active=True,
             )
             .select_related("project")
@@ -1056,6 +1060,7 @@ class IssueLinkViewSet(BaseViewSet):
             .filter(issue_id=self.kwargs.get("issue_id"))
             .filter(
                 project__project_projectmember__member=self.request.user,
+                project__archived_at__isnull=True,
                 project__project_projectmember__is_active=True,
             )
             .order_by("-created_at")
@@ -1533,6 +1538,7 @@ class IssueSubscriberViewSet(BaseViewSet):
             .filter(issue_id=self.kwargs.get("issue_id"))
             .filter(
                 project__project_projectmember__member=self.request.user,
+                project__archived_at__isnull=True,
                 project__project_projectmember__is_active=True,
             )
             .order_by("-created_at")
@@ -1598,6 +1604,7 @@ class IssueReactionViewSet(BaseViewSet):
             .filter(project_id=self.kwargs.get("project_id"))
             .filter(issue_id=self.kwargs.get("issue_id"))
             .filter(
+                project__archived_at__isnull=True,
                 project__project_projectmember__member=self.request.user,
                 project__project_projectmember__is_active=True,
             )
@@ -1671,6 +1678,7 @@ class CommentReactionViewSet(BaseViewSet):
             .filter(comment_id=self.kwargs.get("comment_id"))
             .filter(
                 project__project_projectmember__member=self.request.user,
+                project__archived_at__isnull=True,
                 project__project_projectmember__is_active=True,
             )
             .order_by("-created_at")
@@ -1743,6 +1751,7 @@ class IssueRelationViewSet(BaseViewSet):
             .filter(project_id=self.kwargs.get("project_id"))
             .filter(issue_id=self.kwargs.get("issue_id"))
             .filter(
+                project__archived_at__isnull=True,
                 project__project_projectmember__member=self.request.user,
                 project__project_projectmember__is_active=True,
             )
