@@ -181,7 +181,15 @@ class CycleViewSet(BaseViewSet):
         )
 
     def list(self, request, workspace_slug, project_id):
-        queryset = self.get_queryset()
+        queryset = self.get_queryset().annotate(
+            total_issues=Count(
+                "issue_cycle",
+                filter=Q(
+                    issue_cycle__issue__archived_at__isnull=True,
+                    issue_cycle__issue__is_draft=False,
+                ),
+            )
+        )
         cycle_view = request.GET.get("cycle_view", "all")
 
         # Update the order by
@@ -329,6 +337,7 @@ class CycleViewSet(BaseViewSet):
             "progress_snapshot",
             # meta fields
             "is_favorite",
+            "total_issues",
             "cancelled_issues",
             "completed_issues",
             "started_issues",
