@@ -314,7 +314,7 @@ class CycleViewSet(BaseViewSet):
                 if data[0]["start_date"] and data[0]["end_date"]:
                     data[0]["distribution"]["completion_chart"] = burndown_plot(
                         queryset=queryset.first(),
-                        slug=slug,
+                        slug=workspace_slug,
                         project_id=project_id,
                         cycle_id=data[0]["id"],
                     )
