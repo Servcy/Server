@@ -17,6 +17,7 @@ class Cycle(ProjectBaseModel):
     )
     view_props = models.JSONField(default=dict)
     progress_snapshot = models.JSONField(default=dict)
+    archived_at = models.DateTimeField(null=True)
 
     def save(self, *args, **kwargs):
         if self._state.adding:

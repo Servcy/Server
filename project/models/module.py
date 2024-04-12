@@ -14,6 +14,7 @@ class Module(ProjectBaseModel):
         verbose_name="Module Description HTML", blank=True, null=True
     )
     start_date = models.DateField(null=True)
+    archived_at = models.DateTimeField(null=True)
     sort_order = models.FloatField(default=65535)
     target_date = models.DateField(null=True)
     status = models.CharField(

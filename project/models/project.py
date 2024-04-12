@@ -55,6 +55,7 @@ class Project(TimeStampedModel, CreatorUpdaterModel):
         default=0, choices=((1, "Private"), (0, "Public"))
     )
     cover_image = models.URLField(null=True, default=None)
+    archived_at = models.DateTimeField(null=True)
     estimate = models.ForeignKey(
         "project.Estimate",
         on_delete=models.SET_NULL,

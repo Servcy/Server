@@ -18,6 +18,7 @@ class IssueManager(models.Manager):
             super()
             .get_queryset()
             .exclude(archived_at__isnull=False)
+            .exclude(project__archived_at__isnull=False)
             .exclude(is_draft=True)
         )
 
