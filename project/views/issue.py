@@ -127,7 +127,8 @@ class IssueListEndpoint(BaseAPIView):
                     ArrayAgg(
                         "assignees__id",
                         distinct=True,
-                        filter=~Q(assignees__id__isnull=True),
+                        filter=~Q(assignees__id__isnull=True)
+                        & Q(assignees__member_project__is_active=True),
                     ),
                     Value([], output_field=ArrayField(BigIntegerField())),
                 ),
@@ -311,7 +312,8 @@ class IssueViewSet(BaseViewSet):
                     ArrayAgg(
                         "assignees__id",
                         distinct=True,
-                        filter=~Q(assignees__id__isnull=True),
+                        filter=~Q(assignees__id__isnull=True)
+                        & Q(assignees__member_project__is_active=True),
                     ),
                     Value([], output_field=ArrayField(BigIntegerField())),
                 ),
@@ -881,9 +883,11 @@ class BulkDeleteIssuesEndpoint(BaseAPIView):
 
         return Response(
             {"message": f"{total_issues} issues were deleted"},
-            status=status.HTTP_200_OK
-            if not not_enough_permissions
-            else status.HTTP_403_FORBIDDEN,
+            status=(
+                status.HTTP_200_OK
+                if not not_enough_permissions
+                else status.HTTP_403_FORBIDDEN
+            ),
         )
 
 
@@ -932,7 +936,8 @@ class SubIssuesEndpoint(BaseAPIView):
                     ArrayAgg(
                         "assignees__id",
                         distinct=True,
-                        filter=~Q(assignees__id__isnull=True),
+                        filter=~Q(assignees__id__isnull=True)
+                        & Q(assignees__member_project__is_active=True),
                     ),
                     Value([], output_field=ArrayField(BigIntegerField())),
                 ),
@@ -1280,7 +1285,8 @@ class IssueArchiveViewSet(BaseViewSet):
                     ArrayAgg(
                         "assignees__id",
                         distinct=True,
-                        filter=~Q(assignees__id__isnull=True),
+                        filter=~Q(assignees__id__isnull=True)
+                        & Q(assignees__member_project__is_active=True),
                     ),
                     Value([], output_field=ArrayField(BigIntegerField())),
                 ),
@@ -1957,7 +1963,8 @@ class IssueDraftViewSet(BaseViewSet):
                     ArrayAgg(
                         "assignees__id",
                         distinct=True,
-                        filter=~Q(assignees__id__isnull=True),
+                        filter=~Q(assignees__id__isnull=True)
+                        & Q(assignees__member_project__is_active=True),
                     ),
                     Value([], output_field=ArrayField(BigIntegerField())),
                 ),
