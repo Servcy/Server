@@ -221,6 +221,7 @@ class CycleViewSet(BaseViewSet):
                 "cancelled_issues",
                 "completed_issues",
                 "started_issues",
+                "total_issues",
                 "unstarted_issues",
                 "backlog_issues",
                 "assignee_ids",
