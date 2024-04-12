@@ -25,6 +25,7 @@ from project.models import (
     EstimatePoint,
     ProjectDeployBoard,
     ProjectFavorite,
+    Issue,
     ProjectIdentifier,
     ProjectMember,
     State,
@@ -76,6 +77,72 @@ class ProjectViewSet(BaseViewSet):
     permission_classes = [
         ProjectBasePermission,
     ]
+
+    def retrieve(self, request, workspace_slug, pk):
+        project = (
+            self.get_queryset()
+            .filter(pk=pk)
+            .annotate(
+                total_issues=Issue.issue_objects.filter(
+                    project_id=self.kwargs.get("pk"),
+                    parent__isnull=True,
+                )
+                .order_by()
+                .annotate(count=Func(F("id"), function="Count"))
+                .values("count")
+            )
+            .annotate(
+                sub_issues=Issue.issue_objects.filter(
+                    project_id=self.kwargs.get("pk"),
+                    parent__isnull=False,
+                )
+                .order_by()
+                .annotate(count=Func(F("id"), function="Count"))
+                .values("count")
+            )
+            .annotate(
+                archived_issues=Issue.objects.filter(
+                    project_id=self.kwargs.get("pk"),
+                    archived_at__isnull=False,
+                    parent__isnull=True,
+                )
+                .order_by()
+                .annotate(count=Func(F("id"), function="Count"))
+                .values("count")
+            )
+            .annotate(
+                archived_sub_issues=Issue.objects.filter(
+                    project_id=self.kwargs.get("pk"),
+                    archived_at__isnull=False,
+                    parent__isnull=False,
+                )
+                .order_by()
+                .annotate(count=Func(F("id"), function="Count"))
+                .values("count")
+            )
+            .annotate(
+                draft_issues=Issue.objects.filter(
+                    project_id=self.kwargs.get("pk"),
+                    is_draft=True,
+                    parent__isnull=True,
+                )
+                .order_by()
+                .annotate(count=Func(F("id"), function="Count"))
+                .values("count")
+            )
+            .annotate(
+                draft_sub_issues=Issue.objects.filter(
+                    project_id=self.kwargs.get("pk"),
+                    is_draft=True,
+                    parent__isnull=False,
+                )
+                .order_by()
+                .annotate(count=Func(F("id"), function="Count"))
+                .values("count")
+            )
+        ).first()
+        serializer = ProjectListSerializer(project)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def get_queryset(self):
         sort_order = ProjectMember.objects.filter(

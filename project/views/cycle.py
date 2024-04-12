@@ -100,15 +100,6 @@ class CycleViewSet(BaseViewSet):
             )
             .annotate(is_favorite=Exists(favorite_subquery))
             .annotate(
-                total_issues=Count(
-                    "issue_cycle",
-                    filter=Q(
-                        issue_cycle__issue__archived_at__isnull=True,
-                        issue_cycle__issue__is_draft=False,
-                    ),
-                )
-            )
-            .annotate(
                 completed_issues=Count(
                     "issue_cycle__issue__state__group",
                     filter=Q(
@@ -219,7 +210,6 @@ class CycleViewSet(BaseViewSet):
                 "progress_snapshot",
                 # meta fields
                 "is_favorite",
-                "total_issues",
                 "cancelled_issues",
                 "completed_issues",
                 "started_issues",
@@ -316,7 +306,7 @@ class CycleViewSet(BaseViewSet):
                 if data[0]["start_date"] and data[0]["end_date"]:
                     data[0]["distribution"]["completion_chart"] = burndown_plot(
                         queryset=queryset.first(),
-                        slug=workspace_slug,
+                        slug=slug,
                         project_id=project_id,
                         cycle_id=data[0]["id"],
                     )
@@ -339,7 +329,6 @@ class CycleViewSet(BaseViewSet):
             "progress_snapshot",
             # meta fields
             "is_favorite",
-            "total_issues",
             "cancelled_issues",
             "completed_issues",
             "started_issues",
@@ -385,7 +374,6 @@ class CycleViewSet(BaseViewSet):
                         "progress_snapshot",
                         # meta fields
                         "is_favorite",
-                        "total_issues",
                         "cancelled_issues",
                         "completed_issues",
                         "started_issues",
@@ -459,10 +447,42 @@ class CycleViewSet(BaseViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def retrieve(self, request, workspace_slug, project_id, pk):
-        queryset = self.get_queryset().filter(pk=pk)
+        queryset = (
+            self.get_queryset()
+            .filter(pk=pk)
+            .annotate(
+                total_issues=Count(
+                    "issue_cycle",
+                    filter=Q(
+                        issue_cycle__issue__archived_at__isnull=True,
+                        issue_cycle__issue__is_draft=False,
+                    ),
+                )
+            )
+        )
         data = (
             self.get_queryset()
             .filter(pk=pk)
+            .annotate(
+                total_issues=Issue.issue_objects.filter(
+                    project_id=self.kwargs.get("project_id"),
+                    parent__isnull=True,
+                    issue_cycle__cycle_id=pk,
+                )
+                .order_by()
+                .annotate(count=Func(F("id"), function="Count"))
+                .values("count")
+            )
+            .annotate(
+                sub_issues=Issue.issue_objects.filter(
+                    project_id=self.kwargs.get("project_id"),
+                    parent__isnull=False,
+                    issue_cycle__cycle_id=pk,
+                )
+                .order_by()
+                .annotate(count=Func(F("id"), function="Count"))
+                .values("count")
+            )
             .values(
                 # necessary fields
                 "id",
@@ -477,6 +497,7 @@ class CycleViewSet(BaseViewSet):
                 "view_props",
                 "sort_order",
                 "progress_snapshot",
+                "sub_issues",
                 # meta fields
                 "is_favorite",
                 "total_issues",

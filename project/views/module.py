@@ -86,15 +86,6 @@ class ModuleViewSet(BaseViewSet):
                 )
             )
             .annotate(
-                total_issues=Count(
-                    "issue_module",
-                    filter=Q(
-                        issue_module__issue__archived_at__isnull=True,
-                        issue_module__issue__is_draft=False,
-                    ),
-                ),
-            )
-            .annotate(
                 completed_issues=Count(
                     "issue_module__issue__state__group",
                     filter=Q(
@@ -190,7 +181,6 @@ class ModuleViewSet(BaseViewSet):
                     "sort_order",
                     # computed fields
                     "is_favorite",
-                    "total_issues",
                     "cancelled_issues",
                     "completed_issues",
                     "started_issues",
@@ -230,7 +220,6 @@ class ModuleViewSet(BaseViewSet):
                 "sort_order",
                 # computed fields
                 "is_favorite",
-                "total_issues",
                 "cancelled_issues",
                 "completed_issues",
                 "started_issues",
@@ -242,7 +231,30 @@ class ModuleViewSet(BaseViewSet):
         return Response(modules, status=status.HTTP_200_OK)
 
     def retrieve(self, request, workspace_slug, project_id, pk):
-        queryset = self.get_queryset().filter(pk=pk)
+        queryset = (
+            self.get_queryset()
+            .filter(pk=pk)
+            .annotate(
+                total_issues=Issue.issue_objects.filter(
+                    project_id=self.kwargs.get("project_id"),
+                    parent__isnull=True,
+                    issue_module__module_id=pk,
+                )
+                .order_by()
+                .annotate(count=Func(F("id"), function="Count"))
+                .values("count")
+            )
+            .annotate(
+                sub_issues=Issue.issue_objects.filter(
+                    project_id=self.kwargs.get("project_id"),
+                    parent__isnull=False,
+                    issue_module__module_id=pk,
+                )
+                .order_by()
+                .annotate(count=Func(F("id"), function="Count"))
+                .values("count")
+            )
+        )
 
         assignee_distribution = (
             Issue.objects.filter(
@@ -385,7 +397,6 @@ class ModuleViewSet(BaseViewSet):
                 "sort_order",
                 # computed fields
                 "is_favorite",
-                "total_issues",
                 "cancelled_issues",
                 "completed_issues",
                 "started_issues",
