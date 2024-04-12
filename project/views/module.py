@@ -93,6 +93,7 @@ class ModuleViewSet(BaseViewSet):
                         issue_module__issue__archived_at__isnull=True,
                         issue_module__issue__is_draft=False,
                     ),
+                    distinct=True,
                 )
             )
             .annotate(
@@ -102,6 +103,7 @@ class ModuleViewSet(BaseViewSet):
                         issue_module__issue__archived_at__isnull=True,
                         issue_module__issue__is_draft=False,
                     ),
+                    distinct=True,
                 ),
             )
             .annotate(
@@ -112,6 +114,7 @@ class ModuleViewSet(BaseViewSet):
                         issue_module__issue__archived_at__isnull=True,
                         issue_module__issue__is_draft=False,
                     ),
+                    distinct=True,
                 )
             )
             .annotate(
@@ -122,6 +125,7 @@ class ModuleViewSet(BaseViewSet):
                         issue_module__issue__archived_at__isnull=True,
                         issue_module__issue__is_draft=False,
                     ),
+                    distinct=True,
                 )
             )
             .annotate(
@@ -132,6 +136,7 @@ class ModuleViewSet(BaseViewSet):
                         issue_module__issue__archived_at__isnull=True,
                         issue_module__issue__is_draft=False,
                     ),
+                    distinct=True,
                 )
             )
             .annotate(
@@ -142,6 +147,7 @@ class ModuleViewSet(BaseViewSet):
                         issue_module__issue__archived_at__isnull=True,
                         issue_module__issue__is_draft=False,
                     ),
+                    distinct=True,
                 )
             )
             .annotate(
@@ -726,6 +732,7 @@ class ModuleArchiveUnarchiveEndpoint(BaseAPIView):
                         issue_module__issue__archived_at__isnull=True,
                         issue_module__issue__is_draft=False,
                     ),
+                    distinct=True,
                 ),
             )
             .annotate(
@@ -736,6 +743,7 @@ class ModuleArchiveUnarchiveEndpoint(BaseAPIView):
                         issue_module__issue__archived_at__isnull=True,
                         issue_module__issue__is_draft=False,
                     ),
+                    distinct=True,
                 )
             )
             .annotate(
@@ -746,6 +754,7 @@ class ModuleArchiveUnarchiveEndpoint(BaseAPIView):
                         issue_module__issue__archived_at__isnull=True,
                         issue_module__issue__is_draft=False,
                     ),
+                    distinct=True,
                 )
             )
             .annotate(
@@ -756,6 +765,7 @@ class ModuleArchiveUnarchiveEndpoint(BaseAPIView):
                         issue_module__issue__archived_at__isnull=True,
                         issue_module__issue__is_draft=False,
                     ),
+                    distinct=True,
                 )
             )
             .annotate(
@@ -766,6 +776,7 @@ class ModuleArchiveUnarchiveEndpoint(BaseAPIView):
                         issue_module__issue__archived_at__isnull=True,
                         issue_module__issue__is_draft=False,
                     ),
+                    distinct=True,
                 )
             )
             .annotate(
@@ -776,6 +787,7 @@ class ModuleArchiveUnarchiveEndpoint(BaseAPIView):
                         issue_module__issue__archived_at__isnull=True,
                         issue_module__issue__is_draft=False,
                     ),
+                    distinct=True,
                 )
             )
             .annotate(
