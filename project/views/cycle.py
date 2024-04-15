@@ -1627,7 +1627,7 @@ class ActiveCycleEndpoint(BaseAPIView):
             assignee_distribution = (
                 Issue.objects.filter(
                     issue_cycle__cycle_id=cycle["id"],
-                    project_id=cycle["project"],
+                    project_id=cycle["project_id"],
                     workspace__slug=workspace_slug,
                 )
                 .annotate(display_name=F("assignees__display_name"))
@@ -1666,7 +1666,7 @@ class ActiveCycleEndpoint(BaseAPIView):
             label_distribution = (
                 Issue.objects.filter(
                     issue_cycle__cycle_id=cycle["id"],
-                    project_id=cycle["project"],
+                    project_id=cycle["project_id"],
                     workspace__slug=workspace_slug,
                 )
                 .annotate(label_name=F("labels__name"))
@@ -1710,7 +1710,7 @@ class ActiveCycleEndpoint(BaseAPIView):
                 cycle["distribution"]["completion_chart"] = burndown_plot(
                     queryset=active_cycles.get(pk=cycle["id"]),
                     slug=workspace_slug,
-                    project_id=cycle["project"],
+                    project_id=cycle["project_id"],
                     cycle_id=cycle["id"],
                 )
 
