@@ -1517,18 +1517,16 @@ class ActiveCycleEndpoint(BaseAPIView):
                 )
             )
             .prefetch_related(
-                [
-                    Prefetch(
-                        "issue_cycle__issue__assignees",
-                        queryset=User.objects.only(
-                            "avatar", "first_name", "id"
-                        ).distinct(),
-                    ),
-                    Prefetch(
-                        "issue_cycle__issue__labels",
-                        queryset=Label.objects.only("name", "color", "id").distinct(),
-                    ),
-                ]
+                Prefetch(
+                    "issue_cycle__issue__assignees",
+                    queryset=User.objects.only("avatar", "first_name", "id").distinct(),
+                )
+            )
+            .prefetch_related(
+                Prefetch(
+                    "issue_cycle__issue__labels",
+                    queryset=Label.objects.only("name", "color", "id").distinct(),
+                ),
             )
             .annotate(
                 completed_issues=Count(
