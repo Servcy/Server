@@ -1644,7 +1644,7 @@ class ActiveCycleEndpoint(BaseAPIView):
                 response[cycle["project_id"]] = []
             assignee_distribution = (
                 Issue.objects.filter(
-                    issue_cycle__cycle_id=data[0]["id"],
+                    issue_cycle__cycle_id=cycle["id"],
                     workspace__slug=workspace_slug,
                     project_id=cycle["project_id"],
                 )
@@ -1682,7 +1682,7 @@ class ActiveCycleEndpoint(BaseAPIView):
             )
             label_distribution = (
                 Issue.objects.filter(
-                    issue_cycle__cycle_id=data[0]["id"],
+                    issue_cycle__cycle_id=cycle["id"],
                     workspace__slug=workspace_slug,
                     project_id=cycle["project_id"],
                 )
