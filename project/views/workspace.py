@@ -630,6 +630,7 @@ class WorkspaceModulesEndpoint(BaseAPIView):
             .select_related("workspace")
             .select_related("lead")
             .prefetch_related("members")
+            .filter(archived_at__isnull=False)
             .prefetch_related(
                 Prefetch(
                     "link_module",
@@ -723,6 +724,7 @@ class WorkspaceCyclesEndpoint(BaseAPIView):
             .select_related("project")
             .select_related("workspace")
             .select_related("owned_by")
+            .filter(archived_at__isnull=False)
             .annotate(
                 total_issues=Count(
                     "issue_cycle",
