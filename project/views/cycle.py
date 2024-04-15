@@ -1615,38 +1615,38 @@ class ActiveCycleEndpoint(BaseAPIView):
             )
             .order_by("-is_favorite", "-created_at")
             .distinct()
+            .values(
+                "id",
+                "workspace_id",
+                "project_id",
+                "name",
+                "description",
+                "start_date",
+                "end_date",
+                "owned_by_id",
+                "view_props",
+                "sort_order",
+                "progress_snapshot",
+                "is_favorite",
+                "cancelled_issues",
+                "completed_issues",
+                "started_issues",
+                "total_issues",
+                "unstarted_issues",
+                "backlog_issues",
+                "assignee_ids",
+                "status",
+            )
         )
-        data = active_cycles.values(
-            # necessary fields
-            "id",
-            "workspace_id",
-            "project_id",
-            # model fields
-            "name",
-            "description",
-            "start_date",
-            "end_date",
-            "owned_by_id",
-            "view_props",
-            "sort_order",
-            "progress_snapshot",
-            # meta fields
-            "is_favorite",
-            "cancelled_issues",
-            "completed_issues",
-            "started_issues",
-            "total_issues",
-            "unstarted_issues",
-            "backlog_issues",
-            "assignee_ids",
-            "status",
-        )
-
-        if data:
+        response = {}
+        for cycle in active_cycles:
+            if cycle["project_id"] not in response:
+                response[cycle["project_id"]] = []
             assignee_distribution = (
                 Issue.objects.filter(
                     issue_cycle__cycle_id=data[0]["id"],
                     workspace__slug=workspace_slug,
+                    project_id=cycle["project_id"],
                 )
                 .annotate(display_name=F("assignees__display_name"))
                 .annotate(assignee_id=F("assignees__id"))
@@ -1680,11 +1680,11 @@ class ActiveCycleEndpoint(BaseAPIView):
                 )
                 .order_by("display_name")
             )
-
             label_distribution = (
                 Issue.objects.filter(
                     issue_cycle__cycle_id=data[0]["id"],
                     workspace__slug=workspace_slug,
+                    project_id=cycle["project_id"],
                 )
                 .annotate(label_name=F("labels__name"))
                 .annotate(color=F("labels__color"))
@@ -1718,17 +1718,18 @@ class ActiveCycleEndpoint(BaseAPIView):
                 )
                 .order_by("label_name")
             )
-            data[0]["distribution"] = {
+            data = {}
+            data["distribution"] = {
                 "assignees": assignee_distribution,
                 "labels": label_distribution,
                 "completion_chart": {},
             }
-
-            if data[0]["start_date"] and data[0]["end_date"]:
-                data[0]["distribution"]["completion_chart"] = burndown_plot(
+            if cycle["start_date"] and cycle["end_date"]:
+                data["distribution"]["completion_chart"] = burndown_plot(
                     queryset=active_cycles.first(),
                     slug=workspace_slug,
-                    cycle_id=data[0]["id"],
+                    cycle_id=cycle["id"],
+                    project_id=cycle["project_id"],
                 )
-
-        return Response(data, status=status.HTTP_200_OK)
+            response[cycle["project_id"]].append({**cycle, **data})
+        return Response(response, status=status.HTTP_200_OK)
