@@ -8,9 +8,15 @@ from project.views import (
     CycleUserPropertiesEndpoint,
     CycleViewSet,
     TransferCycleIssueEndpoint,
+    ActiveCycleEndpoint,
 )
 
 urlpatterns = [
+    path(
+        "<str:workspace_slug>/active-cycles/",
+        ActiveCycleEndpoint.as_view(),
+        name="workspace-active-cycle",
+    ),
     path(
         "<str:workspace_slug>/<int:project_id>/cycles/<int:cycle_id>/archive/",
         CycleArchiveUnarchiveEndpoint.as_view(),

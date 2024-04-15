@@ -3,6 +3,7 @@ from .cycle import (
     CycleDateCheckEndpoint,
     CycleFavoriteViewSet,
     CycleIssueViewSet,
+    ActiveCycleEndpoint,
     CycleUserPropertiesEndpoint,
     CycleViewSet,
     TransferCycleIssueEndpoint,
