@@ -692,9 +692,7 @@ class CycleArchiveUnarchiveEndpoint(BaseAPIView):
             workspace__slug=self.kwargs.get("workspace_slug"),
         )
         return self.filter_queryset(
-            super()
-            .get_queryset()
-            .filter(workspace__slug=self.kwargs.get("workspace_slug"))
+            Cycle.objects.filter(workspace__slug=self.kwargs.get("workspace_slug"))
             .filter(project_id=self.kwargs.get("project_id"))
             .filter(archived_at__isnull=False)
             .filter(
@@ -800,7 +798,7 @@ class CycleArchiveUnarchiveEndpoint(BaseAPIView):
             .distinct()
         )
 
-    def list(self, request, workspace_slug, project_id):
+    def get(self, request, workspace_slug, project_id):
         queryset = (
             self.get_queryset()
             .annotate(
@@ -835,6 +833,7 @@ class CycleArchiveUnarchiveEndpoint(BaseAPIView):
                 "unstarted_issues",
                 "backlog_issues",
                 "assignee_ids",
+                "archived_at",
                 "status",
             )
         ).order_by("-is_favorite", "-created_at")
