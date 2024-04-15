@@ -8,7 +8,6 @@ from django.core import serializers
 # Django imports
 from django.db.models import (
     BigIntegerField,
-    Sum,
     Case,
     CharField,
     Count,
@@ -1495,7 +1494,6 @@ class ActiveCycleEndpoint(BaseAPIView):
         subquery = CycleFavorite.objects.filter(
             user=self.request.user,
             cycle_id=OuterRef("pk"),
-            project_id=self.kwargs.get("project_id"),
             workspace__slug=workspace_slug,
         )
         active_cycles = (
@@ -1504,10 +1502,10 @@ class ActiveCycleEndpoint(BaseAPIView):
                 project__project_projectmember__member=self.request.user,
                 start_date__lte=timezone.now(),
                 end_date__gte=timezone.now(),
+                project__project_projectmember__is_active=True,
+                project__archived_at__isnull=True,
             )
-            .select_related("project")
-            .select_related("workspace")
-            .select_related("owned_by")
+            .select_related("project", "workspace", "owned_by")
             .annotate(is_favorite=Exists(subquery))
             .annotate(
                 total_issues=Count(
@@ -1518,6 +1516,20 @@ class ActiveCycleEndpoint(BaseAPIView):
                     ),
                 )
             )
+            .prefetch_related(
+                [
+                    Prefetch(
+                        "issue_cycle__issue__assignees",
+                        queryset=User.objects.only(
+                            "avatar", "first_name", "id"
+                        ).distinct(),
+                    ),
+                    Prefetch(
+                        "issue_cycle__issue__labels",
+                        queryset=Label.objects.only("name", "color", "id").distinct(),
+                    ),
+                ]
+            )
             .annotate(
                 completed_issues=Count(
                     "issue_cycle__issue__state__group",
@@ -1526,6 +1538,7 @@ class ActiveCycleEndpoint(BaseAPIView):
                         issue_cycle__issue__archived_at__isnull=True,
                         issue_cycle__issue__is_draft=False,
                     ),
+                    distinct=True,
                 )
             )
             .annotate(
@@ -1536,6 +1549,7 @@ class ActiveCycleEndpoint(BaseAPIView):
                         issue_cycle__issue__archived_at__isnull=True,
                         issue_cycle__issue__is_draft=False,
                     ),
+                    distinct=True,
                 )
             )
             .annotate(
@@ -1546,6 +1560,7 @@ class ActiveCycleEndpoint(BaseAPIView):
                         issue_cycle__issue__archived_at__isnull=True,
                         issue_cycle__issue__is_draft=False,
                     ),
+                    distinct=True,
                 )
             )
             .annotate(
@@ -1556,6 +1571,7 @@ class ActiveCycleEndpoint(BaseAPIView):
                         issue_cycle__issue__archived_at__isnull=True,
                         issue_cycle__issue__is_draft=False,
                     ),
+                    distinct=True,
                 )
             )
             .annotate(
@@ -1566,27 +1582,7 @@ class ActiveCycleEndpoint(BaseAPIView):
                         issue_cycle__issue__archived_at__isnull=True,
                         issue_cycle__issue__is_draft=False,
                     ),
-                )
-            )
-            .annotate(total_estimates=Sum("issue_cycle__issue__estimate_point"))
-            .annotate(
-                completed_estimates=Sum(
-                    "issue_cycle__issue__estimate_point",
-                    filter=Q(
-                        issue_cycle__issue__state__group="completed",
-                        issue_cycle__issue__archived_at__isnull=True,
-                        issue_cycle__issue__is_draft=False,
-                    ),
-                )
-            )
-            .annotate(
-                started_estimates=Sum(
-                    "issue_cycle__issue__estimate_point",
-                    filter=Q(
-                        issue_cycle__issue__state__group="started",
-                        issue_cycle__issue__archived_at__isnull=True,
-                        issue_cycle__issue__is_draft=False,
-                    ),
+                    distinct=True,
                 )
             )
             .annotate(
@@ -1606,28 +1602,52 @@ class ActiveCycleEndpoint(BaseAPIView):
                     output_field=CharField(),
                 )
             )
-            .prefetch_related(
-                Prefetch(
-                    "issue_cycle__issue__assignees",
-                    queryset=User.objects.only("avatar", "first_name", "id").distinct(),
+            .annotate(
+                assignee_ids=Coalesce(
+                    ArrayAgg(
+                        "issue_cycle__issue__assignees__id",
+                        distinct=True,
+                        filter=~Q(issue_cycle__issue__assignees__id__isnull=True)
+                        & Q(
+                            issue_cycle__issue__assignees__member_project__is_active=True
+                        ),
+                    ),
+                    Value([], output_field=ArrayField(BigIntegerField())),
                 )
             )
-            .prefetch_related(
-                Prefetch(
-                    "issue_cycle__issue__labels",
-                    queryset=Label.objects.only("name", "color", "id").distinct(),
-                )
-            )
-            .order_by("-created_at")
+            .order_by("-is_favorite", "-created_at")
+            .distinct()
+        )
+        data = active_cycles.values(
+            # necessary fields
+            "id",
+            "workspace_id",
+            "project_id",
+            # model fields
+            "name",
+            "description",
+            "start_date",
+            "end_date",
+            "owned_by_id",
+            "view_props",
+            "sort_order",
+            "progress_snapshot",
+            # meta fields
+            "is_favorite",
+            "cancelled_issues",
+            "completed_issues",
+            "started_issues",
+            "total_issues",
+            "unstarted_issues",
+            "backlog_issues",
+            "assignee_ids",
+            "status",
         )
 
-        cycles = CycleSerializer(active_cycles, many=True).data
-
-        for cycle in cycles:
+        if data:
             assignee_distribution = (
                 Issue.objects.filter(
-                    issue_cycle__cycle_id=cycle["id"],
-                    project_id=cycle["project_id"],
+                    issue_cycle__cycle_id=data[0]["id"],
                     workspace__slug=workspace_slug,
                 )
                 .annotate(display_name=F("assignees__display_name"))
@@ -1636,13 +1656,13 @@ class ActiveCycleEndpoint(BaseAPIView):
                 .values("display_name", "assignee_id", "avatar")
                 .annotate(
                     total_issues=Count(
-                        "assignee_id",
+                        "id",
                         filter=Q(archived_at__isnull=True, is_draft=False),
                     ),
                 )
                 .annotate(
                     completed_issues=Count(
-                        "assignee_id",
+                        "id",
                         filter=Q(
                             completed_at__isnull=False,
                             archived_at__isnull=True,
@@ -1652,7 +1672,7 @@ class ActiveCycleEndpoint(BaseAPIView):
                 )
                 .annotate(
                     pending_issues=Count(
-                        "assignee_id",
+                        "id",
                         filter=Q(
                             completed_at__isnull=True,
                             archived_at__isnull=True,
@@ -1665,8 +1685,7 @@ class ActiveCycleEndpoint(BaseAPIView):
 
             label_distribution = (
                 Issue.objects.filter(
-                    issue_cycle__cycle_id=cycle["id"],
-                    project_id=cycle["project_id"],
+                    issue_cycle__cycle_id=data[0]["id"],
                     workspace__slug=workspace_slug,
                 )
                 .annotate(label_name=F("labels__name"))
@@ -1675,13 +1694,13 @@ class ActiveCycleEndpoint(BaseAPIView):
                 .values("label_name", "color", "label_id")
                 .annotate(
                     total_issues=Count(
-                        "label_id",
+                        "id",
                         filter=Q(archived_at__isnull=True, is_draft=False),
                     )
                 )
                 .annotate(
                     completed_issues=Count(
-                        "label_id",
+                        "id",
                         filter=Q(
                             completed_at__isnull=False,
                             archived_at__isnull=True,
@@ -1691,7 +1710,7 @@ class ActiveCycleEndpoint(BaseAPIView):
                 )
                 .annotate(
                     pending_issues=Count(
-                        "label_id",
+                        "id",
                         filter=Q(
                             completed_at__isnull=True,
                             archived_at__isnull=True,
@@ -1701,17 +1720,17 @@ class ActiveCycleEndpoint(BaseAPIView):
                 )
                 .order_by("label_name")
             )
-            cycle["distribution"] = {
+            data[0]["distribution"] = {
                 "assignees": assignee_distribution,
                 "labels": label_distribution,
                 "completion_chart": {},
             }
-            if cycle["start_date"] and cycle["end_date"]:
-                cycle["distribution"]["completion_chart"] = burndown_plot(
-                    queryset=active_cycles.get(pk=cycle["id"]),
+
+            if data[0]["start_date"] and data[0]["end_date"]:
+                data[0]["distribution"]["completion_chart"] = burndown_plot(
+                    queryset=active_cycles.first(),
                     slug=workspace_slug,
-                    project_id=cycle["project_id"],
-                    cycle_id=cycle["id"],
+                    cycle_id=data[0]["id"],
                 )
 
-        return Response(cycles, status=status.HTTP_200_OK)
+        return Response(data, status=status.HTTP_200_OK)

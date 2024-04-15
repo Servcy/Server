@@ -1,9 +1,9 @@
 from .cycle import (
+    ActiveCycleEndpoint,
     CycleArchiveUnarchiveEndpoint,
     CycleDateCheckEndpoint,
     CycleFavoriteViewSet,
     CycleIssueViewSet,
-    ActiveCycleEndpoint,
     CycleUserPropertiesEndpoint,
     CycleViewSet,
     TransferCycleIssueEndpoint,

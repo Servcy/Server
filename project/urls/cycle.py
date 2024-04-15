@@ -1,6 +1,7 @@
 from django.urls import path
 
 from project.views import (
+    ActiveCycleEndpoint,
     CycleArchiveUnarchiveEndpoint,
     CycleDateCheckEndpoint,
     CycleFavoriteViewSet,
@@ -8,7 +9,6 @@ from project.views import (
     CycleUserPropertiesEndpoint,
     CycleViewSet,
     TransferCycleIssueEndpoint,
-    ActiveCycleEndpoint,
 )
 
 urlpatterns = [
