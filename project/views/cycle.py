@@ -1614,7 +1614,6 @@ class ActiveCycleEndpoint(BaseAPIView):
                 )
             )
             .order_by("-is_favorite", "-created_at")
-            .distinct()
             .values(
                 "id",
                 "workspace_id",
@@ -1726,7 +1725,7 @@ class ActiveCycleEndpoint(BaseAPIView):
             }
             if cycle["start_date"] and cycle["end_date"]:
                 data["distribution"]["completion_chart"] = burndown_plot(
-                    queryset=active_cycles.first(),
+                    queryset=cycle,
                     slug=workspace_slug,
                     cycle_id=cycle["id"],
                     project_id=cycle["project_id"],

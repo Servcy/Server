@@ -100,11 +100,23 @@ def burndown_plot(queryset, slug, project_id, cycle_id=None, module_id=None):
     - cycle_id: The cycle id
     - module_id: The module id
     """
-    total_issues = queryset.total_issues
+    total_issues = (
+        queryset["total_issues"]
+        if isinstance(queryset, dict)
+        else queryset.total_issues
+    )
     if cycle_id:
+        start_date = (
+            queryset["start_date"]
+            if isinstance(queryset, dict)
+            else queryset.start_date
+        )
+        end_date = (
+            queryset["end_date"] if isinstance(queryset, dict) else queryset.end_date
+        )
         date_range = [
-            queryset.start_date + timedelta(days=x)
-            for x in range((queryset.end_date - queryset.start_date).days + 1)
+            start_date + timedelta(days=x)
+            for x in range((end_date - start_date).days + 1)
         ]
         chart_data = {str(date): 0 for date in date_range}
         completed_issues_distribution = (
