@@ -498,7 +498,10 @@ class ProjectArchiveUnarchiveEndpoint(BaseAPIView):
         project = Project.objects.get(pk=project_id, workspace__slug=workspace_slug)
         project.archived_at = timezone.now()
         project.save()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(
+            {"archived_at": str(project.archived_at)},
+            status=status.HTTP_200_OK,
+        )
 
     def delete(self, request, workspace_slug, project_id):
         project = Project.objects.get(pk=project_id, workspace__slug=workspace_slug)

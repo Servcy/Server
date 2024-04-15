@@ -845,7 +845,10 @@ class CycleArchiveUnarchiveEndpoint(BaseAPIView):
         )
         cycle.archived_at = timezone.now()
         cycle.save()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(
+            {"archived_at": str(cycle.archived_at)},
+            status=status.HTTP_200_OK,
+        )
 
     def delete(self, request, workspace_slug, project_id, cycle_id):
         cycle = Cycle.objects.get(
