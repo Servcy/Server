@@ -1,5 +1,6 @@
-from billing.views import WorkspaceSubscriptionView
 from django.urls import path
+
+from billing.views import WorkspaceSubscriptionView
 
 urlpatterns = [
     path(

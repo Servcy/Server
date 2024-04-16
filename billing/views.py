@@ -1,7 +1,9 @@
-from common.views import BaseAPIView
-from billing.models import Subscription
 from rest_framework.response import Response
+
+from billing.models import Subscription
+from billing.serializers import SubscriptionSerializer
 from common.permissions import WorkspaceViewerPermission
+from common.views import BaseAPIView
 
 
 class WorkspaceSubscriptionView(BaseAPIView):
@@ -19,7 +21,7 @@ class WorkspaceSubscriptionView(BaseAPIView):
             workspace__slug=workspace_slug, is_active=True
         ).first()
         return (
-            Response(subscription.data)
+            Response(SubscriptionSerializer(subscription).data)
             if subscription
             else Response(
                 {

@@ -3,10 +3,10 @@ from django.urls import path
 from webhook.asana import asana
 from webhook.figma import figma
 from webhook.github import github
-from webhook.razorpay import razorpay
 from webhook.google import google
 from webhook.jira import jira
 from webhook.microsoft import microsoft
+from webhook.razorpay import razorpay
 from webhook.slack import slack
 from webhook.trello import trello
 
