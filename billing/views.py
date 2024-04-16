@@ -2,7 +2,7 @@ from rest_framework.response import Response
 
 from billing.models import Subscription
 from billing.serializers import SubscriptionSerializer
-from common.permissions import WorkspaceViewerPermission
+from common.permissions import WorkspaceUserPermission
 from common.views import BaseAPIView
 
 
@@ -11,7 +11,7 @@ class WorkspaceSubscriptionView(BaseAPIView):
     This view will handle the workspace subscriptions
     """
 
-    permission_classes = [WorkspaceViewerPermission]
+    permission_classes = [WorkspaceUserPermission]
 
     def get(self, request, workspace_slug):
         """

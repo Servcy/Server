@@ -220,18 +220,6 @@ class WorkspaceEntityPermission(BasePermission):
         )
 
 
-class WorkspaceViewerPermission(BasePermission):
-    def has_permission(self, request, view):
-        if request.user.is_anonymous:
-            return False
-
-        return WorkspaceMember.objects.filter(
-            member=request.user,
-            workspace__slug=view.workspace_slug,
-            is_active=True,
-        ).exists()
-
-
 class WorkspaceUserPermission(BasePermission):
     def has_permission(self, request, view):
         if request.user.is_anonymous:

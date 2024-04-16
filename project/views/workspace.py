@@ -27,7 +27,7 @@ from rest_framework import status
 from rest_framework.response import Response
 
 from common.paginator import BasePaginator
-from common.permissions import WorkspaceEntityPermission, WorkspaceViewerPermission
+from common.permissions import WorkspaceEntityPermission, WorkspaceUserPermission
 from common.views import BaseAPIView
 from iam.enums import ERole
 from iam.models import User, Workspace, WorkspaceMember
@@ -408,7 +408,7 @@ class WorkspaceUserProfileIssuesEndpoint(BaseAPIView):
     """
 
     permission_classes = [
-        WorkspaceViewerPermission,
+        WorkspaceUserPermission,
     ]
 
     def get(self, request, workspace_slug, user_id):
@@ -555,7 +555,7 @@ class WorkspaceLabelsEndpoint(BaseAPIView):
     """
 
     permission_classes = [
-        WorkspaceViewerPermission,
+        WorkspaceUserPermission,
     ]
 
     def get(self, request, workspace_slug):
@@ -620,7 +620,7 @@ class WorkspaceModulesEndpoint(BaseAPIView):
     """
 
     permission_classes = [
-        WorkspaceViewerPermission,
+        WorkspaceUserPermission,
     ]
 
     def get(self, request, workspace_slug):
@@ -715,7 +715,7 @@ class WorkspaceCyclesEndpoint(BaseAPIView):
     """
 
     permission_classes = [
-        WorkspaceViewerPermission,
+        WorkspaceUserPermission,
     ]
 
     def get(self, request, workspace_slug):
