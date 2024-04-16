@@ -26,6 +26,9 @@ class WorkspaceSubscriptionView(BaseAPIView):
                     "plan_details": {
                         "name": "Starter Plan",
                     },
+                    "limits": {
+                        "invitations": 5,
+                    },
                     "valid_till": None,
                     "subscription_details": {},
                     "is_active": True,

@@ -13,6 +13,7 @@ class Subscription(TimeStampedModel, CreatorUpdaterModel):
     plan_details = models.JSONField(default=dict)
     subscription_details = models.JSONField(default=dict)
     valid_till = models.DateTimeField(null=True, default=None)
+    limits = models.JSONField(default=dict)
 
     class Meta:
         db_table = "subscription"
