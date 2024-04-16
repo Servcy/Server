@@ -2388,6 +2388,21 @@ files = [
 ]
 
 [[package]]
+name = "razorpay"
+version = "1.4.2"
+description = "Razorpay Python Client"
+category = "main"
+optional = false
+python-versions = "*"
+files = [
+    {file = "razorpay-1.4.2-py3-none-any.whl", hash = "sha256:aaf525baebc5001e5c54ae317a372c3c17c81314cedcbbf71aa0a2d3419a9757"},
+    {file = "razorpay-1.4.2.tar.gz", hash = "sha256:0d812030ba29e776e66d1ceaacc31635810fde18b66ff2591e582eb651bb5131"},
+]
+
+[package.dependencies]
+requests = "*"
+
+[[package]]
 name = "redis"
 version = "5.0.2"
 description = "Python client for Redis database and key-value store"
@@ -3130,4 +3145,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "3.11.1"
-content-hash = "914e28ad3ae1432f1a737f74dfc7db21830f14efa508837638b0ec07392d87bf"
+content-hash = "dc7fbc8e8d2ba2cead2891e59fb75a3bbc189dfb73309a0bd9e7be4ebdd43768"

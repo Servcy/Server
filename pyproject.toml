@@ -43,6 +43,7 @@ beautifulsoup4 = "^4.12.3"
 celery = "^5.3.6"
 redis = "^5.0.2"
 django-redis = "^5.4.0"
+razorpay = "^1.4.2"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.3.0"

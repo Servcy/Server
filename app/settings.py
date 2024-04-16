@@ -410,3 +410,7 @@ TEST_ACCOUNTS = [
     "shaan.puri@servcy.com",
     "meghamgarg@gmail.com",
 ]
+
+# Razorpay
+RAZORPAY_API_KEY = config.get("razorpay", "api_key")
+RAZORPAY_API_SECRET = config.get("razorpay", "api_secret")
