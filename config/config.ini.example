@@ -104,3 +104,7 @@ client_id=
 app_id=
 redirect_uri=
 client_secret=
+
+[razorpay]
+api_key=
+api_secret=
