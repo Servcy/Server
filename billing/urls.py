@@ -1,6 +1,6 @@
 from django.urls import path
 
-from billing.views import RazorpayView, WorkspaceSubscriptionView
+from billing.views import WorkspaceSubscriptionView, RazorpayView
 
 urlpatterns = [
     path(
