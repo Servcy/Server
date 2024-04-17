@@ -4,7 +4,7 @@ from billing.models import Subscription
 from billing.serializers import SubscriptionSerializer
 from common.permissions import WorkspaceUserPermission
 from common.views import BaseAPIView, BaseViewSet
-
+from common.billing import PLAN_LIMITS
 from django.conf import settings
 
 
@@ -30,9 +30,7 @@ class WorkspaceSubscriptionView(BaseAPIView):
                     "plan_details": {
                         "name": "Starter Plan",
                     },
-                    "limits": {
-                        "invitations": 5,
-                    },
+                    "limits": PLAN_LIMITS["starter"],
                     "valid_till": None,
                     "subscription_details": {},
                     "is_active": True,
@@ -58,7 +56,37 @@ class RazorpayView(BaseViewSet):
         """
         client = razorpay.Client(auth=(self._api_key, self._api_secret))
         plan_id = request.data.get("plan_id")
-        return Response({})
+        if not plan_id:
+            return Response(
+                {"error": "Please provide the plan_id to create a subscription"},
+                status=400,
+            )
+        plan = client.plan.fetch(plan_id)
+        if Subscription.objects.filter(
+            workspace__slug=workspace_slug, is_active=True
+        ).exists():
+            return Response(
+                {"error": "Subscription already exists for the workspace"},
+                status=400,
+            )
+        subscription = client.subscription.create(
+            data={
+                "plan_id": plan_id,
+                "customer_notify": 1,  # Notify the customer about the subscription
+                "total_count": 60,  # 60 months
+                "customer_id": request.user.email,
+            }
+        )
+        Subscription.objects.create(
+            plan_details=plan,
+            subscription_details=subscription,
+            limits=PLAN_LIMITS[str(plan["item"]["name"]).lower()],
+            valid_till=None,
+            is_active=False,
+            created_by=request.user,
+            updated_by=request.user,
+        )
+        return Response(subscription)
 
     def get(self, request, workspace_slug):
         """
