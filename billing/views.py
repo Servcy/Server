@@ -71,10 +71,13 @@ class RazorpayView(BaseViewSet):
             )
         subscription = client.subscription.create(
             data={
-                "plan_id": plan_id,
+                "plan_id": plan["id"],
                 "customer_notify": 1,  # Notify the customer about the subscription
                 "total_count": 60,  # 60 months
-                "customer_id": request.user.email,
+                "notes": {
+                    "workspace_slug": workspace_slug,
+                    "created_by": request.user.id,
+                },
             }
         )
         Subscription.objects.create(
