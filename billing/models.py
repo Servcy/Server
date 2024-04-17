@@ -12,10 +12,19 @@ class Subscription(TimeStampedModel, CreatorUpdaterModel):
     is_active = models.BooleanField(default=True)
     plan_details = models.JSONField(default=dict)
     subscription_details = models.JSONField(default=dict)
-    valid_till = models.DateTimeField(null=True, default=None)
     limits = models.JSONField(default=dict)
 
     class Meta:
         db_table = "subscription"
         verbose_name = "Subscription"
         verbose_name_plural = "Subscriptions"
+
+
+class SubscriptionWebhookEvent(models.Model):
+    event_id = models.CharField(max_length=1000, unique=True)
+    event_body = models.JSONField(default=dict)
+
+    class Meta:
+        db_table = "subscription_webhook_event"
+        verbose_name = "Subscription Webhook Event"
+        verbose_name_plural = "Subscription Webhook Events"

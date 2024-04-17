@@ -1,12 +1,14 @@
+import razorpay
+from django.conf import settings
 from rest_framework.response import Response
 import razorpay
 from billing.models import Subscription
 from iam.models import Workspace
 from billing.serializers import SubscriptionSerializer
+from common.billing import PLAN_LIMITS
 from common.permissions import WorkspaceUserPermission
 from common.views import BaseAPIView, BaseViewSet
-from common.billing import PLAN_LIMITS
-from django.conf import settings
+from iam.models import Workspace
 
 
 class WorkspaceSubscriptionView(BaseAPIView):
@@ -23,21 +25,17 @@ class WorkspaceSubscriptionView(BaseAPIView):
         subscription = Subscription.objects.filter(
             workspace__slug=workspace_slug, is_active=True
         ).first()
-        return (
-            Response(SubscriptionSerializer(subscription).data)
-            if subscription
-            else Response(
-                {
-                    "plan_details": {
-                        "name": "Starter Plan",
-                    },
-                    "limits": PLAN_LIMITS["starter"],
-                    "valid_till": None,
-                    "subscription_details": {},
-                    "is_active": True,
-                    "is_trial": True,
-                }
-            )
+        if subscription:
+            return Response(SubscriptionSerializer(subscription).data)
+        return Response(
+            {
+                "plan_details": {
+                    "name": "Starter Plan",
+                },
+                "limits": PLAN_LIMITS["starter"],
+                "subscription_details": {},
+                "is_active": True,
+            }
         )
 
 
@@ -83,7 +81,6 @@ class RazorpayView(BaseViewSet):
             workspace=workspace,
             subscription_details=subscription,
             limits=PLAN_LIMITS[str(plan["item"]["name"]).lower()],
-            valid_till=None,
             is_active=False,
             created_by=request.user,
             updated_by=request.user,
@@ -97,3 +94,22 @@ class RazorpayView(BaseViewSet):
         client = razorpay.Client(auth=(self._api_key, self._api_secret))
         plans = client.plan.all()
         return Response(plans)
+
+    def delete(self, request, workspace_slug):
+        """
+        This method will cancel the subscription, effective at the end of the current billing cycle
+        """
+        subscription = Subscription.objects.filter(
+            workspace__slug=workspace_slug, is_active=True
+        ).first()
+        if not subscription:
+            return Response(
+                {"error": "No active subscription found for the workspace"},
+                status=400,
+            )
+        client = razorpay.Client(auth=(self._api_key, self._api_secret))
+        client.subscription.cancel(
+            subscription.subscription_details["id"],
+            {"cancel_at_cycle_end": 1},
+        )
+        return Response({"message": "Subscription cancelled successfully"})
