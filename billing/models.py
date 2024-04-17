@@ -23,6 +23,7 @@ class Subscription(TimeStampedModel, CreatorUpdaterModel):
 
 class SubscriptionWebhookEvent(models.Model):
     event_id = models.CharField(max_length=1000, unique=True)
+    event_body = models.JSONField(default=dict)
 
     class Meta:
         db_table = "subscription_webhook_event"

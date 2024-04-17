@@ -35,7 +35,7 @@ def razorpay(request):
             return HttpResponse(status=200)
         if SubscriptionWebhookEvent.objects.filter(event_id=event_id).exists():
             return HttpResponse(status=200)
-        SubscriptionWebhookEvent.objects.create(event_id=event_id)
+        SubscriptionWebhookEvent.objects.create(event_id=event_id, event_body=body)
         return HttpResponse(status=200)
     except Exception as err:
         logger.exception(
