@@ -97,3 +97,20 @@ class RazorpayView(BaseViewSet):
         client = razorpay.Client(auth=(self._api_key, self._api_secret))
         plans = client.plan.all()
         return Response(plans)
+
+    def patch(self, request, workspace_slug):
+        """
+        This method will verify the payment and activate the subscription
+        """
+        client = razorpay.Client(auth=(self._api_key, self._api_secret))
+        payment_id = request.data.get("payment_id")
+        subscription_id = request.data.get("subscription_id")
+        signature = request.data.get("signature")
+        client.utility.verify_payment_signature(
+            {
+                "razorpay_payment_id": payment_id,
+                "razorpay_subscription_id": subscription_id,
+                "razorpay_signature": signature,
+            }
+        )
+        return Response(client.subscription.fetch(subscription_id))
