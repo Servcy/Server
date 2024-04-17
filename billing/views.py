@@ -34,7 +34,6 @@ class WorkspaceSubscriptionView(BaseAPIView):
                 "limits": PLAN_LIMITS["starter"],
                 "subscription_details": {},
                 "is_active": True,
-                "is_trial": True,
             }
         )
 
