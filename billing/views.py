@@ -1,6 +1,7 @@
 from rest_framework.response import Response
 import razorpay
 from billing.models import Subscription
+from iam.models import Workspace
 from billing.serializers import SubscriptionSerializer
 from common.permissions import WorkspaceUserPermission
 from common.views import BaseAPIView, BaseViewSet
@@ -69,19 +70,17 @@ class RazorpayView(BaseViewSet):
                 {"error": "Subscription already exists for the workspace"},
                 status=400,
             )
+        workspace = Workspace.objects.get(slug=workspace_slug)
         subscription = client.subscription.create(
             data={
                 "plan_id": plan["id"],
                 "customer_notify": 1,  # Notify the customer about the subscription
                 "total_count": 60,  # 60 months
-                "notes": {
-                    "workspace_slug": workspace_slug,
-                    "created_by": request.user.id,
-                },
             }
         )
         Subscription.objects.create(
             plan_details=plan,
+            workspace=workspace,
             subscription_details=subscription,
             limits=PLAN_LIMITS[str(plan["item"]["name"]).lower()],
             valid_till=None,
