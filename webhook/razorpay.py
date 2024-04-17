@@ -27,12 +27,6 @@ def razorpay(request):
         )
         event = body.get("event")
         event_id = headers.get("X-Razorpay-Event-Id")
-        if event not in [
-            "subscription.authenticated",
-            "subscription.cancelled",
-            "subscription.paused",
-        ]:
-            return HttpResponse(status=200)
         if SubscriptionWebhookEvent.objects.filter(event_id=event_id).exists():
             return HttpResponse(status=200)
         SubscriptionWebhookEvent.objects.create(event_id=event_id, event_body=body)
