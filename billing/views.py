@@ -24,20 +24,18 @@ class WorkspaceSubscriptionView(BaseAPIView):
         subscription = Subscription.objects.filter(
             workspace__slug=workspace_slug, is_active=True
         ).first()
-        return (
-            Response(SubscriptionSerializer(subscription).data)
-            if subscription
-            else Response(
-                {
-                    "plan_details": {
-                        "name": "Starter Plan",
-                    },
-                    "limits": PLAN_LIMITS["starter"],
-                    "subscription_details": {},
-                    "is_active": True,
-                    "is_trial": True,
-                }
-            )
+        if subscription:
+            return Response(SubscriptionSerializer(subscription).data)
+        return Response(
+            {
+                "plan_details": {
+                    "name": "Starter Plan",
+                },
+                "limits": PLAN_LIMITS["starter"],
+                "subscription_details": {},
+                "is_active": True,
+                "is_trial": True,
+            }
         )
 
 
