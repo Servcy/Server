@@ -39,5 +39,5 @@ from .project import (
     ProjectTemplate,
 )
 from .state import State
-from .timer import TrackedTime
+from .timer import TrackedTime, TrackedTimeAttachment
 from .view import GlobalView, IssueView, IssueViewFavorite
