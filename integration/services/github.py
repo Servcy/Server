@@ -204,9 +204,9 @@ class GithubService(BaseService):
                 workspace = issue.workspace
                 comment += f"""
 
-    | Name | State | Preview | Updated At |
-    | :--- | :--- | :--- | :--- |
-    | **{name}** | {state} | [{identifier}]({settings.FRONTEND_URL}/{workspace.slug}/projects/{issue.project.id}/issues/{issue.id}) | {updated_at} |
+| Name | State | Preview | Updated At |
+| :--- | :--- | :--- | :--- |
+| **{name}** | {state} | [{identifier}]({settings.FRONTEND_URL}/{workspace.slug}/projects/{issue.project.id}/issues/{issue.id}) | {updated_at} |
 
     """
             self._make_request(
