@@ -139,18 +139,14 @@ class GithubService(BaseService):
         # If commit message is present, then fetch commit message and add it to text
         commit_sha = payload.get("after", "")
         if commit_sha:
-            commit_message = (
-                self._make_request(
-                    "GET",
-                    f"repos/{payload['repository']['full_name']}/git/commits/{commit_sha}",
-                    headers={
-                        "Authorization": f"Bearer {self._token['access_token']}",
-                        "Accept": "application/vnd.github+json",
-                    },
-                )
-                .get("commit", {})
-                .get("message", "")
-            )
+            commit_message = self._make_request(
+                "GET",
+                f"repos/{payload['repository']['full_name']}/git/commits/{commit_sha}",
+                headers={
+                    "Authorization": f"Bearer {self._token['access_token']}",
+                    "Accept": "application/vnd.github+json",
+                },
+            ).get("message", "")
             text = f"{text} {commit_message}"
             commit_map[commit_sha] = commit_message
 
