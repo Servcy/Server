@@ -1,5 +1,9 @@
+import logging
+
 from iam.enums import ERole
 from project.models import Issue, IssueLink, ProjectMember
+
+logger = logging.getLogger(__name__)
 
 
 def get_issue_link_details_from_github_event(event: dict, commit_map: dict):
@@ -54,11 +58,37 @@ def parse_github_events_into_issue_links(
                 ).exists()
             ):
                 valid_issue_identifiers.append(identifier)
+            else:
+                logger.warning(
+                    "Issue not found or user is not a member of the project.",
+                    extra={
+                        "event": event,
+                    },
+                )
         except IndexError:
+            logger.warning(
+                "Issue identifier is not in the correct format.",
+                extra={
+                    "event": event,
+                },
+            )
             continue
         except ValueError:
+            logger.warning(
+                "Issue sequence id is not an integer.",
+                extra={
+                    "event": event,
+                },
+            )
             continue
     issue_links = []
+    if not valid_issue_identifiers:
+        logger.warning(
+            "No valid issue identifiers found in the github event.",
+            extra={
+                "event": event,
+            },
+        )
     for identifier in valid_issue_identifiers:
         project_identifier = identifier.split("-")[0]
         issue_sequence_id = int(identifier.split("-")[1])

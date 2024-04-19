@@ -126,6 +126,14 @@ def github(request):
                     user_integration.user_id,
                     commit_map,
                 )
+            else:
+                logger.warning(
+                    f"Unable to parse issue links for github event.",
+                    extra={
+                        "body": payload,
+                        "event": event,
+                    },
+                )
         InboxRepository.add_item(
             {
                 "title": title,
