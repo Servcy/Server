@@ -50,7 +50,7 @@ def parse_github_events_into_issue_links(
                     project__identifier=project_identifier,
                     member_id=user_id,
                     is_active=True,
-                    role__lt=ERole.MEMBER.value,
+                    role__gte=ERole.MEMBER.value,
                 ).exists()
             ):
                 valid_issue_identifiers.append(identifier)
