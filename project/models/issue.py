@@ -511,6 +511,7 @@ class IssueGitPR(ProjectBaseModel):
 
     class Meta:
         verbose_name = "Issue Github PR"
+        unique_together = ["issue", "pr_id"]
         verbose_name_plural = "Issue Github PRs"
         db_table = "issue_github_pr"
         ordering = ("-created_at",)
@@ -525,6 +526,7 @@ class IssueGitCommit(ProjectBaseModel):
 
     class Meta:
         verbose_name = "Issue Github Commit"
+        unique_together = ["issue", "commit_id"]
         verbose_name_plural = "Issue Github Commits"
         db_table = "issue_github_commit"
         ordering = ("-created_at",)
