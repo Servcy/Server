@@ -502,36 +502,6 @@ class IssueVote(ProjectBaseModel):
         ordering = ("-created_at",)
 
 
-class IssueGitPR(ProjectBaseModel):
-    issue = models.ForeignKey(
-        Issue, on_delete=models.CASCADE, related_name="issue_github_pr"
-    )
-    pr_id = models.IntegerField()
-    pr_url = models.URLField()
-
-    class Meta:
-        verbose_name = "Issue Github PR"
-        unique_together = ["issue", "pr_id"]
-        verbose_name_plural = "Issue Github PRs"
-        db_table = "issue_github_pr"
-        ordering = ("-created_at",)
-
-
-class IssueGitCommit(ProjectBaseModel):
-    issue = models.ForeignKey(
-        Issue, on_delete=models.CASCADE, related_name="issue_github_commit"
-    )
-    commit_id = models.CharField(max_length=255)
-    commit_url = models.URLField()
-
-    class Meta:
-        verbose_name = "Issue Github Commit"
-        unique_together = ["issue", "commit_id"]
-        verbose_name_plural = "Issue Github Commits"
-        db_table = "issue_github_commit"
-        ordering = ("-created_at",)
-
-
 @receiver(post_save, sender=Issue)
 def create_issue_sequence(sender, instance, created, **kwargs):
     if created:
