@@ -219,5 +219,4 @@ class GithubService(BaseService):
                 },
             )
         except Exception:
-            print("Error while posting comment on PR")
             pass
