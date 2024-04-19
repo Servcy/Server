@@ -5,6 +5,9 @@ from project.models import Issue, IssueLink, ProjectMember
 def get_issue_link_details_from_github_event(event: dict, commit_map: dict):
     """
     Get the issue link from the github event.
+    :param event: The github event.
+    :param commit_map: The commit map.
+    :return: The title and link.
     """
     link = ""
     title = ""
@@ -47,7 +50,7 @@ def parse_github_events_into_issue_links(
                     project__identifier=project_identifier,
                     member_id=user_id,
                     is_active=True,
-                    role__lt=ERole.MEMBER.value,
+                    role__gte=ERole.MEMBER.value,
                 ).exists()
             ):
                 valid_issue_identifiers.append(identifier)
