@@ -82,13 +82,6 @@ def parse_github_events_into_issue_links(
             )
             continue
     issue_links = []
-    if not valid_issue_identifiers:
-        logger.warning(
-            "No valid issue identifiers found in the github event.",
-            extra={
-                "event": event,
-            },
-        )
     for identifier in valid_issue_identifiers:
         project_identifier = identifier.split("-")[0]
         issue_sequence_id = int(identifier.split("-")[1])
