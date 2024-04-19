@@ -1588,7 +1588,7 @@ def github_issue_activity(
             workspace_id=workspace_id,
             created_by_id=actor_id,
             updated_by_id=actor_id,
-            comment=f"a github related {requested_data.get('type')}",
+            comment=f" a github {requested_data.get('type')} ",
             verb=requested_data.get("verb"),
             actor_id=actor_id,
             field="github",
