@@ -1569,6 +1569,37 @@ def delete_draft_issue_activity(
     )
 
 
+def github_issue_activity(
+    requested_data,
+    current_instance,
+    issue_id,
+    project_id,
+    workspace_id,
+    actor_id,
+    issue_activities,
+    epoch,
+):
+    requested_data = json.loads(requested_data) if requested_data is not None else None
+    current_instance = json.loads(current_instance)
+    issue_activities.append(
+        IssueActivity(
+            issue_id=issue_id,
+            project_id=project_id,
+            workspace_id=workspace_id,
+            created_by_id=actor_id,
+            updated_by_id=actor_id,
+            comment=f"a github related {requested_data.get('type')}",
+            verb=requested_data.get("verb"),
+            actor_id=actor_id,
+            field="github",
+            new_value=requested_data.get("title"),
+            old_value=requested_data.get("link"),
+            new_identifier=None,
+            epoch=epoch,
+        )
+    )
+
+
 @shared_task
 def issue_activity(
     type,
@@ -1660,6 +1691,7 @@ def issue_activity(
             "issue_draft.activity.created": create_draft_issue_activity,
             "issue_draft.activity.updated": update_draft_issue_activity,
             "issue_draft.activity.deleted": delete_draft_issue_activity,
+            "github.activity": github_issue_activity,
         }
         func = ACTIVITY_MAPPER.get(type)
         if func is not None:

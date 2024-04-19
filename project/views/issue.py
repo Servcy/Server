@@ -1143,6 +1143,26 @@ class IssueLinkViewSet(BaseViewSet):
             epoch=int(timezone.now().timestamp()),
             notification=True,
         )
+        if issue_link.metadata.get("source") == "github":
+            issue_activity.delay(
+                type="github.activity",
+                requested_data=json.dumps(
+                    {
+                        "link": issue_link.url,
+                        "title": issue_link.title,
+                        "verb": "removed",
+                        "type": (
+                            "commit" if "Commit" in issue_link.title else "pull request"
+                        ),
+                    }
+                ),
+                actor_id=str(request.user.id),
+                issue_id=str(issue_id),
+                current_instance=current_instance,
+                project_id=str(project_id),
+                epoch=int(timezone.now().timestamp()),
+                notification=False,
+            )
         issue_link.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 

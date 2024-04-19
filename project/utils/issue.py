@@ -1,5 +1,12 @@
+import json
+
+from django.core.serializers.json import DjangoJSONEncoder
+from django.utils import timezone
+
 from iam.enums import ERole
 from project.models import Issue, IssueLink, ProjectMember
+from project.serializers import IssueSerializer
+from project.tasks import issue_activity
 
 
 def get_issue_link_details_from_github_event(event: dict, commit_map: dict):
@@ -85,6 +92,29 @@ def parse_github_events_into_issue_links(
                 title=link_title,
                 created_by_id=user_id,
                 updated_by_id=user_id,
+                metadata={
+                    "type": "commit" if "Commit" in link_title else "pull request",
+                    "source": "github",
+                },
             )
+        )
+        issue_activity.delay(
+            type="github.activity",
+            requested_data=json.dumps(
+                {
+                    "link": link_url,
+                    "title": link_title,
+                    "verb": "added",
+                    "type": "commit" if "Commit" in link_title else "pull request",
+                }
+            ),
+            actor_id=str(user_id),
+            issue_id=str(issue.id),
+            project_id=str(project.id),
+            current_instance=json.dumps(
+                IssueSerializer(issue).data, cls=DjangoJSONEncoder
+            ),
+            epoch=int(timezone.now().timestamp()),
+            notification=False,
         )
     IssueLink.objects.bulk_create(issue_links)
