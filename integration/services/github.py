@@ -156,6 +156,7 @@ class GithubService(BaseService):
     def post_comment_on_pr(self, pull_request: dict, possible_issue_identifiers: set):
         """
         Post comment on PR with related issue details.
+        Details include issue name, state, preview link, updated at.
         """
         issues = []
         for identifier in possible_issue_identifiers:
