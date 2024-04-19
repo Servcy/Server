@@ -135,9 +135,7 @@ class GithubService(BaseService):
         pr_body = payload.get("pull_request", {}).get("body", "")
         comment = payload.get("comment", {}).get("body", "")
         text = f"{pr_title} {pr_body} {comment}"
-
         commit_map = {}
-        # If commit message is present, then fetch commit message and add it to text
         commit_sha = payload.get("after", "")
         if commit_sha:
             commit_message = self._make_request(
@@ -156,47 +154,69 @@ class GithubService(BaseService):
     def post_comment_on_pr(self, pull_request: dict, possible_issue_identifiers: set):
         """
         Post comment on PR with related issue details.
-        Details include issue name, state, preview link, updated at.
         """
-        issues = []
-        for identifier in possible_issue_identifiers:
-            try:
-                project_identifier = identifier.split("-")[0]
-                sequence_id = int(identifier.split("-")[1])
-                issue = Issue.objects.filter(
-                    project__archived_at__isnull=True,
-                    is_draft=False,
-                    archived_at__isnull=True,
-                    project__identifier=project_identifier,
-                    sequence_id=int(sequence_id),
-                ).first()
-                if not issue:
+        try:
+            issues = []
+            for identifier in possible_issue_identifiers:
+                try:
+                    project_identifier = identifier.split("-")[0]
+                    sequence_id = int(identifier.split("-")[1])
+                    issue = Issue.objects.filter(
+                        project__archived_at__isnull=True,
+                        is_draft=False,
+                        archived_at__isnull=True,
+                        project__identifier=project_identifier,
+                        sequence_id=int(sequence_id),
+                    ).first()
+                    if not issue:
+                        continue
+                    issues.append(issue)
+                except IndexError:
                     continue
-                issues.append(issue)
-            except IndexError:
-                continue
-            except ValueError:
-                continue
-        comment = "**Following Servcy issues were mentioned in this PR**."
-        for issue in issues:
-            identifier = f"{issue.project.identifier}-{issue.sequence_id}"
-            name = issue.name
-            updated_at = issue.updated_at.strftime("%b %d, %Y %I:%M%p")
-            state = issue.state.group.upper() if issue.state else "TRIAGE"
-            workspace = issue.workspace
-            comment += f"""
+                except ValueError:
+                    continue
+            comment = "**Following Servcy issues were mentioned in this PR**."
+            for issue in issues:
+                identifier = f"{issue.project.identifier}-{issue.sequence_id}"
+                name = issue.name
+                updated_at = issue.updated_at.strftime("%b %d, %Y %I:%M%p")
+                state = issue.state.group.upper() if issue.state else "TRIAGE"
+                workspace = issue.workspace
+                comment += f"""
 
-| Name | State | Preview | Updated At |
-| :--- | :--- | :--- | :--- |
-| **{name}** | {state} | [{identifier}]({settings.FRONTEND_URL}/{workspace.slug}/projects/{issue.project.id}/issues/{issue.id}) | {updated_at} |
+    | Name | State | Preview | Updated At |
+    | :--- | :--- | :--- | :--- |
+    | **{name}** | {state} | [{identifier}]({settings.FRONTEND_URL}/{workspace.slug}/projects/{issue.project.id}/issues/{issue.id}) | {updated_at} |
 
-"""
-        self._make_request(
-            "POST",
-            f"repos/{pull_request['base']['repo']['full_name']}/issues/{pull_request['number']}/comments",
-            json={"body": comment},
-            headers={
-                "Authorization": f"Bearer {self._token['access_token']}",
-                "Accept": "application/vnd.github+json",
-            },
-        )
+    """
+            self._make_request(
+                "POST",
+                f"repos/{pull_request['base']['repo']['full_name']}/issues/{pull_request['number']}/comments",
+                json={"body": comment},
+                headers={
+                    "Authorization": f"Bearer {self._token['access_token']}",
+                    "Accept": "application/vnd.github+json",
+                },
+            )
+            past_comments = self._make_request(
+                "GET",
+                f"repos/{pull_request['base']['repo']['full_name']}/issues/{pull_request['number']}/comments",
+                headers={
+                    "Authorization": f"Bearer {self._token['access_token']}",
+                    "Accept": "application/vnd.github+json",
+                },
+            )
+            for comment in past_comments:
+                if comment.get("body", "").startswith(
+                    "**Following Servcy issues were mentioned in this PR**."
+                ):
+                    self._make_request(
+                        "DELETE",
+                        f"repos/{pull_request['base']['repo']['full_name']}/issues/comments/{comment['id']}",
+                        headers={
+                            "Authorization": f"Bearer {self._token['access_token']}",
+                            "Accept": "application/vnd.github+json",
+                        },
+                    )
+        except Exception:
+            pass
