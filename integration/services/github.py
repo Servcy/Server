@@ -182,12 +182,12 @@ class GithubService(BaseService):
             identifier = f"{issue.project.identifier}-{issue.sequence_id}"
             name = issue.name
             updated_at = issue.updated_at.strftime("%b %d, %Y %I:%M%p")
-            state = issue.state.group
+            state = issue.state.group.upper() if issue.state else "TRIAGE"
             workspace = issue.workspace
             comment += f"""
 
-| Name | State | Preview | Updated (UTC) |
-| :--- | :--- | :----- | :------ | :------- | :------ |
+| Name | State | Preview | Updated At |
+| :--- | :--- | :--- | :--- |
 | **{name}** | {state} | [{identifier}]({settings.FRONTEND_URL}/{workspace.slug}/projects/{issue.project.id}/issues/{issue.id}) | {updated_at} |
 
 """
