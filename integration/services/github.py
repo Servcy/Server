@@ -5,6 +5,7 @@ from django.conf import settings
 
 from integration.models import UserIntegration
 from integration.repository import IntegrationRepository
+from project.models import Issue
 
 from .base import BaseService
 
@@ -151,3 +152,50 @@ class GithubService(BaseService):
             commit_map[commit_sha] = commit_message
 
         return set(re.findall(r"\[([A-Z]+-\d+)\]", text)), commit_map
+
+    def post_comment_on_pr(self, pull_request: dict, possible_issue_identifiers: set):
+        """
+        Post comment on PR with related issue details.
+        """
+        issues = []
+        for identifier in possible_issue_identifiers:
+            try:
+                project_identifier = identifier.split("-")[0]
+                sequence_id = int(identifier.split("-")[1])
+                issue = Issue.objects.filter(
+                    project__archived_at__isnull=True,
+                    is_draft=False,
+                    archived_at__isnull=True,
+                    project__identifier=project_identifier,
+                    sequence_id=int(sequence_id),
+                ).first()
+                if not issue:
+                    continue
+                issues.append(issue)
+            except IndexError:
+                continue
+            except ValueError:
+                continue
+        comment = "**Following Servcy issues were mentioned in this PR**."
+        for issue in issues:
+            identifier = f"{issue.project.identifier}-{issue.sequence_id}"
+            name = issue.name
+            updated_at = issue.updated_at.strftime("%b %d, %Y %I:%M%p")
+            state = issue.state.group
+            workspace = issue.workspace
+            comment += f"""
+
+| Name | State | Preview | Updated (UTC) |
+| :--- | :--- | :----- | :------ | :------- | :------ |
+| **{name}** | {state} | [{identifier}]({settings.FRONTEND_URL}/{workspace.slug}/projects/{issue.project.id}/issues/{issue.id}) | {updated_at} |
+
+"""
+        self._make_request(
+            "POST",
+            f"repos/{pull_request['base']['repo']['full_name']}/issues/{pull_request['number']}/comments",
+            json={"body": comment},
+            headers={
+                "Authorization": f"Bearer {self._token['access_token']}",
+                "Accept": "application/vnd.github+json",
+            },
+        )
