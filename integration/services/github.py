@@ -1,3 +1,5 @@
+import re
+
 import requests
 from django.conf import settings
 
@@ -19,6 +21,9 @@ class GithubService(BaseService):
         self._user_info = None
         if kwargs.get("code"):
             self.authenticate(kwargs.get("code"))
+        elif kwargs.get("token"):
+            self._token = kwargs.get("token")
+            self._user_info = self._fetch_user_info()
 
     @staticmethod
     def _make_request(method: str, endpoint: str, **kwargs) -> dict:
@@ -120,3 +125,33 @@ class GithubService(BaseService):
                     installation_ids.remove(str(repo["id"]))
         user_integration.configuration = list(installation_ids)
         user_integration.save()
+
+    def get_possible_issue_identifiers(self, payload: dict):
+        """
+        If issue identifier is present in pull request title, or body then return possible issue identifiers.
+        """
+        pr_title = payload.get("pull_request", {}).get("title", "")
+        pr_body = payload.get("pull_request", {}).get("body", "")
+        comment = payload.get("comment", {}).get("body", "")
+        text = f"{pr_title} {pr_body} {comment}"
+
+        commit_map = {}
+        # If commit message is present, then fetch commit message and add it to text
+        commit_sha = payload.get("after", "")
+        if commit_sha:
+            commit_message = (
+                self._make_request(
+                    "GET",
+                    f"repos/{payload['repository']['full_name']}/git/commits/{commit_sha}",
+                    headers={
+                        "Authorization": f"Bearer {self._token['access_token']}",
+                        "Accept": "application/vnd.github+json",
+                    },
+                )
+                .get("commit", {})
+                .get("message", "")
+            )
+            text = f"{text} {commit_message}"
+            commit_map[commit_sha] = commit_message
+
+        return set(re.findall(r"\[([A-Z]+-\d+)\]", text)), commit_map
