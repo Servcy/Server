@@ -15,6 +15,7 @@ from integration.repository import IntegrationRepository
 from integration.repository.events import DisabledUserIntegrationEventRepository
 from integration.services.github import GithubService
 from integration.utils.events import is_event_and_action_disabled
+from project.utils.issue import parse_github_events_into_issue_links
 
 logger = logging.getLogger(__name__)
 
@@ -112,6 +113,19 @@ def github(request):
             in payload.get("comment", {}).get("body", "")
         ):
             i_am_mentioned = True
+        if "pull_request" == event:
+            possible_issue_identifiers, commit_map = GithubService(
+                token=IntegrationRepository.decrypt_meta_data(
+                    user_integration.meta_data
+                ).get("token", {})
+            ).get_possible_issue_identifiers(payload)
+            if possible_issue_identifiers:
+                parse_github_events_into_issue_links(
+                    payload,
+                    possible_issue_identifiers,
+                    user_integration.user_id,
+                    commit_map,
+                )
         InboxRepository.add_item(
             {
                 "title": title,
