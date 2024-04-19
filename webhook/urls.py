@@ -1,14 +1,11 @@
 from django.urls import path
 
-from webhook.asana import asana
 from webhook.figma import figma
 from webhook.github import github
 from webhook.google import google
-from webhook.jira import jira
 from webhook.microsoft import microsoft
 from webhook.razorpay import razorpay
 from webhook.slack import slack
-from webhook.trello import trello
 
 urlpatterns = [
     path("microsoft", microsoft, name="Microsoft"),
@@ -17,7 +14,4 @@ urlpatterns = [
     path("figma", figma, name="Figma"),
     path("github", github, name="Github"),
     path("razorpay", razorpay, name="Razorpay"),
-    path("asana/<int:user_integration_id>", asana, name="Asana"),
-    path("trello/<int:user_integration_id>", trello, name="Trello"),
-    path("jira", jira, name="Jira"),
 ]

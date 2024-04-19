@@ -1,9 +1,7 @@
-import datetime
 import logging
 
 import requests
 from django.conf import settings
-from django.utils import timezone
 
 from integration.models import UserIntegration
 from integration.repository import IntegrationRepository
@@ -84,7 +82,6 @@ class JiraService(BaseService):
         self.cloud_id = meta_data["cloud_id"]
         self._user_info = meta_data["user_info"]
         self._token = self.refresh_token()
-        self.extend_webhook()
         IntegrationRepository.update_user_integraion(
             user_integration_id=kwargs["user_integration_id"],
             meta_data=IntegrationRepository.encrypt_meta_data(
@@ -113,91 +110,7 @@ class JiraService(BaseService):
             account_id=self._user_info["account_id"],
             account_display_name=self._user_info["email"],
         )
-        self.create_webhook()
         return self.user_integration
-
-    def fetch_webhooks(self) -> list:
-        """
-        Fetch webhooks for Jira integration.
-        """
-        response = requests.get(
-            f"{self._jira_api_url}/ex/jira/{self.cloud_id}/rest/api/3/webhook",
-            headers={
-                "Authorization": f"Bearer {self._token['access_token']}",
-                "Accept": "application/json",
-            },
-        )
-        if response.status_code != 200:
-            response.raise_for_status()
-        return response.json().get("values", [])
-
-    def create_webhook(self) -> None:
-        """
-        Create webhooks for Jira integration.
-        """
-        existing_webhooks = self.fetch_webhooks()
-        for webhook in existing_webhooks:
-            expiration_date = datetime.datetime.strptime(
-                webhook["expirationDate"], "%Y-%m-%dT%H:%M:%S.%f%z"
-            )
-            if expiration_date < timezone.now():
-                return
-        response = requests.post(
-            f"{self._jira_api_url}/ex/jira/{self.cloud_id}/rest/api/3/webhook",
-            headers={
-                "Authorization": f"Bearer {self._token['access_token']}",
-                "Accept": "application/json",
-                "Content-Type": "application/json",
-            },
-            json={
-                "url": f"{settings.BACKEND_URL}/webhook/jira",
-                "webhooks": [
-                    {
-                        "events": [
-                            "jira:issue_created",
-                            "jira:issue_updated",
-                            "jira:issue_deleted",
-                            "comment_created",
-                            "comment_updated",
-                            "comment_deleted",
-                        ],
-                        "jqlFilter": f"assignee = {self._user_info['account_id']}",
-                    },
-                ],
-            },
-        )
-        if response.status_code != 200:
-            response.raise_for_status()
-        return response.json()
-
-    def extend_webhook(self) -> None:
-        """
-        Extend webhook for Jira integration.
-        """
-        webhooks = self.fetch_webhooks()
-        webhook_ids = []
-        for webhook in webhooks:
-            expiration_date = datetime.datetime.strptime(
-                webhooks[0]["expirationDate"], "%Y-%m-%dT%H:%M:%S.%f%z"
-            )
-            if expiration_date < timezone.now():
-                webhook_ids.append(webhook["id"])
-        if not webhook_ids:
-            return {}
-        response = requests.put(
-            f"{self._jira_api_url}/ex/jira/{self.cloud_id}/rest/api/3/webhook/refresh",
-            headers={
-                "Authorization": f"Bearer {self._token['access_token']}",
-                "Accept": "application/json",
-                "Content-Type": "application/json",
-            },
-            json={
-                "webhookId": webhook_ids,
-            },
-        )
-        if response.status_code != 200:
-            response.raise_for_status()
-        return response.json()
 
     def refresh_token(self):
         """

@@ -40,39 +40,6 @@ class TrelloService(BaseService):
         """Abstract method implementation"""
         return super()._fetch_token(code)
 
-    def _establish_webhooks(self) -> None:
-        """
-        Establishes webhooks for Trello integration.
-        """
-        response = requests.get(
-            f"https://api.trello.com/1/members/me/boards?key={self._trello_key}&token={self._token}"
-        )
-        if response.status_code != 200:
-            response.raise_for_status()
-        boards = response.json()
-        for board in boards:
-            # Create webhook for each board so that we can get notifications for new cards.
-            self._create_webhook(board["id"])
-
-    def _create_webhook(self, model_id: str) -> None:
-        """
-        Creates webhook for Trello integration.
-        """
-        response = requests.post(
-            f"https://api.trello.com/1/tokens/{self._token}/webhooks/?key={self._trello_key}&token={self._token}",
-            data={
-                "callbackURL": f"{settings.BACKEND_URL}/webhook/trello/{self.user_integration.id}",
-                "idModel": model_id,
-            },
-        )
-        if (
-            "A webhook with that callback, model, and token already exists"
-            in response.text
-        ):
-            return
-        if response.status_code != 200:
-            response.raise_for_status()
-
     def create_integration(self, user_id: int) -> UserIntegration:
         """Creates integration for user."""
         self.user_integration = IntegrationRepository.create_user_integration(
@@ -85,8 +52,6 @@ class TrelloService(BaseService):
             account_display_name=self._user_info["username"],
         )
         # https://developer.atlassian.com/cloud/trello/guides/rest-api/webhooks/#webhook-actions-and-types
-        self._create_webhook(self._user_info["id"])
-        self._establish_webhooks()
         return self.user_integration
 
     def is_active(self, meta_data: dict, **kwargs) -> bool:

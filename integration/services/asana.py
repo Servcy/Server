@@ -92,7 +92,6 @@ class AsanaService(BaseService):
             meta_data={"token": self._token, "user_info": self._user_info},
             account_display_name=self._user_info["name"],
         )
-        self._establish_webhooks()
         return self.user_integration
 
     def is_active(self, meta_data: dict, **kwargs) -> bool:
@@ -119,103 +118,6 @@ class AsanaService(BaseService):
             ),
         )
         return True
-
-    def _establish_webhooks(self) -> None:
-        """Establishes webhook for Asana."""
-        if not self.client:
-            self.client = asana.Client.access_token(self._token["access_token"])
-        for workspace in self._user_info["workspaces"]:
-            self.create_project_monitoring_webhook(workspace["gid"])
-            projects = self.client.projects.get_projects_for_workspace(
-                workspace["gid"], opt_pretty=True
-            )
-            for project in projects:
-                project = self.client.projects.get_project(
-                    project["gid"], opt_pretty=True
-                )
-                self.create_task_monitoring_webhook(
-                    project["gid"], user_integration_id=self.user_integration.id
-                )
-
-    def create_task_monitoring_webhook(self, project_id, user_integration_id):
-        if not self.client:
-            self.client = asana.Client.access_token(self._token["access_token"])
-        try:
-            self.client.webhooks.create_webhook(
-                resource=project_id,
-                target=f"{settings.BACKEND_URL}/webhook/asana/{user_integration_id}",
-                opt_pretty=True,
-                filters=[
-                    {
-                        "resource_type": "task",
-                        "action": "added",
-                    },
-                    {
-                        "resource_type": "task",
-                        "action": "removed",
-                    },
-                    {
-                        "resource_type": "task",
-                        "action": "deleted",
-                    },
-                    {
-                        "resource_type": "task",
-                        "action": "undeleted",
-                    },
-                    {
-                        "resource_type": "task",
-                        "action": "changed",
-                    },
-                    {
-                        "resource_type": "attachment",
-                        "action": "added",
-                    },
-                    {
-                        "resource_type": "story",
-                        "resource_subtype": "comment_added",
-                    },
-                ],
-            )
-        except asana.error.ForbiddenError as err:
-            if "duplicate" in str(err.message).lower():
-                return
-            raise err
-
-    def create_project_monitoring_webhook(self, workspace_id):
-        if not self.client:
-            self.client = asana.Client.access_token(self._token["access_token"])
-        try:
-            self.client.webhooks.create_webhook(
-                resource=workspace_id,
-                target=f"{settings.BACKEND_URL}/webhook/asana/{self.user_integration.id}",
-                opt_pretty=True,
-                filters=[
-                    {
-                        "resource_type": "project",
-                        "action": "added",
-                    },
-                    {
-                        "resource_type": "project",
-                        "action": "removed",
-                    },
-                    {
-                        "resource_type": "project",
-                        "action": "deleted",
-                    },
-                    {
-                        "resource_type": "project",
-                        "action": "undeleted",
-                    },
-                    {
-                        "resource_type": "project",
-                        "action": "changed",
-                    },
-                ],
-            )
-        except asana.error.ForbiddenError as err:
-            if "duplicate" in str(err.message).lower():
-                return
-            raise err
 
     def get_project(self, project_gid: str) -> dict:
         """Get project details."""
