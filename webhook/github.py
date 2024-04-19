@@ -114,17 +114,25 @@ def github(request):
         ):
             i_am_mentioned = True
         if "pull_request" == event:
-            possible_issue_identifiers, commit_map = GithubService(
+            github_service = GithubService(
                 token=IntegrationRepository.decrypt_meta_data(
                     user_integration.meta_data
                 ).get("token", {})
-            ).get_possible_issue_identifiers(payload)
+            )
+            (
+                possible_issue_identifiers,
+                commit_map,
+            ) = github_service.get_possible_issue_identifiers(payload)
             if possible_issue_identifiers:
                 parse_github_events_into_issue_links(
                     payload,
                     possible_issue_identifiers,
                     user_integration.user_id,
                     commit_map,
+                )
+                github_service.post_comment_on_pr(
+                    pull_request=payload.get("pull_request", {}),
+                    possible_issue_identifiers=possible_issue_identifiers,
                 )
         InboxRepository.add_item(
             {
