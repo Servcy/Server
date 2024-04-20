@@ -200,7 +200,7 @@ class ProjectMemberRoleSerializer(ServcyDynamicBaseSerializer):
         if member_cost is not None:
             return {
                 "id": member_cost.id,
-                "rate": member_cost.rate,
+                "rate": member_cost.rate if member_cost.rate else "",
                 "currency": member_cost.currency,
                 "per_hour_or_per_project": member_cost.per_hour_or_per_project,
             }
