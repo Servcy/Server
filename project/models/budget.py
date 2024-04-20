@@ -4,18 +4,18 @@ from django.db import models
 from .base import ProjectBaseModel
 
 
-class Budget(ProjectBaseModel):
+class ProjectBudget(ProjectBaseModel):
     """
-    Budget (model): To store all the budget of the project
+    ProjectBudget (model): To store all the budget of the project
     """
 
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     currency = models.CharField(max_length=10, default="INR")
 
     class Meta:
-        verbose_name = "Budget"
-        verbose_name_plural = "Budgets"
-        db_table = "budget"
+        verbose_name = "Project Budget"
+        verbose_name_plural = "Project Budgets"
+        db_table = "project_budget"
         ordering = ("-created_at",)
 
 

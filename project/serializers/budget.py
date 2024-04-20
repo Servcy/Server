@@ -1,10 +1,10 @@
 from app.serializers import ServcyBaseSerializer
-from project.models import Budget, ProjectMemberRate
+from project.models import ProjectBudget, ProjectMemberRate
 
 
-class BudgetSerializer(ServcyBaseSerializer):
+class ProjectBudgetSerializer(ServcyBaseSerializer):
     class Meta:
-        model = Budget
+        model = ProjectBudget
         fields = "__all__"
 
 

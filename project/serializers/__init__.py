@@ -1,4 +1,4 @@
-from .budget import BudgetSerializer, ProjectMemberRateSerializer
+from .budget import ProjectBudgetSerializer, ProjectMemberRateSerializer
 from .cycle import (
     CycleFavoriteSerializer,
     CycleIssueSerializer,
