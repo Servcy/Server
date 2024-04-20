@@ -119,6 +119,21 @@ class ProjectListSerializer(ServcyDynamicBaseSerializer):
     member_role = serializers.IntegerField(read_only=True)
     is_deployed = serializers.BooleanField(read_only=True)
     members = serializers.SerializerMethodField()
+    budget = serializers.SerializerMethodField()
+
+    def get_budget(self, obj):
+        project_budget = getattr(obj, "budget", None)
+        if project_budget is not None:
+            return {
+                "id": project_budget.id,
+                "amount": project_budget.amount,
+                "currency": project_budget.currency,
+            }
+        return {
+            "id": None,
+            "amount": "",
+            "currency": "USD",
+        }
 
     def get_members(self, obj):
         project_members = getattr(obj, "members_list", None)

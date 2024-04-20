@@ -17,6 +17,7 @@ from iam.enums import EAccess, ERole
 from iam.models import Workspace, WorkspaceMember
 from project.models import (
     Cycle,
+    ProjectBudget,
     Estimate,
     EstimatePoint,
     Issue,
@@ -255,9 +256,10 @@ class ProjectViewSet(BaseViewSet):
     def create(self, request, workspace_slug):
         try:
             workspace = Workspace.objects.get(slug=workspace_slug)
-
+            project_details = request.data
+            budget = project_details.pop("budget", None)
             serializer = ProjectSerializer(
-                data={**request.data}, context={"workspace_id": workspace.id}
+                data={**project_details}, context={"workspace_id": workspace.id}
             )
             if serializer.is_valid():
                 with transaction.atomic():
@@ -361,6 +363,20 @@ class ProjectViewSet(BaseViewSet):
                             )
                         )
                     Label.objects.bulk_create(project_labels)
+                    budget_amount = budget.get("amount", "")
+                    try:
+                        budget_amount = float(budget_amount)
+                        budget_currency = budget.get("currency", "USD")
+                        project_budget = ProjectBudget(
+                            amount=budget_amount,
+                            currency=budget_currency,
+                            project=project,
+                            workspace=workspace,
+                        )
+                        project_budget.save()
+                        project.budget = project_budget
+                    except ValueError:
+                        pass
                     project.estimate = estimate
                     project.save()
                     return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -388,26 +404,46 @@ class ProjectViewSet(BaseViewSet):
     def partial_update(self, request, workspace_slug, pk=None):
         try:
             workspace = Workspace.objects.get(slug=workspace_slug)
-
             project = Project.objects.get(pk=pk)
-
+            project_details = request.data
+            budget = project_details.pop("budget", None)
             if project.archived_at:
                 return Response(
                     {"error": "Archived projects cannot be updated"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-
             serializer = ProjectSerializer(
                 project,
-                data={**request.data},
+                data={**project_details},
                 context={"workspace_id": workspace.id},
                 partial=True,
             )
-
             if serializer.is_valid():
                 serializer.save()
                 project = self.get_queryset().filter(pk=serializer.data["id"]).first()
                 serializer = ProjectListSerializer(project)
+                if budget:
+                    budget_amount = budget.get("amount", "")
+                    try:
+                        budget_amount = float(budget_amount)
+                        budget_currency = budget.get("currency", "USD")
+                        project_budget = project.budget
+                        if project_budget:
+                            project_budget.amount = budget_amount
+                            project_budget.currency = budget_currency
+                            project_budget.save()
+                        else:
+                            project_budget = ProjectBudget(
+                                amount=budget_amount,
+                                currency=budget_currency,
+                                project=project,
+                                workspace=workspace,
+                            )
+                            project_budget.save()
+                            project.budget = project_budget
+                            project.save()
+                    except ValueError:
+                        pass
                 return Response(serializer.data, status=status.HTTP_200_OK)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
