@@ -678,6 +678,7 @@ class ProjectMemberViewSet(BaseViewSet):
             .values("member_id", "sort_order")
             .order_by("sort_order")
         )
+        bulk_project_members = []
         for member in members:
             bulk_issue_props.append(
                 IssueProperty(
@@ -720,7 +721,10 @@ class ProjectMemberViewSet(BaseViewSet):
                     updated_by=request.user,
                 )
                 project_member.rate = project_member_cost
-                project_member.save()
+                bulk_project_members.append(project_member)
+        ProjectMember.objects.bulk_update(
+            bulk_project_members, ["rate"], batch_size=100
+        )
         IssueProperty.objects.bulk_create(
             bulk_issue_props, batch_size=10, ignore_conflicts=True
         )
