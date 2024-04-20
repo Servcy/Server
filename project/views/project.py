@@ -600,13 +600,13 @@ class ProjectMemberViewSet(BaseViewSet):
 
         bulk_project_members = []
         bulk_issue_props = []
-        bulk_project_member_rates = []
+        bulk_project_member_costs = []
 
         # Create a dictionary of member_id and their roles
         member_roles = {
             member.get("member_id"): member.get("role") for member in members
         }
-        member_rates = {
+        member_costs = {
             member.get("member_id"): {
                 "rate": member.get("rate", 0),
                 "currency": member.get("currency", "USD"),
@@ -622,13 +622,13 @@ class ProjectMemberViewSet(BaseViewSet):
             project_member.role = member_roles[str(project_member.member_id)]
             project_member.is_active = True
             if not project_member.rate:
-                project_member_rate = ProjectMemberRate.objects.create(
+                project_member_cost = ProjectMemberRate.objects.create(
                     project_member=project_member,
-                    rate=member_rates[str(project_member.member_id)].get("rate", 0),
-                    currency=member_rates[str(project_member.member_id)].get(
+                    rate=member_costs[str(project_member.member_id)].get("rate", 0),
+                    currency=member_costs[str(project_member.member_id)].get(
                         "currency", "USD"
                     ),
-                    per_hour_or_per_project=member_rates[
+                    per_hour_or_per_project=member_costs[
                         str(project_member.member_id)
                     ].get("per_hour_or_per_project", True),
                     project=project,
@@ -636,19 +636,19 @@ class ProjectMemberViewSet(BaseViewSet):
                     created_by=request.user,
                     updated_by=request.user,
                 )
-                project_member.rate = project_member_rate
+                project_member.rate = project_member_cost
             else:
                 project_member_rate = project_member.rate
-                project_member_rate.rate = member_rates[
+                project_member_rate.rate = member_costs[
                     str(project_member.member_id)
                 ].get("rate", 0)
-                project_member_rate.currency = member_rates[
+                project_member_rate.currency = member_costs[
                     str(project_member.member_id)
                 ].get("currency", "USD")
-                project_member_rate.per_hour_or_per_project = member_rates[
+                project_member_rate.per_hour_or_per_project = member_costs[
                     str(project_member.member_id)
                 ].get("per_hour_or_per_project", True)
-                bulk_project_member_rates.append(project_member_rate)
+                bulk_project_member_costs.append(project_member_rate)
             bulk_project_members.append(project_member)
 
         # Update the roles of the existing members
@@ -657,7 +657,7 @@ class ProjectMemberViewSet(BaseViewSet):
         )
         # Update the rates of the existing members
         ProjectMemberRate.objects.bulk_update(
-            bulk_project_member_rates,
+            bulk_project_member_costs,
             ["rate", "currency", "per_hour_or_per_project"],
             batch_size=10,
         )
@@ -676,15 +676,37 @@ class ProjectMemberViewSet(BaseViewSet):
                 for project_member in project_members
                 if str(project_member.get("member_id")) == str(member.get("member_id"))
             ]
-            bulk_project_members.append(
-                ProjectMember(
-                    member_id=member.get("member_id"),
-                    role=member.get("role", ERole.MEMBER.value),
-                    project_id=project_id,
-                    workspace_id=project.workspace_id,
-                    sort_order=sort_order[0] - 10000 if len(sort_order) else 65535,
-                )
+            project_member = ProjectMember(
+                member_id=member.get("member_id"),
+                role=member.get("role", ERole.MEMBER.value),
+                project_id=project_id,
+                workspace_id=project.workspace_id,
+                sort_order=sort_order[0] - 10000 if len(sort_order) else 65535,
             )
+            project_member_cost = member_costs.get(str(member.get("member_id")), None)
+            if (
+                project_member_cost
+                and not project_members.filter(
+                    member_id=member.get("member_id")
+                ).exists()
+            ):
+                # if this is a new member and cost was provided in the request
+                project_member_cost = ProjectMemberRate.objects.create(
+                    project_member=project_member,
+                    rate=member_costs[str(project_member.member_id)].get("rate", 0),
+                    currency=member_costs[str(project_member.member_id)].get(
+                        "currency", "USD"
+                    ),
+                    per_hour_or_per_project=member_costs[
+                        str(project_member.member_id)
+                    ].get("per_hour_or_per_project", True),
+                    project=project,
+                    workspace=project.workspace,
+                    created_by=request.user,
+                    updated_by=request.user,
+                )
+                project_member.rate = project_member_cost
+            bulk_project_members.append(project_member)
             bulk_issue_props.append(
                 IssueProperty(
                     user_id=member.get("member_id"),
