@@ -17,7 +17,6 @@ from iam.enums import EAccess, ERole
 from iam.models import Workspace, WorkspaceMember
 from project.models import (
     Cycle,
-    ProjectBudget,
     Estimate,
     EstimatePoint,
     Issue,
@@ -25,6 +24,7 @@ from project.models import (
     Label,
     Module,
     Project,
+    ProjectBudget,
     ProjectDeployBoard,
     ProjectFavorite,
     ProjectIdentifier,
@@ -320,49 +320,53 @@ class ProjectViewSet(BaseViewSet):
                         self.get_queryset().filter(pk=serializer.data["id"]).first()
                     )
                     serializer = ProjectListSerializer(project)
-                    project_template = ProjectTemplate.objects.get(
-                        workspace__slug=workspace_slug,
-                    )
-                    labels = project_template.labels
-                    estimates = project_template.estimates
-                    estimate = Estimate.objects.create(
-                        name=estimates["name"],
-                        description=estimates["description"],
-                        project=project,
-                        workspace=workspace,
-                        created_by=request.user,
-                        updated_by=request.user,
-                    )
-                    estimate_points = []
-                    for point in estimates["points"]:
-                        estimate_points.append(
-                            EstimatePoint(
-                                key=point["key"],
-                                value=point["value"],
-                                description="",
-                                estimate=estimate,
-                                project=project,
-                                workspace=workspace,
-                                created_by=request.user,
-                                updated_by=request.user,
-                            )
+                    try:
+                        project_template = ProjectTemplate.objects.get(
+                            workspace__slug=workspace_slug,
                         )
-                    EstimatePoint.objects.bulk_create(estimate_points)
-                    project_labels = []
-                    for label in labels:
-                        project_labels.append(
-                            Label(
-                                name=label["name"],
-                                color=label["color"],
-                                description="",
-                                parent=None,
-                                project=project,
-                                workspace=workspace,
-                                created_by=request.user,
-                                updated_by=request.user,
-                            )
+                        labels = project_template.labels
+                        estimates = project_template.estimates
+                        estimate = Estimate.objects.create(
+                            name=estimates["name"],
+                            description=estimates["description"],
+                            project=project,
+                            workspace=workspace,
+                            created_by=request.user,
+                            updated_by=request.user,
                         )
-                    Label.objects.bulk_create(project_labels)
+                        estimate_points = []
+                        for point in estimates["points"]:
+                            estimate_points.append(
+                                EstimatePoint(
+                                    key=point["key"],
+                                    value=point["value"],
+                                    description="",
+                                    estimate=estimate,
+                                    project=project,
+                                    workspace=workspace,
+                                    created_by=request.user,
+                                    updated_by=request.user,
+                                )
+                            )
+                        EstimatePoint.objects.bulk_create(estimate_points)
+                        project_labels = []
+                        for label in labels:
+                            project_labels.append(
+                                Label(
+                                    name=label["name"],
+                                    color=label["color"],
+                                    description="",
+                                    parent=None,
+                                    project=project,
+                                    workspace=workspace,
+                                    created_by=request.user,
+                                    updated_by=request.user,
+                                )
+                            )
+                        Label.objects.bulk_create(project_labels)
+                        project.estimate = estimate
+                    except ProjectTemplate.DoesNotExist:
+                        pass
                     budget_amount = budget.get("amount", "")
                     try:
                         budget_amount = float(budget_amount)
@@ -377,7 +381,6 @@ class ProjectViewSet(BaseViewSet):
                         project.budget = project_budget
                     except ValueError:
                         pass
-                    project.estimate = estimate
                     project.save()
                     return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(
