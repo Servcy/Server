@@ -597,23 +597,26 @@ class ProjectMemberViewSet(BaseViewSet):
                 {"error": "Atleast one member is required"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
         bulk_project_members = []
+        existing_project_members = []
         bulk_issue_props = []
         bulk_project_member_costs = []
-
         # Create a dictionary of member_id and their roles
         member_roles = {
             member.get("member_id"): member.get("role") for member in members
         }
-        member_costs = {
-            member.get("member_id"): {
-                "rate": member.get("rate", 0),
+        # Create a dictionary of member_id and their costs
+        member_costs = {}
+        for member in members:
+            try:
+                cost = float(member.get("rate", 0))
+            except ValueError:
+                cost = 0
+            member_costs[member.get("member_id")] = {
+                "rate": cost,
                 "currency": member.get("currency", "USD"),
                 "per_hour_or_per_project": member.get("per_hour_or_per_project", True),
             }
-            for member in members
-        }
         # Update role and is_active flag for the existing members from the request data
         for project_member in ProjectMember.objects.filter(
             project_id=project_id,
@@ -649,7 +652,11 @@ class ProjectMemberViewSet(BaseViewSet):
                     str(project_member.member_id)
                 ].get("per_hour_or_per_project", True)
                 bulk_project_member_costs.append(project_member_rate)
+                member_costs.pop(str(project_member.member_id), None)
+            # this is to update the role, is_active and rate of the existing members
             bulk_project_members.append(project_member)
+            # this is to track the existing members
+            existing_project_members.append(str(project_member.member_id))
 
         # Update the roles of the existing members
         ProjectMember.objects.bulk_update(
@@ -661,7 +668,7 @@ class ProjectMemberViewSet(BaseViewSet):
             ["rate", "currency", "per_hour_or_per_project"],
             batch_size=10,
         )
-        # Get the existing project members
+        # Get the updated existing project members for constructing sorted order
         project_members = (
             ProjectMember.objects.filter(
                 workspace__slug=workspace_slug,
@@ -672,25 +679,32 @@ class ProjectMemberViewSet(BaseViewSet):
             .order_by("sort_order")
         )
         for member in members:
+            if member.get("member_id") in existing_project_members:
+                # if the member is already part of the project, just create the issue property
+                bulk_issue_props.append(
+                    IssueProperty(
+                        user_id=member.get("member_id"),
+                        project_id=project_id,
+                        workspace_id=project.workspace_id,
+                        created_by=request.user,
+                        updated_by=request.user,
+                    )
+                )
+                continue
             sort_order = [
                 project_member.get("sort_order")
                 for project_member in project_members
                 if str(project_member.get("member_id")) == str(member.get("member_id"))
             ]
-            project_member = ProjectMember(
+            project_member = ProjectMember.objects.create(
                 member_id=member.get("member_id"),
                 role=member.get("role", ERole.MEMBER.value),
                 project_id=project_id,
                 workspace_id=project.workspace_id,
                 sort_order=sort_order[0] - 10000 if len(sort_order) else 65535,
             )
-            project_member_cost = member_costs.get(str(member.get("member_id")), None)
-            if (
-                project_member_cost
-                and not project_members.filter(
-                    member_id=member.get("member_id")
-                ).exists()
-            ):
+            project_member_cost = member_costs.get(str(member.get("member_id")), {})
+            if project_member_cost and project_member_cost.get("rate", 0) > 0:
                 # if this is a new member and cost was provided in the request
                 project_member_cost = ProjectMemberRate.objects.create(
                     project_member=project_member,
@@ -707,21 +721,6 @@ class ProjectMemberViewSet(BaseViewSet):
                     updated_by=request.user,
                 )
                 project_member.rate = project_member_cost
-            bulk_project_members.append(project_member)
-            bulk_issue_props.append(
-                IssueProperty(
-                    user_id=member.get("member_id"),
-                    project_id=project_id,
-                    workspace_id=project.workspace_id,
-                    created_by=request.user,
-                    updated_by=request.user,
-                )
-            )
-        ProjectMember.objects.bulk_create(
-            bulk_project_members,
-            batch_size=10,
-            ignore_conflicts=True,
-        )
         IssueProperty.objects.bulk_create(
             bulk_issue_props, batch_size=10, ignore_conflicts=True
         )
