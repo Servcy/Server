@@ -176,6 +176,23 @@ class ProjectMemberSerializer(ServcyBaseSerializer):
     workspace = WorkspaceLiteSerializer(read_only=True)
     project = ProjectLiteSerializer(read_only=True)
     member = UserLiteSerializer(read_only=True)
+    rate = serializers.SerializerMethodField()
+
+    def get_rate(self, obj):
+        member_cost = getattr(obj, "rate", None)
+        if member_cost is not None:
+            return {
+                "id": member_cost.id,
+                "rate": member_cost.rate if member_cost.rate else "",
+                "currency": member_cost.currency,
+                "per_hour_or_per_project": member_cost.per_hour_or_per_project,
+            }
+        return {
+            "id": None,
+            "rate": "",
+            "currency": "USD",
+            "per_hour_or_per_project": True,
+        }
 
     class Meta:
         model = ProjectMember

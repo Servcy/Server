@@ -20,7 +20,6 @@ from project.models import (
     Estimate,
     EstimatePoint,
     Issue,
-    ProjectMemberRate,
     IssueProperty,
     Label,
     Module,
@@ -30,6 +29,7 @@ from project.models import (
     ProjectFavorite,
     ProjectIdentifier,
     ProjectMember,
+    ProjectMemberRate,
     ProjectTemplate,
     State,
 )
@@ -752,7 +752,10 @@ class ProjectMemberViewSet(BaseViewSet):
             project_id=project_id,
             is_active=True,
         )
-        if request.user.id == project_member.member_id:
+        if (
+            request.user.id == project_member.member_id
+            and project_member.role != request.data.get("role")
+        ):
             return Response(
                 {"error": "You cannot update your own role"},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -773,15 +776,53 @@ class ProjectMemberViewSet(BaseViewSet):
                 {"error": "You cannot update a role that is higher than your own role"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-        serializer = ProjectMemberSerializer(
-            project_member, data=request.data, partial=True
+        try:
+            project_member_rate = project_member.rate
+            rate_details = {
+                "rate": float(
+                    request.data.get(
+                        "rate", project_member_rate.rate if project_member_rate else 0
+                    )
+                ),
+                "currency": request.data.get(
+                    "currency",
+                    project_member_rate.currency if project_member_rate else "USD",
+                ),
+                "per_hour_or_per_project": request.data.get(
+                    "per_hour_or_per_project",
+                    (
+                        project_member_rate.per_hour_or_per_project
+                        if project_member_rate
+                        else True
+                    ),
+                ),
+            }
+            if project_member_rate:
+                project_member_rate.rate = rate_details.get("rate")
+                project_member_rate.currency = rate_details.get("currency")
+                project_member_rate.per_hour_or_per_project = rate_details.get(
+                    "per_hour_or_per_project"
+                )
+                project_member_rate.save()
+            else:
+                project_member_rate = ProjectMemberRate.objects.create(
+                    project_member=project_member,
+                    rate=rate_details.get("rate"),
+                    currency=rate_details.get("currency"),
+                    per_hour_or_per_project=rate_details.get("per_hour_or_per_project"),
+                    project=project_member.project,
+                    workspace=project_member.workspace,
+                    created_by=request.user,
+                    updated_by=request.user,
+                )
+                project_member.rate = project_member_rate
+        except ValueError:
+            pass
+        project_member.role = request.data.get("role", project_member.role)
+        project_member.save()
+        return Response(
+            ProjectMemberSerializer(project_member).data, status=status.HTTP_200_OK
         )
-
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def destroy(self, request, workspace_slug, project_id, pk):
         project_member = ProjectMember.objects.get(
