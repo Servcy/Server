@@ -20,6 +20,7 @@ from project.models import (
     Estimate,
     EstimatePoint,
     Issue,
+    ProjectMemberRate,
     IssueProperty,
     Label,
     Module,
@@ -586,19 +587,82 @@ class ProjectMemberViewSet(BaseViewSet):
         )
 
     def create(self, request, workspace_slug, project_id):
+        # Get the list of members to be added to the project
         members = request.data.get("members", [])
-
-        # get the project
+        # Get the project
         project = Project.objects.get(pk=project_id, workspace__slug=workspace_slug)
-
         if not len(members):
+            # Atleast one member is required
             return Response(
                 {"error": "Atleast one member is required"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
         bulk_project_members = []
         bulk_issue_props = []
+        bulk_project_member_rates = []
 
+        # Create a dictionary of member_id and their roles
+        member_roles = {
+            member.get("member_id"): member.get("role") for member in members
+        }
+        member_rates = {
+            member.get("member_id"): {
+                "rate": member.get("rate", 0),
+                "currency": member.get("currency", "USD"),
+                "per_hour_or_per_project": member.get("per_hour_or_per_project", True),
+            }
+            for member in members
+        }
+        # Update role and is_active flag for the existing members from the request data
+        for project_member in ProjectMember.objects.filter(
+            project_id=project_id,
+            member_id__in=[member.get("member_id") for member in members],
+        ):
+            project_member.role = member_roles[str(project_member.member_id)]
+            project_member.is_active = True
+            if not project_member.rate:
+                project_member_rate = ProjectMemberRate.objects.create(
+                    project_member=project_member,
+                    rate=member_rates[str(project_member.member_id)].get("rate", 0),
+                    currency=member_rates[str(project_member.member_id)].get(
+                        "currency", "USD"
+                    ),
+                    per_hour_or_per_project=member_rates[
+                        str(project_member.member_id)
+                    ].get("per_hour_or_per_project", True),
+                    project=project,
+                    workspace=project.workspace,
+                    created_by=request.user,
+                    updated_by=request.user,
+                )
+                project_member.rate = project_member_rate
+            else:
+                project_member_rate = project_member.rate
+                project_member_rate.rate = member_rates[
+                    str(project_member.member_id)
+                ].get("rate", 0)
+                project_member_rate.currency = member_rates[
+                    str(project_member.member_id)
+                ].get("currency", "USD")
+                project_member_rate.per_hour_or_per_project = member_rates[
+                    str(project_member.member_id)
+                ].get("per_hour_or_per_project", True)
+                bulk_project_member_rates.append(project_member_rate)
+            bulk_project_members.append(project_member)
+
+        # Update the roles of the existing members
+        ProjectMember.objects.bulk_update(
+            bulk_project_members, ["is_active", "role"], batch_size=100
+        )
+        # Update the rates of the existing members
+        ProjectMemberRate.objects.bulk_update(
+            bulk_project_member_rates,
+            ["rate", "currency", "per_hour_or_per_project"],
+            batch_size=10,
+            ignore_conflicts=True,
+        )
+        # Get the existing project members
         project_members = (
             ProjectMember.objects.filter(
                 workspace__slug=workspace_slug,
@@ -607,25 +671,6 @@ class ProjectMemberViewSet(BaseViewSet):
             .values("member_id", "sort_order")
             .order_by("sort_order")
         )
-
-        bulk_project_members = []
-        member_roles = {
-            member.get("member_id"): member.get("role") for member in members
-        }
-        # Update roles in the members array based on the member_roles dictionary
-        for project_member in ProjectMember.objects.filter(
-            project_id=project_id,
-            member_id__in=[member.get("member_id") for member in members],
-        ):
-            project_member.role = member_roles[str(project_member.member_id)]
-            project_member.is_active = True
-            bulk_project_members.append(project_member)
-
-        # Update the roles of the existing members
-        ProjectMember.objects.bulk_update(
-            bulk_project_members, ["is_active", "role"], batch_size=100
-        )
-
         for member in members:
             sort_order = [
                 project_member.get("sort_order")
@@ -650,17 +695,14 @@ class ProjectMemberViewSet(BaseViewSet):
                     updated_by=request.user,
                 )
             )
-
-        project_members = ProjectMember.objects.bulk_create(
+        ProjectMember.objects.bulk_create(
             bulk_project_members,
             batch_size=10,
             ignore_conflicts=True,
         )
-
         IssueProperty.objects.bulk_create(
             bulk_issue_props, batch_size=10, ignore_conflicts=True
         )
-
         project_members = ProjectMember.objects.filter(
             project_id=project_id,
             member_id__in=[member.get("member_id") for member in members],
