@@ -660,7 +660,6 @@ class ProjectMemberViewSet(BaseViewSet):
             bulk_project_member_rates,
             ["rate", "currency", "per_hour_or_per_project"],
             batch_size=10,
-            ignore_conflicts=True,
         )
         # Get the existing project members
         project_members = (
