@@ -687,7 +687,7 @@ class ProjectMemberViewSet(BaseViewSet):
             if (
                 project_member_cost
                 and not project_members.filter(
-                    member_id=member.get("member_id")
+                    project_id=project_id, member_id=member.get("member_id")
                 ).exists()
             ):
                 # if this is a new member and cost was provided in the request
