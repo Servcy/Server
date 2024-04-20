@@ -660,7 +660,7 @@ class ProjectMemberViewSet(BaseViewSet):
 
         # Update the roles of the existing members
         ProjectMember.objects.bulk_update(
-            bulk_project_members, ["is_active", "role"], batch_size=100
+            bulk_project_members, ["is_active", "role", "rate"], batch_size=100
         )
         # Update the rates of the existing members
         ProjectMemberRate.objects.bulk_update(
