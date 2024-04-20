@@ -32,7 +32,7 @@ class ProjectMemberRate(ProjectBaseModel):
     rate = models.DecimalField(max_digits=12, decimal_places=2)
     currency = models.CharField(max_length=10, default="INR")
     per_hour_or_per_project = models.BooleanField(
-        default=True, help_text="Is rate per hour or per project"
+        default=True, help_text="Is rate per hour or per project, default is per hour"
     )
 
     class Meta:
