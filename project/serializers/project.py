@@ -213,7 +213,7 @@ class ProjectMemberRoleSerializer(ServcyDynamicBaseSerializer):
 
     class Meta:
         model = ProjectMember
-        fields = ("id", "role", "member", "project")
+        fields = ("id", "role", "member", "project", "rate")
 
 
 class ProjectIdentifierSerializer(ServcyBaseSerializer):
