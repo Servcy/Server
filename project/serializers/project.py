@@ -193,6 +193,24 @@ class ProjectMemberAdminSerializer(ServcyBaseSerializer):
 
 
 class ProjectMemberRoleSerializer(ServcyDynamicBaseSerializer):
+    rate = serializers.SerializerMethodField()
+
+    def get_rate(self, obj):
+        member_cost = getattr(obj, "rate", None)
+        if member_cost is not None:
+            return {
+                "id": member_cost.id,
+                "rate": member_cost.rate,
+                "currency": member_cost.currency,
+                "per_hour_or_per_project": member_cost.per_hour_or_per_project,
+            }
+        return {
+            "id": None,
+            "rate": "",
+            "currency": "USD",
+            "per_hour_or_per_project": True,
+        }
+
     class Meta:
         model = ProjectMember
         fields = ("id", "role", "member", "project")
