@@ -24,10 +24,10 @@ class ProjectMemberRate(ProjectBaseModel):
     ProjectMemberRate (model): To store all the rates of the project members
     """
 
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+    project_member = models.ForeignKey(
+        "project.ProjectMember",
         on_delete=models.CASCADE,
-        related_name="project_member_rates",
+        related_name="project_member_rate",
     )
     rate = models.DecimalField(max_digits=12, decimal_places=2)
     currency = models.CharField(max_length=10, default="INR")
@@ -36,7 +36,6 @@ class ProjectMemberRate(ProjectBaseModel):
     )
 
     class Meta:
-        unique_together = ["user", "project"]
         verbose_name = "Project Member Rate"
         verbose_name_plural = "Project Member Rates"
         db_table = "project_member_rate"
