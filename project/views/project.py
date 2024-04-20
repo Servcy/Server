@@ -720,6 +720,7 @@ class ProjectMemberViewSet(BaseViewSet):
                     updated_by=request.user,
                 )
                 project_member.rate = project_member_cost
+                project_member.save()
         IssueProperty.objects.bulk_create(
             bulk_issue_props, batch_size=10, ignore_conflicts=True
         )
