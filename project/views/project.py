@@ -665,6 +665,7 @@ class ProjectMemberViewSet(BaseViewSet):
         project_members = (
             ProjectMember.objects.filter(
                 workspace__slug=workspace_slug,
+                project_id=project_id,
                 member_id__in=[member.get("member_id") for member in members],
             )
             .values("member_id", "sort_order")
