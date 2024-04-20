@@ -55,6 +55,13 @@ class Project(TimeStampedModel, CreatorUpdaterModel):
         default=0, choices=((1, "Private"), (0, "Public"))
     )
     cover_image = models.URLField(null=True, default=None)
+    budget = models.ForeignKey(
+        "project.ProjectBudget",
+        on_delete=models.SET_NULL,
+        related_name="projects",
+        null=True,
+        default=None,
+    )
     archived_at = models.DateTimeField(null=True)
     estimate = models.ForeignKey(
         "project.Estimate",
@@ -125,6 +132,13 @@ class ProjectMember(ProjectBaseModel):
     )
     default_props = models.JSONField(default=dict)
     preferences = models.JSONField(default=dict)
+    rate = models.ForeignKey(
+        "project.ProjectMemberRate",
+        on_delete=models.SET_NULL,
+        related_name="project_members",
+        null=True,
+        default=None,
+    )
     sort_order = models.FloatField(default=65535)
 
     def save(self, *args, **kwargs):
