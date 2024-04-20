@@ -679,17 +679,16 @@ class ProjectMemberViewSet(BaseViewSet):
             .order_by("sort_order")
         )
         for member in members:
-            if member.get("member_id") in existing_project_members:
-                # if the member is already part of the project, just create the issue property
-                bulk_issue_props.append(
-                    IssueProperty(
-                        user_id=member.get("member_id"),
-                        project_id=project_id,
-                        workspace_id=project.workspace_id,
-                        created_by=request.user,
-                        updated_by=request.user,
-                    )
+            bulk_issue_props.append(
+                IssueProperty(
+                    user_id=member.get("member_id"),
+                    project_id=project_id,
+                    workspace_id=project.workspace_id,
+                    created_by=request.user,
+                    updated_by=request.user,
                 )
+            )
+            if member.get("member_id") in existing_project_members:
                 continue
             sort_order = [
                 project_member.get("sort_order")
