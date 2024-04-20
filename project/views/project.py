@@ -703,25 +703,22 @@ class ProjectMemberViewSet(BaseViewSet):
                 workspace_id=project.workspace_id,
                 sort_order=sort_order[0] - 10000 if len(sort_order) else 65535,
             )
-            project_member_cost = member_costs.get(str(member.get("member_id")), {})
-            if project_member_cost and project_member_cost.get("rate", 0) > 0:
-                # if this is a new member and cost was provided in the request
-                project_member_cost = ProjectMemberRate.objects.create(
-                    project_member=project_member,
-                    rate=member_costs[str(project_member.member_id)].get("rate", 0),
-                    currency=member_costs[str(project_member.member_id)].get(
-                        "currency", "USD"
-                    ),
-                    per_hour_or_per_project=member_costs[
-                        str(project_member.member_id)
-                    ].get("per_hour_or_per_project", True),
-                    project=project,
-                    workspace=project.workspace,
-                    created_by=request.user,
-                    updated_by=request.user,
-                )
-                project_member.rate = project_member_cost
-                bulk_project_members.append(project_member)
+            project_member_cost = ProjectMemberRate.objects.create(
+                project_member=project_member,
+                rate=member_costs[str(project_member.member_id)].get("rate", 0),
+                currency=member_costs[str(project_member.member_id)].get(
+                    "currency", "USD"
+                ),
+                per_hour_or_per_project=member_costs[str(project_member.member_id)].get(
+                    "per_hour_or_per_project", True
+                ),
+                project=project,
+                workspace=project.workspace,
+                created_by=request.user,
+                updated_by=request.user,
+            )
+            project_member.rate = project_member_cost
+            bulk_project_members.append(project_member)
         ProjectMember.objects.bulk_update(
             bulk_project_members, ["rate"], batch_size=100
         )
