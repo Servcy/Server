@@ -141,7 +141,6 @@ class ProjectListSerializer(ServcyDynamicBaseSerializer):
 
 
 class ProjectDetailSerializer(ServcyBaseSerializer):
-    # workspace = WorkSpaceSerializer(read_only=True)
     default_assignee = UserLiteSerializer(read_only=True)
     lead = UserLiteSerializer(read_only=True)
     is_favorite = serializers.BooleanField(read_only=True)
