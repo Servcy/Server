@@ -49,6 +49,11 @@ class TrackedTime(ProjectBaseModel):
     is_approved = models.BooleanField(
         default=False, help_text="Is time approved by an admin"
     )
+    description = models.TextField(
+        null=True,
+        default=None,
+        help_text="Description of the tracked time",
+    )
 
     class Meta:
         verbose_name = "Tracked Time"
