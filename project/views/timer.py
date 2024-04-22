@@ -146,12 +146,13 @@ class TrackedTimeAttachmentViewSet(BaseViewSet):
         tracked_time = TrackedTime.objects.get(
             id=tracked_time_id, created_by=request.user
         )
-        serializer = TrackedTimeAttachmentSerializer(data=request.data)
+        snapshot = request.data
+        snapshot["tracked_time_id"] = tracked_time_id
+        snapshot["project_id"] = tracked_time.project_id
+        snapshot["workspace_id"] = tracked_time.workspace_id
+        serializer = TrackedTimeAttachmentSerializer(data=snapshot)
         if serializer.is_valid():
             serializer.save(
-                tracked_time=tracked_time,
-                project=tracked_time.project,
-                workspace=tracked_time.workspace,
                 created_by=self.request.user,
                 updated_by=self.request.user,
             )
