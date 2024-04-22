@@ -43,8 +43,8 @@ urlpatterns = [
         "<int:tracked_time_id>/tracked-time-snapshot",
         TrackedTimeAttachmentViewSet.as_view(
             {
-                "get": "retrieve",
-                "post": "create",
+                "get": "get",
+                "post": "post",
             }
         ),
         name="tracked-time-snapshot",
