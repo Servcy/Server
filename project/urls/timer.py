@@ -22,6 +22,15 @@ urlpatterns = [
         name="start-issue-timer",
     ),
     path(
+        "<str:workspace_slug>/<int:timer_id>/stop-timer",
+        TrackedTimeViewSet.as_view(
+            {
+                "post": "stop_timer",
+            }
+        ),
+        name="stop-issue-timer",
+    ),
+    path(
         "<str:workspace_slug>/<int:project_id>/<int:issue_id>/time-slot-attachment",
         TrackedTimeAttachmentViewSet.as_view(
             {

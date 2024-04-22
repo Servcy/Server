@@ -85,6 +85,26 @@ class TrackedTimeViewSet(BaseViewSet):
             status=200,
         )
 
+    def stop_timer(self, request, workspace_slug, timer_id, *args, **kwargs):
+        """
+        stop_timer (method): To stop the running timer
+        """
+        try:
+            tracked_time = TrackedTime.objects.get(
+                workspace__slug=workspace_slug,
+                id=timer_id,
+                created_by=request.user,
+                end_time__isnull=True,
+            )
+        except TrackedTime.DoesNotExist:
+            raise PermissionDenied("Timer not found")
+        tracked_time.end_time = timezone.now()
+        tracked_time.save()
+        return Response(
+            TrackedTimeSerializer(tracked_time).data,
+            status=200,
+        )
+
 
 class TrackedTimeAttachmentViewSet(BaseViewSet):
     """
