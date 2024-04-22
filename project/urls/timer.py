@@ -13,6 +13,15 @@ urlpatterns = [
         name="fetch-timesheet",
     ),
     path(
+        "<str:workspace_slug>/is-timer-running",
+        TrackedTimeViewSet.as_view(
+            {
+                "get": "is_timer_running",
+            }
+        ),
+        name="is-timer-running",
+    ),
+    path(
         "<str:workspace_slug>/<int:project_id>/<int:issue_id>/start-timer",
         TrackedTimeViewSet.as_view(
             {
@@ -22,7 +31,7 @@ urlpatterns = [
         name="start-issue-timer",
     ),
     path(
-        "<str:workspace_slug>/<int:timer_id>/stop-timer",
+        "<str:workspace_slug>/<int:project_id>/<int:timer_id>/stop-timer",
         TrackedTimeViewSet.as_view(
             {
                 "post": "stop_timer",

@@ -85,7 +85,9 @@ class TrackedTimeViewSet(BaseViewSet):
             status=200,
         )
 
-    def stop_timer(self, request, workspace_slug, timer_id, *args, **kwargs):
+    def stop_timer(
+        self, request, workspace_slug, project_id, timer_id, *args, **kwargs
+    ):
         """
         stop_timer (method): To stop the running timer
         """
@@ -94,6 +96,7 @@ class TrackedTimeViewSet(BaseViewSet):
                 workspace__slug=workspace_slug,
                 id=timer_id,
                 created_by=request.user,
+                project_id=project_id,
                 end_time__isnull=True,
             )
         except TrackedTime.DoesNotExist:
@@ -102,6 +105,20 @@ class TrackedTimeViewSet(BaseViewSet):
         tracked_time.save()
         return Response(
             TrackedTimeSerializer(tracked_time).data,
+            status=200,
+        )
+
+    def is_timer_running(self, request, workspace_slug, *args, **kwargs):
+        """
+        is_timer_running (method): To check if the timer is running for the user
+        """
+        isTimerRunning = TrackedTime.objects.filter(
+            workspace__slug=workspace_slug,
+            created_by=request.user,
+            end_time__isnull=True,
+        ).exists()
+        return Response(
+            isTimerRunning,
             status=200,
         )
 
