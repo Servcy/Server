@@ -40,14 +40,22 @@ urlpatterns = [
         name="stop-issue-timer",
     ),
     path(
-        "<str:workspace_slug>/<int:project_id>/<int:issue_id>/time-slot-attachment",
+        "<int:tracked_time_id>/tracked-time-snapshot",
         TrackedTimeAttachmentViewSet.as_view(
             {
                 "get": "retrieve",
                 "post": "create",
-                "delete": "destroy",
             }
         ),
-        name="time-slot-attachment",
+        name="tracked-time-snapshot",
+    ),
+    path(
+        "<int:tracked_time_id>/tracked-time-snapshot/<int:pk>",
+        TrackedTimeAttachmentViewSet.as_view(
+            {
+                "delete": "delete",
+            }
+        ),
+        name="tracked-time-snapshot-delete",
     ),
 ]

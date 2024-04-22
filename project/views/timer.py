@@ -1,13 +1,16 @@
-from django.utils import timezone
-from rest_framework.exceptions import PermissionDenied
-from rest_framework.response import Response
 from django.db.models import Q
+from django.utils import timezone
+from rest_framework import status
+from rest_framework.exceptions import PermissionDenied
+from rest_framework.parsers import FormParser, MultiPartParser
+from rest_framework.response import Response
+
 from common.permissions import ProjectMemberPermission
 from common.responses import error_response
-from iam.enums import ERole
 from common.views import BaseViewSet
-from project.models import Issue, TrackedTime, TrackedTimeAttachment
+from iam.enums import ERole
 from iam.models import WorkspaceMember
+from project.models import Issue, TrackedTime, TrackedTimeAttachment
 from project.serializers import TrackedTimeAttachmentSerializer, TrackedTimeSerializer
 
 
@@ -129,4 +132,39 @@ class TrackedTimeAttachmentViewSet(BaseViewSet):
     """
 
     serializer_class = TrackedTimeAttachmentSerializer
-    queryset = TrackedTimeAttachment.objects.all()
+    permission_classes = [
+        ProjectMemberPermission,
+    ]
+    model = TrackedTimeAttachment
+    parser_classes = (MultiPartParser, FormParser)
+
+    def get(self, request, tracked_time_id):
+        snapshots = TrackedTimeAttachment.objects.filter(
+            tracked_time_id=tracked_time_id, created_by=request.user
+        )
+        serializer = TrackedTimeAttachmentSerializer(snapshots, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request, tracked_time_id):
+        tracked_time = TrackedTime.objects.get(
+            id=tracked_time_id, created_by=request.user
+        )
+        serializer = TrackedTimeAttachmentSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(
+                tracked_time=tracked_time,
+                project=tracked_time.project,
+                workspace=tracked_time.workspace,
+                created_by=self.request.user,
+                updated_by=self.request.user,
+            )
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, tracked_time_id, pk):
+        snapshot = TrackedTimeAttachment.objects.get(
+            pk=pk, created_by=request.user, tracked_time_id=tracked_time_id
+        )
+        snapshot.file.delete(save=False)
+        snapshot.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
