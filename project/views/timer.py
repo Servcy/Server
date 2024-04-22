@@ -67,10 +67,16 @@ class TrackedTimeViewSet(BaseViewSet):
             is_active=True,
             role__gte=ERole.ADMIN.value,
         ).exists()
+        project_id = request.query_params.get("project_id")
+        issue_id = request.query_params.get("issue_id")
         query = Q(
             workspace__slug=workspace_slug,
             end_time__isnull=False,
         )
+        if project_id:
+            query = query & Q(project_id=int(project_id))
+        if issue_id:
+            query = query & Q(issue_id=int(issue_id))
         if not isWorkspaceAdmin:
             query = query & Q(created_by=request.user)
         timeEntries = TrackedTime.objects.filter(query).order_by("-start_time")
