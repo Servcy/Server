@@ -4,7 +4,7 @@ from rest_framework.response import Response
 
 from common.permissions import ProjectMemberPermission
 from common.responses import error_response
-from common.views import BaseAPIView, BaseViewSet
+from common.views import BaseViewSet
 from project.models import Issue, TrackedTime, TrackedTimeAttachment
 from project.serializers import TrackedTimeAttachmentSerializer, TrackedTimeSerializer
 
