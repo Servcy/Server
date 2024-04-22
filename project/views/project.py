@@ -3,6 +3,7 @@ from django.db.models import Exists, F, Func, OuterRef, Prefetch, Q, Subquery
 from django.utils import timezone
 from rest_framework import serializers, status
 from rest_framework.response import Response
+from rest_framework.exceptions import PermissionDenied
 
 from common.permissions import (
     ProjectBasePermission,
@@ -966,15 +967,21 @@ class ProjectUserViewsEndpoint(BaseAPIView):
 
 
 class ProjectMemberUserEndpoint(BaseAPIView):
-    def get(self, request, workspace_slug, project_id):
-        project_member = ProjectMember.objects.get(
-            project_id=project_id,
-            workspace__slug=workspace_slug,
-            member=request.user,
-            is_active=True,
-        )
-        serializer = ProjectMemberSerializer(project_member)
+    """
+    Get the project member details for the user
+    """
 
+    def get(self, request, workspace_slug, project_id):
+        try:
+            project_member = ProjectMember.objects.get(
+                project_id=project_id,
+                workspace__slug=workspace_slug,
+                member=request.user,
+                is_active=True,
+            )
+        except ProjectMember.DoesNotExist:
+            raise PermissionDenied("You are not a member of this project")
+        serializer = ProjectMemberSerializer(project_member)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
