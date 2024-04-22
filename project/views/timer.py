@@ -1,11 +1,13 @@
 from django.utils import timezone
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
-
+from django.db.models import Q
 from common.permissions import ProjectMemberPermission
 from common.responses import error_response
+from iam.enums import ERole
 from common.views import BaseViewSet
 from project.models import Issue, TrackedTime, TrackedTimeAttachment
+from iam.models import WorkspaceMember
 from project.serializers import TrackedTimeAttachmentSerializer, TrackedTimeSerializer
 
 
@@ -53,6 +55,28 @@ class TrackedTimeViewSet(BaseViewSet):
         return Response(
             TrackedTimeSerializer(tracked_time).data,
             status=201,
+        )
+
+    def list(self, request, workspace_slug, *args, **kwargs):
+        """
+        list (method): To list all the tracked time records
+        """
+        isWorkspaceAdmin = WorkspaceMember.objects.filter(
+            workspace__slug=workspace_slug,
+            member=request.user,
+            is_active=True,
+            role__gte=ERole.ADMIN.value,
+        ).exists()
+        query = Q(
+            workspace__slug=workspace_slug,
+            end_time__isnull=False,
+        )
+        if not isWorkspaceAdmin:
+            query = query & Q(created_by=request.user)
+        timeEntries = TrackedTime.objects.filter(query).order_by("-start_time")
+        return Response(
+            TrackedTimeSerializer(timeEntries, many=True).data,
+            status=200,
         )
 
 
