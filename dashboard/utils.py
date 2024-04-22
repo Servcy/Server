@@ -466,18 +466,6 @@ def dashboard_recent_projects(self, request, workspace_slug):
     # Extract project IDs from the recent projects
     unique_project_ids = set(project_id for project_id in project_ids)
 
-    # Fetch additional projects only if needed
-    if len(unique_project_ids) < 4:
-        additional_projects = Project.objects.filter(
-            project_projectmember__member=request.user,
-            project_projectmember__is_active=True,
-            project__archived_at__isnull=True,
-            workspace__slug=workspace_slug,
-        ).exclude(id__in=unique_project_ids)
-
-        # Append additional project IDs to the existing list
-        unique_project_ids.update(additional_projects.values_list("id", flat=True))
-
     return Response(
         list(unique_project_ids)[:4],
         status=status.HTTP_200_OK,
