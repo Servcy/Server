@@ -53,6 +53,7 @@ from .project import (
 )
 from .search import GlobalSearchEndpoint, IssueSearchEndpoint
 from .state import StateViewSet
+from .timer import TrackedTimeAttachmentViewSet, TrackedTimeViewSet
 from .view import (
     GlobalViewIssuesViewSet,
     GlobalViewViewSet,

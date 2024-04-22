@@ -11,32 +11,24 @@ class TrackedTime(ProjectBaseModel):
     TrackedTime (model): To store all the tracked time of the project
     """
 
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name="tracked_times",
-    )
     issue = models.ForeignKey(
         "project.Issue",
         on_delete=models.CASCADE,
         related_name="tracked_times",
         null=False,
     )
-    cycle = models.ForeignKey(
-        "project.Cycle",
-        on_delete=models.CASCADE,
-        related_name="tracked_times",
+
+    description = models.TextField(
         null=True,
         default=None,
+        help_text="Description of the tracked time",
     )
-    module = models.ForeignKey(
-        "project.Module",
-        on_delete=models.CASCADE,
-        related_name="tracked_times",
-        null=True,
-        default=None,
-    )
+
     is_billable = models.BooleanField(default=True)
+    is_approved = models.BooleanField(
+        default=False, help_text="Is time approved by an admin"
+    )
+
     start_time = models.DateTimeField(
         auto_now_add=True,
         help_text="Start time of the tracked time",
@@ -45,14 +37,6 @@ class TrackedTime(ProjectBaseModel):
         null=True,
         default=None,
         help_text="End time of the tracked time",
-    )
-    is_approved = models.BooleanField(
-        default=False, help_text="Is time approved by an admin"
-    )
-    description = models.TextField(
-        null=True,
-        default=None,
-        help_text="Description of the tracked time",
     )
 
     class Meta:
