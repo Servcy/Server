@@ -132,9 +132,6 @@ class TrackedTimeAttachmentViewSet(BaseViewSet):
     """
 
     serializer_class = TrackedTimeAttachmentSerializer
-    permission_classes = [
-        ProjectMemberPermission,
-    ]
     model = TrackedTimeAttachment
     parser_classes = (MultiPartParser, FormParser)
 
