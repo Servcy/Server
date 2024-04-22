@@ -112,13 +112,13 @@ class TrackedTimeViewSet(BaseViewSet):
         """
         is_timer_running (method): To check if the timer is running for the user
         """
-        isTimerRunning = TrackedTime.objects.filter(
+        timerRunning = TrackedTime.objects.get(
             workspace__slug=workspace_slug,
             created_by=request.user,
             end_time__isnull=True,
-        ).exists()
+        )
         return Response(
-            isTimerRunning,
+            TrackedTimeSerializer(timerRunning).data,
             status=200,
         )
 
