@@ -53,6 +53,11 @@ class TrackedTimeViewSet(BaseViewSet):
             )
             if end_time < timezone.now():
                 return error_response("End time cannot be in the past", status=400)
+            # if log is less than 5 minutes, then it will be discarded
+            if (end_time - timezone.now()).seconds < 300:
+                return error_response(
+                    "Time log should be greater than 5 minutes", status=400
+                )
         tracked_time = TrackedTime.objects.create(
             description=request.data.get("description", ""),
             is_billable=request.data.get("is_billable", True),
@@ -115,7 +120,11 @@ class TrackedTimeViewSet(BaseViewSet):
             )
         except TrackedTime.DoesNotExist:
             raise PermissionDenied("Timer not found")
-        tracked_time.end_time = timezone.now()
+        end_time = timezone.now()
+        if (end_time - tracked_time.start_time).seconds < 300:
+            tracked_time.delete()
+            return Response(status=204)
+        tracked_time.end_time = end_time
         tracked_time.save()
         return Response(
             TrackedTimeSerializer(tracked_time).data,
