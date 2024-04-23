@@ -19,8 +19,6 @@ class TrackedTimeSerializer(ServcyBaseSerializer):
 
 
 class TrackedTimeAttachmentSerializer(ServcyBaseSerializer):
-    tracked_time = TrackedTimeSerializer(read_only=True)
-
     class Meta:
         model = TrackedTimeAttachment
         fields = "__all__"
