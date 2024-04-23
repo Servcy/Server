@@ -33,6 +33,7 @@ from .issue import (
     IssueSerializer,
     IssueStateSerializer,
     IssueSubscriberSerializer,
+    IssueUltraLiteSerializer,
     IssueVoteSerializer,
     LabelSerializer,
     RelatedIssueSerializer,
@@ -65,6 +66,7 @@ from .project import (
     ProjectPublicMemberSerializer,
     ProjectSerializer,
     ProjectTemplateSerializer,
+    ProjectUltraLiteSerializer,
 )
 from .state import StateLiteSerializer, StateSerializer
 from .timer import TrackedTimeAttachmentSerializer, TrackedTimeSerializer

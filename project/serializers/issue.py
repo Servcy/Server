@@ -650,6 +650,17 @@ class IssueLiteSerializer(ServcyDynamicBaseSerializer):
         read_only_fields = fields
 
 
+class IssueUltraLiteSerializer(ServcyDynamicBaseSerializer):
+    class Meta:
+        model = Issue
+        fields = [
+            "id",
+            "sequence_id",
+            "name",
+        ]
+        read_only_fields = fields
+
+
 class IssueDetailSerializer(IssueSerializer):
     description_html = serializers.CharField()
     is_subscribed = serializers.BooleanField()

@@ -103,6 +103,16 @@ class ProjectLiteSerializer(ServcyBaseSerializer):
         read_only_fields = fields
 
 
+class ProjectUltraLiteSerializer(ServcyBaseSerializer):
+    class Meta:
+        model = Project
+        fields = [
+            "id",
+            "identifier",
+        ]
+        read_only_fields = fields
+
+
 class ProjectListSerializer(ServcyDynamicBaseSerializer):
     total_issues = serializers.IntegerField(read_only=True)
     archived_issues = serializers.IntegerField(read_only=True)
