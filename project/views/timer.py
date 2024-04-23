@@ -27,11 +27,12 @@ class TrackedTimeViewSet(BaseViewSet):
         """
         create (method): To create a new tracked time record
         """
-        if TrackedTime.objects.filter(
+        running_timer_exists = Q(
             workspace__slug=workspace_slug,
             created_by=request.user,
             end_time__isnull=True,
-        ).exists():
+        )
+        if TrackedTime.objects.filter(running_timer_exists).exists():
             return error_response("Timer is already running for this user", status=400)
         try:
             issue = Issue.objects.get(
@@ -43,6 +44,13 @@ class TrackedTimeViewSet(BaseViewSet):
             )
         except Issue.DoesNotExist:
             raise PermissionDenied("Issue not found")
+        end_time = request.data.get("end_time", None)
+        if end_time:
+            end_time = timezone.make_aware(
+                timezone.datetime.strptime(end_time, "%Y-%m-%dT%H:%M:%S.%fZ")
+            )
+            if end_time < timezone.now():
+                return error_response("End time cannot be in the past", status=400)
         tracked_time = TrackedTime.objects.create(
             description=request.data.get("description", ""),
             is_billable=request.data.get("is_billable", True),
@@ -52,7 +60,7 @@ class TrackedTimeViewSet(BaseViewSet):
             created_by=request.user,
             updated_by=request.user,
             start_time=timezone.now(),
-            end_time=None,
+            end_time=end_time,
             is_approved=False,
         )
         return Response(
