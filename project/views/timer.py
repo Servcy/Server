@@ -45,7 +45,9 @@ class TrackedTimeViewSet(BaseViewSet):
         except Issue.DoesNotExist:
             raise PermissionDenied("Issue not found")
         end_time = request.data.get("end_time", None)
+        is_manually_added = False
         if end_time:
+            is_manually_added = True
             end_time = timezone.make_aware(
                 timezone.datetime.strptime(end_time, "%Y-%m-%dT%H:%M:%S.%fZ")
             )
@@ -57,6 +59,7 @@ class TrackedTimeViewSet(BaseViewSet):
             issue_id=issue_id,
             project_id=project_id,
             workspace=issue.workspace,
+            is_manually_added=is_manually_added,
             created_by=request.user,
             updated_by=request.user,
             start_time=timezone.now(),
