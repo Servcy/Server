@@ -4,7 +4,7 @@ from project.views import TrackedTimeAttachmentViewSet, TrackedTimeViewSet
 
 urlpatterns = [
     path(
-        "<str:workspace_slug>/timer",
+        "<str:workspace_slug>/timer/<str:viewId>",
         TrackedTimeViewSet.as_view(
             {
                 "get": "list",

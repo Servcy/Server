@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
+from rest_framework.exceptions import PermissionDenied
 
 from common.permissions import ProjectMemberPermission
 from common.responses import error_response
@@ -76,7 +77,7 @@ class TrackedTimeViewSet(BaseViewSet):
             status=201,
         )
 
-    def list(self, request, workspace_slug, *args, **kwargs):
+    def list(self, request, workspace_slug, viewId, *args, **kwargs):
         """
         list (method): To list all the tracked time records
         """
@@ -97,6 +98,10 @@ class TrackedTimeViewSet(BaseViewSet):
         if issue_id:
             query = query & Q(issue_id=int(issue_id))
         if not isWorkspaceAdmin:
+            if viewId == "workspace-timesheet":
+                raise PermissionDenied(
+                    "You are not allowed to view workspace timesheet"
+                )
             query = query & Q(created_by=request.user)
         timeEntries = TrackedTime.objects.filter(query).order_by("-start_time")
         return Response(
