@@ -28,6 +28,9 @@ class TrackedTime(ProjectBaseModel):
     is_approved = models.BooleanField(
         default=False, help_text="Is time approved by an admin"
     )
+    is_manually_added = models.BooleanField(
+        default=False, help_text="Is time added manually by the user"
+    )
 
     start_time = models.DateTimeField(
         auto_now_add=True,
