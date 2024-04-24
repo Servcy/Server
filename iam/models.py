@@ -156,6 +156,7 @@ class WorkspaceMember(TimeStampedModel, CreatorUpdaterModel):
     default_props = models.JSONField(default=dict)
     issue_props = models.JSONField(default=dict)
     is_active = models.BooleanField(default=True)
+    auto_approve_tracked_time = models.BooleanField(default=True)
 
     class Meta:
         db_table = "workspace_member"
