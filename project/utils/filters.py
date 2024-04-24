@@ -562,9 +562,6 @@ def issue_filters(query_params, method: str):
         "sub_issue": filter_sub_issue_toggle,
         "subscriber": filter_subscribed_issues,
         "start_target_date": filter_start_target_date_issues,
-        "is_billable": filter_is_billable,
-        "is_approved": filter_is_approved,
-        "is_manually_added": filter_is_manually_added,
     }
 
     for key, value in ISSUE_FILTER.items():
@@ -586,6 +583,9 @@ def timesheet_filters(query_params, method: str):
         "project": filter_project,
         "created_by": filter_created_by,
         "start_time": filter_start_time,
+        "is_billable": filter_is_billable,
+        "is_approved": filter_is_approved,
+        "is_manually_added": filter_is_manually_added,
     }
     for key, value in TIMESHEET_FILTER.items():
         if key in query_params:
