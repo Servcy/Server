@@ -190,6 +190,12 @@ class TrackedTimeViewSet(BaseViewSet):
             )
         except TrackedTime.DoesNotExist:
             raise PermissionDenied("Timer not found")
+        has_admin_role = WorkspaceMember.objects.filter(
+            workspace__slug=workspace_slug,
+            member=request.user,
+            is_active=True,
+            role__gte=ERole.ADMIN.value,
+        ).exists()
         end_time = request.data.get("end_time", None)
         if end_time:
             end_time = timezone.make_aware(
@@ -204,6 +210,8 @@ class TrackedTimeViewSet(BaseViewSet):
                 )
         tracked_time.description = request.data.get("description", "")
         tracked_time.is_billable = request.data.get("is_billable", True)
+        if has_admin_role:
+            tracked_time.is_approved = request.data.get("is_approved", False)
         tracked_time.is_manually_added = True
         tracked_time.end_time = end_time
         tracked_time.updated_by = request.user
