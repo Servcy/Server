@@ -13,6 +13,24 @@ urlpatterns = [
         name="fetch-timesheet",
     ),
     path(
+        "<str:workspace_slug>/<int:time_log_id>/delete-time-log",
+        TrackedTimeViewSet.as_view(
+            {
+                "delete": "delete",
+            }
+        ),
+        name="delete-time-log",
+    ),
+    path(
+        "<str:workspace_slug>/<int:time_log_id>/update-time-log",
+        TrackedTimeViewSet.as_view(
+            {
+                "patch": "update",
+            }
+        ),
+        name="update-time-log",
+    ),
+    path(
         "<str:workspace_slug>/is-timer-running",
         TrackedTimeViewSet.as_view(
             {

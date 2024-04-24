@@ -154,6 +154,59 @@ class TrackedTimeViewSet(BaseViewSet):
             status=200,
         )
 
+    def delete(self, request, workspace_slug, time_log_id, *args, **kwargs):
+        """
+        delete (method): To delete a tracked time record
+        """
+        try:
+            tracked_time = TrackedTime.objects.get(
+                workspace__slug=workspace_slug,
+                id=time_log_id,
+                created_by=request.user,
+                end_time__isnull=False,
+            )
+        except TrackedTime.DoesNotExist:
+            raise PermissionDenied("Timer not found")
+        tracked_time.delete()
+        return Response(status=204)
+
+    def update(self, request, workspace_slug, time_log_id, *args, **kwargs):
+        """
+        update (method): To update a tracked time record
+        """
+        try:
+            tracked_time = TrackedTime.objects.get(
+                workspace__slug=workspace_slug,
+                id=time_log_id,
+                created_by=request.user,
+                is_approved=False,
+                end_time__isnull=False,
+            )
+        except TrackedTime.DoesNotExist:
+            raise PermissionDenied("Timer not found")
+        end_time = request.data.get("end_time", None)
+        if end_time:
+            end_time = timezone.make_aware(
+                timezone.datetime.strptime(end_time, "%Y-%m-%dT%H:%M:%S.%fZ")
+            )
+            if end_time < timezone.now():
+                return error_response("End time cannot be in the past", status=400)
+            # if log is less than 5 minutes, then it will be discarded
+            if (end_time - timezone.now()).seconds < 300:
+                return error_response(
+                    "Time log should be greater than 5 minutes", status=400
+                )
+        tracked_time.description = request.data.get("description", "")
+        tracked_time.is_billable = request.data.get("is_billable", True)
+        tracked_time.is_manually_added = True
+        tracked_time.end_time = end_time
+        tracked_time.updated_by = request.user
+        tracked_time.save()
+        return Response(
+            TrackedTimeSerializer(tracked_time).data,
+            status=200,
+        )
+
 
 class TrackedTimeAttachmentViewSet(BaseViewSet):
     """
