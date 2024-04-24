@@ -485,6 +485,51 @@ def filter_start_target_date_issues(params: dict, filter: dict, method: str) -> 
     return filter
 
 
+def filter_is_billable(params: dict, filter: dict, method: str) -> dict:
+    """
+    Filter time logs by billable status
+    - params: The query parameters
+    - filter: The filter dictionary
+    - method: The request method
+    """
+    is_billable = params.get("is_billable")
+    if is_billable == "false":
+        filter["is_billable"] = False
+    if is_billable == "true":
+        filter["is_billable"] = True
+    return filter
+
+
+def filter_is_approved(params: dict, filter: dict, method: str) -> dict:
+    """
+    Filter time logs by approved status
+    - params: The query parameters
+    - filter: The filter dictionary
+    - method: The request method
+    """
+    is_approved = params.get("is_approved")
+    if is_approved == "false":
+        filter["is_approved"] = False
+    if is_approved == "true":
+        filter["is_approved"] = True
+    return filter
+
+
+def filter_is_manually_added(params: dict, filter: dict, method: str) -> dict:
+    """
+    Filter time logs by manually added status
+    - params: The query parameters
+    - filter: The filter dictionary
+    - method: The request method
+    """
+    is_manually_added = params.get("is_manually_added")
+    if is_manually_added == "false":
+        filter["is_manually_added"] = False
+    if is_manually_added == "true":
+        filter["is_manually_added"] = True
+    return filter
+
+
 def issue_filters(query_params, method: str):
     """
     Filter issues
@@ -517,6 +562,9 @@ def issue_filters(query_params, method: str):
         "sub_issue": filter_sub_issue_toggle,
         "subscriber": filter_subscribed_issues,
         "start_target_date": filter_start_target_date_issues,
+        "is_billable": filter_is_billable,
+        "is_approved": filter_is_approved,
+        "is_manually_added": filter_is_manually_added,
     }
 
     for key, value in ISSUE_FILTER.items():
