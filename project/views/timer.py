@@ -195,7 +195,10 @@ class TrackedTimeViewSet(BaseViewSet):
             is_active=True,
             role__gte=ERole.ADMIN.value,
         ).exists()
-        end_time = request.data.get("end_time", None)
+        end_time = request.data.get("end_time")
+        description = request.data.get("description")
+        is_billable = request.data.get("is_billable")
+        is_approved = request.data.get("is_approved")
         if end_time:
             end_time = timezone.make_aware(
                 timezone.datetime.strptime(end_time, "%Y-%m-%dT%H:%M:%S.%fZ")
@@ -208,10 +211,12 @@ class TrackedTimeViewSet(BaseViewSet):
                     "Time log should be greater than 5 minutes", status=400
                 )
             tracked_time.end_time = end_time
-        tracked_time.description = request.data.get("description", "")
-        tracked_time.is_billable = request.data.get("is_billable", True)
-        if has_admin_role:
-            tracked_time.is_approved = request.data.get("is_approved", False)
+        if description:
+            tracked_time.description = description
+        if is_billable is not None:
+            tracked_time.is_billable = is_billable
+        if has_admin_role and is_approved is not None:
+            tracked_time.is_approved = is_approved
         tracked_time.is_manually_added = True
         tracked_time.updated_by = request.user
         tracked_time.save()
