@@ -5,7 +5,7 @@ from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
 
-from common.permissions import ProjectMemberPermission
+from common.permissions import WorkspaceEntityPermission
 from common.responses import error_response
 from common.views import BaseViewSet
 from iam.enums import ERole
@@ -20,7 +20,7 @@ class TrackedTimeViewSet(BaseViewSet):
     TrackedTimeViewSet (viewset): To handle all the tracked time related operations
     """
 
-    permission_classes = [ProjectMemberPermission]
+    permission_classes = [WorkspaceEntityPermission]
     serializer_class = TrackedTimeSerializer
     queryset = TrackedTime.objects.all()
 
