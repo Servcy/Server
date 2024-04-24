@@ -13,6 +13,7 @@ from iam.enums import ERole
 from iam.models import WorkspaceMember
 from project.models import Issue, TrackedTime, TrackedTimeAttachment
 from project.serializers import TrackedTimeAttachmentSerializer, TrackedTimeSerializer
+from project.utils.filters import timesheet_filters
 
 
 class TrackedTimeViewSet(BaseViewSet):
@@ -87,6 +88,7 @@ class TrackedTimeViewSet(BaseViewSet):
             is_active=True,
             role__gte=ERole.ADMIN.value,
         ).exists()
+        filters = timesheet_filters(request.query_params, "GET")
         project_id = request.query_params.get("project_id")
         issue_id = request.query_params.get("issue_id")
         query = Q(
@@ -103,9 +105,11 @@ class TrackedTimeViewSet(BaseViewSet):
                     "You are not allowed to view workspace timesheet"
                 )
             query = query & Q(created_by=request.user)
-        timeEntries = TrackedTime.objects.filter(query).order_by("-start_time")
+        timesheet = (
+            TrackedTime.objects.filter(query).filter(**filters).order_by("-start_time")
+        )
         return Response(
-            TrackedTimeSerializer(timeEntries, many=True).data,
+            TrackedTimeSerializer(timesheet, many=True).data,
             status=200,
         )
 

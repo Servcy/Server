@@ -297,6 +297,20 @@ def filter_start_date(params: dict, filter: dict, method: str) -> dict:
     return filter
 
 
+def filter_start_time(params: dict, filter: dict, method: str) -> dict:
+    """
+    Filter issues by start time
+    """
+    if method == "GET":
+        start_dates = params.get("start_time").split(",")
+        if len(start_dates) and "" not in start_dates:
+            date_filter(filter=filter, date_term="start_time", queries=start_dates)
+    else:
+        if params.get("start_time", None) and len(params.get("start_time")):
+            filter["start_time"] = params.get("start_time")
+    return filter
+
+
 def filter_target_date(params: dict, filter: dict, method: str) -> dict:
     """
     Filter issues by target date
@@ -506,6 +520,26 @@ def issue_filters(query_params, method: str):
     }
 
     for key, value in ISSUE_FILTER.items():
+        if key in query_params:
+            func = value
+            func(query_params, filter, method)
+
+    return filter
+
+
+def timesheet_filters(query_params, method: str):
+    """
+    Filter timesheet
+    - query_params: The query parameters
+    - method: The request method
+    """
+    filter = {}
+    TIMESHEET_FILTER = {
+        "project": filter_project,
+        "created_by": filter_created_by,
+        "start_time": filter_start_time,
+    }
+    for key, value in TIMESHEET_FILTER.items():
         if key in query_params:
             func = value
             func(query_params, filter, method)
