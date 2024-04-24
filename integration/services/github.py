@@ -133,8 +133,13 @@ class GithubService(BaseService):
         """
         pr_title = payload.get("pull_request", {}).get("title", "")
         pr_body = payload.get("pull_request", {}).get("body", "")
+        possible_issue_identifiers = set(
+            re.findall(r"\[([A-Z]+-\d+)\]", f"{pr_title} {pr_body}")
+        )
+        if len(possible_issue_identifiers):
+            return possible_issue_identifiers, {}
         comment = payload.get("comment", {}).get("body", "")
-        text = f"{pr_title} {pr_body} {comment}"
+        text = f"{comment}"
         commit_map = {}
         commit_sha = payload.get("after", "")
         if commit_sha:
@@ -148,7 +153,6 @@ class GithubService(BaseService):
             ).get("message", "")
             text = f"{text} {commit_message}"
             commit_map[commit_sha] = commit_message
-
         return set(re.findall(r"\[([A-Z]+-\d+)\]", text)), commit_map
 
     def post_comment_on_pr(self, pull_request: dict, possible_issue_identifiers: set):
