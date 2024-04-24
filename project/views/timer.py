@@ -154,7 +154,7 @@ class TrackedTimeViewSet(BaseViewSet):
             status=200,
         )
 
-    def delete(self, request, workspace_slug, time_log_id, *args, **kwargs):
+    def delete(self, request, workspace_slug, project_id, time_log_id, *args, **kwargs):
         """
         delete (method): To delete a tracked time record
         """
@@ -170,7 +170,7 @@ class TrackedTimeViewSet(BaseViewSet):
         tracked_time.delete()
         return Response(status=204)
 
-    def update(self, request, workspace_slug, time_log_id, *args, **kwargs):
+    def update(self, request, workspace_slug, project_id, time_log_id, *args, **kwargs):
         """
         update (method): To update a tracked time record
         """
