@@ -163,6 +163,41 @@ class WorkSpaceAdminPermission(BasePermission):
         ).exists()
 
 
+class TimesheetPermission(BasePermission):
+    """
+    Permission class for timesheet endpoints
+
+    """
+
+    def has_permission(self, request, view):
+        if request.user.is_anonymous:
+            return False
+
+        view_key = view.kwargs.get("view_key")
+
+        if request.method in SAFE_METHODS:
+            return WorkspaceMember.objects.filter(
+                workspace__slug=view.workspace_slug,
+                member=request.user,
+                is_active=True,
+                role=(
+                    ERole.ADMIN.value
+                    if view_key == "workspace-timesheet"
+                    else ERole.MEMBER.value
+                ),
+            ).exists()
+
+        return (
+            WorkspaceMember.objects.filter(
+                member=request.user,
+                workspace__slug=view.workspace_slug,
+                is_active=True,
+            )
+            .exclude(role=ERole.GUEST.value)
+            .exists()
+        )
+
+
 class WorkspaceOrProjectAdminPermission(BasePermission):
     def has_permission(self, request, view):
         if request.user.is_anonymous:
