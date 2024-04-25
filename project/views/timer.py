@@ -45,7 +45,6 @@ class TrackedTimeViewSet(BaseViewSet):
             )
         except Issue.DoesNotExist:
             raise PermissionDenied("Issue not found")
-        end_time = request.data.get("end_time", None)
         is_approved = (
             WorkspaceMember.objects.filter(
                 workspace__slug=workspace_slug,
@@ -56,18 +55,6 @@ class TrackedTimeViewSet(BaseViewSet):
             .exists()
         )
         is_manually_added = False
-        if end_time:
-            is_manually_added = True
-            end_time = timezone.make_aware(
-                timezone.datetime.strptime(end_time, "%Y-%m-%dT%H:%M:%S.%fZ")
-            )
-            if end_time < timezone.now():
-                return error_response("End time cannot be in the past", status=400)
-            # if log is less than 5 minutes, then it will be discarded
-            if (end_time - timezone.now()).seconds < 300:
-                return error_response(
-                    "Time log should be greater than 5 minutes", status=400
-                )
         tracked_time = TrackedTime.objects.create(
             description=request.data.get("description", ""),
             is_billable=request.data.get("is_billable", True),
@@ -78,7 +65,6 @@ class TrackedTimeViewSet(BaseViewSet):
             created_by=request.user,
             updated_by=request.user,
             start_time=timezone.now(),
-            end_time=end_time,
             is_approved=is_approved,
         )
         return Response(
@@ -152,11 +138,14 @@ class TrackedTimeViewSet(BaseViewSet):
         """
         is_timer_running (method): To check if the timer is running for the user
         """
-        timerRunning = TrackedTime.objects.get(
-            workspace__slug=workspace_slug,
-            created_by=request.user,
-            end_time__isnull=True,
-        )
+        try:
+            timerRunning = TrackedTime.objects.get(
+                workspace__slug=workspace_slug,
+                created_by=request.user,
+                end_time__isnull=True,
+            )
+        except TrackedTime.DoesNotExist:
+            return Response(None, status=204)
         return Response(
             TrackedTimeSerializer(timerRunning).data,
             status=200,
@@ -204,7 +193,7 @@ class TrackedTimeViewSet(BaseViewSet):
         is_approved = request.data.get("is_approved")
         if end_time:
             end_time = timezone.make_aware(
-                timezone.datetime.strptime(end_time, "%Y-%m-%dT%H:%M:%S.%fZ")
+                timezone.datetime.strptime(end_time, "%Y-%m-%dT%H:%M")
             )
             start_time = tracked_time.start_time
             if end_time < start_time:
