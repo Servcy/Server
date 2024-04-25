@@ -46,12 +46,15 @@ class TrackedTimeViewSet(BaseViewSet):
         except Issue.DoesNotExist:
             raise PermissionDenied("Issue not found")
         end_time = request.data.get("end_time", None)
-        is_approved = WorkspaceMember.objects.filter(
-            workspace__slug=workspace_slug,
-            member=request.user,
-            is_active=True,
-            auto_approve_tracked_time=True,
-        ).exists()
+        is_approved = (
+            WorkspaceMember.objects.filter(
+                workspace__slug=workspace_slug,
+                member=request.user,
+                is_active=True,
+            )
+            .filter(Q(role__gte=ERole.ADMIN.value) | Q(auto_approve_tracked_time=True))
+            .exists()
+        )
         is_manually_added = False
         if end_time:
             is_manually_added = True
