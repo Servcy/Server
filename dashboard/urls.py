@@ -4,6 +4,7 @@ from dashboard.views import (
     DashboardEndpoint,
     DefaultWorkspaceStatsEndpoint,
     ExportAnalyticsEndpoint,
+    TimesheetStatsEndpoint,
     WidgetsEndpoint,
     WorkspaceStatsEndpoint,
 )
@@ -41,5 +42,10 @@ urlpatterns = [
         "<str:workspace_slug>/default-analytics",
         DefaultWorkspaceStatsEndpoint.as_view(),
         name="default-analytics",
+    ),
+    path(
+        "<str:workspace_slug>/timesheet-analytics/<str:view_key>",
+        TimesheetStatsEndpoint.as_view(),
+        name="timesheet-analytics",
     ),
 ]

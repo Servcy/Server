@@ -6,6 +6,7 @@ from django.db.models import (
     JSONField,
     OuterRef,
     Subquery,
+    Q,
     Sum,
     When,
 )
@@ -16,6 +17,7 @@ from common.analytics_plot import ExtractMonth, build_graph_plot
 from common.permissions import (
     WorkSpaceAdminPermission,
     WorkspaceOrProjectAdminPermission,
+    TimesheetPermission,
 )
 from common.responses import Response, error_response
 from common.views import BaseAPIView
@@ -32,8 +34,7 @@ from dashboard.utils import (
     dashboard_recent_collaborators,
     dashboard_recent_projects,
 )
-from iam.models import Workspace
-from project.models import Issue
+from project.models import Issue, TrackedTime
 from project.utils.filters import issue_filters
 
 
@@ -526,6 +527,78 @@ class ExportAnalyticsEndpoint(BaseAPIView):
         return Response(
             {
                 "message": f"Once the export is ready it will be emailed to you at {str(request.user.email)}"
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class TimesheetStatsEndpoint(BaseAPIView):
+    permission_classes = [
+        TimesheetPermission,
+    ]
+
+    def get(self, request, workspace_slug, view_key):
+        filters = Q(
+            workspace__slug=workspace_slug,
+            end_time__isnull=False,
+        )
+        if view_key == "my-timesheet":
+            filters &= Q(created_by=request.user)
+
+        base_timesheet = TrackedTime.objects.filter(filters)
+
+        current_time = timezone.now()
+        month_wise_timesheet_duration = (
+            base_timesheet.filter(end_time__year=current_time.year)
+            .annotate(month=ExtractMonth("end_time"))
+            .values("month")
+            .annotate(sum=Sum("duration"))
+            .order_by("month")
+        )
+
+        project_wise_timesheet_duration = (
+            base_timesheet.values("project_id")
+            .annotate(sum=Sum("duration"))
+            .order_by("-sum")
+        )
+
+        workspace_member_wise_timesheet_duration = None
+        if view_key == "workspace-timesheet":
+            workspace_member_wise_timesheet_duration = (
+                base_timesheet.values(
+                    "created_by__first_name",
+                    "created_by__last_name",
+                    "created_by__avatar",
+                    "created_by__display_name",
+                    "created_by__id",
+                )
+                .annotate(sum=Sum("duration"))
+                .order_by("-sum")
+            )
+
+        total_timesheet_duration = base_timesheet.aggregate(sum=Sum("duration"))["sum"]
+
+        billable_timesheet_duration = base_timesheet.filter(is_billable=True).aggregate(
+            sum=Sum("duration")
+        )["sum"]
+
+        approved_timesheet_duration = base_timesheet.filter(is_approved=True).aggregate(
+            sum=Sum("duration")
+        )["sum"]
+
+        manually_added_timesheet_duration = base_timesheet.filter(
+            is_manually_added=True
+        ).aggregate(sum=Sum("duration"))["sum"]
+
+        return Response(
+            {
+                "month_wise_timesheet_duration": month_wise_timesheet_duration,
+                "project_wise_timesheet_duration": project_wise_timesheet_duration,
+                "total_timesheet_duration": total_timesheet_duration,
+                "billable_timesheet_duration": billable_timesheet_duration,
+                "approved_timesheet_duration": approved_timesheet_duration,
+                "manually_added_timesheet_duration": manually_added_timesheet_duration,
+                "workspace_member_wise_timesheet_duration": workspace_member_wise_timesheet_duration,
             },
             status=status.HTTP_200_OK,
         )

@@ -175,27 +175,20 @@ class TimesheetPermission(BasePermission):
 
         view_key = view.kwargs.get("view_key")
 
-        if request.method in SAFE_METHODS:
+        if request.method in SAFE_METHODS and view_key == "workspace-timesheet":
             return WorkspaceMember.objects.filter(
                 workspace__slug=view.workspace_slug,
                 member=request.user,
                 is_active=True,
-                role=(
-                    ERole.ADMIN.value
-                    if view_key == "workspace-timesheet"
-                    else ERole.MEMBER.value
-                ),
+                role=ERole.ADMIN.value,
             ).exists()
 
-        return (
-            WorkspaceMember.objects.filter(
-                member=request.user,
-                workspace__slug=view.workspace_slug,
-                is_active=True,
-            )
-            .exclude(role=ERole.GUEST.value)
-            .exists()
-        )
+        return WorkspaceMember.objects.filter(
+            member=request.user,
+            workspace__slug=view.workspace_slug,
+            is_active=True,
+            role__gte=ERole.MEMBER.value,
+        ).exists()
 
 
 class WorkspaceOrProjectAdminPermission(BasePermission):
