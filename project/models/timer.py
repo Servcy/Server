@@ -41,6 +41,19 @@ class TrackedTime(ProjectBaseModel):
         default=None,
         help_text="End time of the tracked time",
     )
+    duration = models.DurationField(
+        null=True,
+        default=None,
+        help_text="Duration of the tracked time, calculated from start and end time",
+    )
+
+    def save(self, *args, **kwargs):
+        """
+        Save the duration of the tracked time
+        """
+        if self.end_time:
+            self.duration = self.end_time - self.start_time
+        return super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = "Tracked Time"

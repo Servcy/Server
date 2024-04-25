@@ -72,7 +72,7 @@ class TrackedTimeViewSet(BaseViewSet):
             status=201,
         )
 
-    def list(self, request, workspace_slug, viewId, *args, **kwargs):
+    def list(self, request, workspace_slug, view_key, *args, **kwargs):
         """
         list (method): To list all the tracked time records
         """
@@ -94,7 +94,7 @@ class TrackedTimeViewSet(BaseViewSet):
         if issue_id:
             query = query & Q(issue_id=int(issue_id))
         if not isWorkspaceAdmin:
-            if viewId == "workspace-timesheet":
+            if view_key == "workspace-timesheet":
                 raise PermissionDenied(
                     "You are not allowed to view workspace timesheet"
                 )
