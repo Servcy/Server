@@ -557,7 +557,7 @@ class TimesheetStatsEndpoint(BaseAPIView):
         )
 
         project_wise_timesheet_duration = (
-            base_timesheet.values("project_id")
+            base_timesheet.values("project_id", "project__name", "project__emoji")
             .annotate(sum=Sum("duration"))
             .order_by("-sum")
         )
