@@ -206,8 +206,11 @@ class TrackedTimeViewSet(BaseViewSet):
             end_time = timezone.make_aware(
                 timezone.datetime.strptime(end_time, "%Y-%m-%dT%H:%M:%S.%fZ")
             )
-            if end_time < timezone.now():
-                return error_response("End time cannot be in the past", status=400)
+            start_time = tracked_time.start_time
+            if end_time < start_time:
+                return error_response(
+                    "End time cannot be less than start time", status=400
+                )
             # if log is less than 5 minutes, then it will be discarded
             if (end_time - timezone.now()).seconds < 300:
                 return error_response(
