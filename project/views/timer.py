@@ -211,13 +211,13 @@ class TrackedTimeViewSet(BaseViewSet):
                     "Time log should be greater than 5 minutes", status=400
                 )
             tracked_time.end_time = end_time
+            tracked_time.is_manually_added = True
         if description:
             tracked_time.description = description
         if is_billable is not None:
             tracked_time.is_billable = is_billable
         if has_admin_role and is_approved is not None:
             tracked_time.is_approved = is_approved
-        tracked_time.is_manually_added = True
         tracked_time.updated_by = request.user
         tracked_time.save()
         return Response(
