@@ -37,9 +37,9 @@ class ProjectExpenseViewSet(BaseViewSet):
 
     def partial_update(self, request, workspace_slug, project_id):
         data = request.data
-        expense_id = data.get("expense_id")
+        expense_id = data.get("id")
         if not expense_id:
-            return error_response("expense_id is required", status=400)
+            return error_response("id is required", status=400)
         expense = ProjectExpense.objects.filter(
             id=expense_id, project_id=project_id, workspace__slug=workspace_slug
         ).first()
