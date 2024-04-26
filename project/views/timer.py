@@ -98,6 +98,7 @@ class TrackedTimeViewSet(BaseViewSet):
                 raise PermissionDenied(
                     "You are not allowed to view workspace timesheet"
                 )
+        if view_key == "my-timesheet":
             query = query & Q(created_by=request.user)
         timesheet = (
             TrackedTime.objects.filter(query).filter(**filters).order_by("-start_time")
