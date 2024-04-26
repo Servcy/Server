@@ -1,3 +1,4 @@
+from .budget import urlpatterns as budget_urls
 from .cycle import urlpatterns as cycle_urls
 from .estimate import urlpatterns as estimate_urls
 from .external import urlpatterns as external_urls
@@ -14,6 +15,7 @@ from .workspace import urlpatterns as workspace_urls
 urlpatterns = []
 
 urlpatterns = [
+    *budget_urls,
     *cycle_urls,
     *estimate_urls,
     *external_urls,

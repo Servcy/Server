@@ -1,3 +1,4 @@
+from .budget import ProjectExpenseViewSet
 from .cycle import (
     ActiveCycleEndpoint,
     CycleArchiveUnarchiveEndpoint,

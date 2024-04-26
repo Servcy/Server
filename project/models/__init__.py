@@ -1,4 +1,4 @@
-from .budget import ProjectBudget, ProjectMemberRate
+from .budget import ProjectBudget, ProjectExpense, ProjectMemberRate
 from .cycle import Cycle, CycleFavorite, CycleIssue, CycleUserProperties
 from .estimate import Estimate, EstimatePoint
 from .issue import (
