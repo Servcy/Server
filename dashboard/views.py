@@ -5,8 +5,8 @@ from django.db.models import (
     F,
     JSONField,
     OuterRef,
-    Subquery,
     Q,
+    Subquery,
     Sum,
     When,
 )
@@ -15,9 +15,9 @@ from rest_framework import status
 
 from common.analytics_plot import ExtractMonth, build_graph_plot
 from common.permissions import (
+    TimesheetPermission,
     WorkSpaceAdminPermission,
     WorkspaceOrProjectAdminPermission,
-    TimesheetPermission,
 )
 from common.responses import Response, error_response
 from common.views import BaseAPIView
