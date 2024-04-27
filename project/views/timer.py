@@ -1,4 +1,4 @@
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied
@@ -220,6 +220,35 @@ class TrackedTimeViewSet(BaseViewSet):
             TrackedTimeSerializer(tracked_time).data,
             status=200,
         )
+
+    def project_member_wise_time_duration(self, request, workspace_slug, project_id):
+        isWorkspaceAdmin = WorkspaceMember.objects.filter(
+            workspace__slug=workspace_slug,
+            member=request.user,
+            is_active=True,
+            role__gte=ERole.ADMIN.value,
+        ).exists()
+        if not isWorkspaceAdmin:
+            raise PermissionDenied(
+                "You are not allowed to view project member time logs"
+            )
+        base_timesheet = TrackedTime.objects.filter(
+            workspace__slug=workspace_slug,
+            project_id=project_id,
+            end_time__isnull=False,
+        )
+        member_wise_timesheet_duration = (
+            base_timesheet.values(
+                "created_by__first_name",
+                "created_by__last_name",
+                "created_by__avatar",
+                "created_by__display_name",
+                "created_by__id",
+            )
+            .annotate(sum=Sum("duration"))
+            .order_by("-sum")
+        )
+        return Response(member_wise_timesheet_duration, 200)
 
 
 class TrackedTimeAttachmentViewSet(BaseViewSet):
