@@ -250,6 +250,34 @@ class TrackedTimeViewSet(BaseViewSet):
         )
         return Response(member_wise_timesheet_duration, 200)
 
+    def member_wise_estimate(self, request, workspace_slug, project_id):
+        isWorkspaceAdmin = WorkspaceMember.objects.filter(
+            workspace__slug=workspace_slug,
+            member=request.user,
+            is_active=True,
+            role__gte=ERole.ADMIN.value,
+        ).exists()
+        if not isWorkspaceAdmin:
+            raise PermissionDenied(
+                "You are not allowed to view project member time logs"
+            )
+        base_issues = Issue.issue_objects.filter(
+            workspace__slug=workspace_slug,
+            project_id=project_id,
+        )
+        member_wise_estimate = (
+            base_issues.values(
+                "assignees__avatar",
+                "assignees__display_name",
+                "assignees__first_name",
+                "assignees__last_name",
+                "assignees__id",
+            )
+            .annotate(sum=Sum("estimate_point"))
+            .order_by("-sum")
+        )
+        return Response(member_wise_estimate, 200)
+
 
 class TrackedTimeAttachmentViewSet(BaseViewSet):
     """

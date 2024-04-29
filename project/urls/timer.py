@@ -19,7 +19,16 @@ urlpatterns = [
                 "get": "project_member_wise_time_duration",
             }
         ),
-        name="project-timesheet",
+        name="member-wise-time-logged",
+    ),
+    path(
+        "<str:workspace_slug>/<int:project_id>/member-wise-estimate",
+        TrackedTimeViewSet.as_view(
+            {
+                "get": "member_wise_estimate",
+            }
+        ),
+        name="member-wise-estimate",
     ),
     path(
         "<str:workspace_slug>/<int:project_id>/<int:time_log_id>/delete-time-log",
