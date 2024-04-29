@@ -5,7 +5,9 @@ from project.models import IssueProperty, Project, ProjectMember, ProjectMemberR
 from project.serializers import ProjectMemberRoleSerializer
 
 
-def add_project_member_if_not_exists(members, workspace_slug, project_id, user):
+def add_project_member_if_not_exists(
+    members, workspace_slug, project_id, user, return_serialized_data=True
+):
     # Get the project
     project = Project.objects.get(pk=project_id, workspace__slug=workspace_slug)
     if not len(members):
@@ -132,9 +134,10 @@ def add_project_member_if_not_exists(members, workspace_slug, project_id, user):
     IssueProperty.objects.bulk_create(
         bulk_issue_props, batch_size=10, ignore_conflicts=True
     )
-    project_members = ProjectMember.objects.filter(
-        project_id=project_id,
-        member_id__in=[member.get("member_id") for member in members],
-    )
-    serializer = ProjectMemberRoleSerializer(project_members, many=True)
-    return serializer.data
+    if return_serialized_data:
+        project_members = ProjectMember.objects.filter(
+            project_id=project_id,
+            member_id__in=[member.get("member_id") for member in members],
+        )
+        serializer = ProjectMemberRoleSerializer(project_members, many=True)
+        return serializer.data

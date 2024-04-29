@@ -12,6 +12,7 @@ from iam.enums import ERole
 from iam.models import WorkspaceMember
 from project.models import Issue, TrackedTime, TrackedTimeAttachment
 from project.serializers import TrackedTimeAttachmentSerializer, TrackedTimeSerializer
+from project.utils.project_members import add_project_member_if_not_exists
 from project.utils.filters import timesheet_filters
 
 
@@ -66,6 +67,21 @@ class TrackedTimeViewSet(BaseViewSet):
             updated_by=request.user,
             start_time=timezone.now(),
             is_approved=is_approved,
+        )
+        add_project_member_if_not_exists(
+            [
+                {
+                    "member_id": request.user.id,
+                    "role": ERole.MEMBER.value,
+                    "rate": 0,
+                    "currency": "USD",
+                    "per_hour_or_per_project": True,
+                }
+            ],
+            workspace_slug,
+            project_id,
+            request.user,
+            False,
         )
         return Response(
             TrackedTimeSerializer(tracked_time).data,
