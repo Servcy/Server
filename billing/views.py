@@ -29,7 +29,7 @@ class WorkspaceSubscriptionView(BaseAPIView):
         return Response(
             {
                 "plan_details": {
-                    "name": "Starter Plan",
+                    "name": "Starter",
                 },
                 "limits": PLAN_LIMITS["starter"],
                 "subscription_details": {},
