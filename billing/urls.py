@@ -10,7 +10,7 @@ urlpatterns = [
     ),
     path(
         "<slug:workspace_slug>/razorpay",
-        RazorpayView.as_view({"post": "post", "get": "get", "delete": "delete"}),
+        RazorpayView.as_view({"post": "post", "delete": "delete"}),
         name="workspace-subscription",
     ),
 ]

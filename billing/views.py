@@ -4,7 +4,7 @@ from rest_framework.response import Response
 
 from billing.models import Subscription
 from billing.serializers import SubscriptionSerializer
-from common.billing import PLAN_LIMITS
+from common.billing import PLAN_LIMITS, PLAN_DETAILS
 from common.permissions import WorkspaceUserPermission
 from common.views import BaseAPIView, BaseViewSet
 from iam.models import Workspace
@@ -53,13 +53,15 @@ class RazorpayView(BaseViewSet):
         This method will create a subscription and return the subscription details
         """
         client = razorpay.Client(auth=(self._api_key, self._api_secret))
-        plan_id = request.data.get("plan_id")
-        if not plan_id:
+        plan_name = request.data.get("plan_name")
+        if plan_name not in ["Plus", "Business"]:
             return Response(
-                {"error": "Please provide the plan_id to create a subscription"},
+                {"error": "Please provide a valid plan_name to create a subscription"},
                 status=400,
             )
-        plan = client.plan.fetch(plan_id)
+        plan = client.plan.create(
+            data=PLAN_DETAILS[plan_name],
+        )
         if Subscription.objects.filter(
             workspace__slug=workspace_slug, is_active=True
         ).exists():
@@ -85,14 +87,6 @@ class RazorpayView(BaseViewSet):
             updated_by=request.user,
         )
         return Response(subscription)
-
-    def get(self, request, workspace_slug):
-        """
-        This method will return the available subscription plans
-        """
-        client = razorpay.Client(auth=(self._api_key, self._api_secret))
-        plans = client.plan.all()
-        return Response(plans)
 
     def delete(self, request, workspace_slug):
         """
