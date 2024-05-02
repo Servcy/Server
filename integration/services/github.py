@@ -168,18 +168,6 @@ class GithubService(BaseService):
                     "Accept": "application/vnd.github+json",
                 },
             )
-            for comment in past_comments:
-                if comment.get("body", "").startswith(
-                    "**Following Servcy issues were mentioned in this PR**."
-                ):
-                    self._make_request(
-                        "DELETE",
-                        f"repos/{pull_request['base']['repo']['full_name']}/issues/comments/{comment['id']}",
-                        headers={
-                            "Authorization": f"Bearer {self._token['access_token']}",
-                            "Accept": "application/vnd.github+json",
-                        },
-                    )
             issues = []
             for identifier in possible_issue_identifiers:
                 try:
@@ -199,6 +187,8 @@ class GithubService(BaseService):
                     continue
                 except ValueError:
                     continue
+            if len(issues) == 0:
+                return
             comment = "**Following Servcy issues were mentioned in this PR**."
             for issue in issues:
                 identifier = f"{issue.project.identifier}-{issue.sequence_id}"
@@ -222,5 +212,17 @@ class GithubService(BaseService):
                     "Accept": "application/vnd.github+json",
                 },
             )
+            for comment in past_comments:
+                if comment.get("body", "").startswith(
+                    "**Following Servcy issues were mentioned in this PR**."
+                ):
+                    self._make_request(
+                        "DELETE",
+                        f"repos/{pull_request['base']['repo']['full_name']}/issues/comments/{comment['id']}",
+                        headers={
+                            "Authorization": f"Bearer {self._token['access_token']}",
+                            "Accept": "application/vnd.github+json",
+                        },
+                    )
         except Exception:
             pass
