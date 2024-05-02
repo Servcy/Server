@@ -538,7 +538,7 @@ class WorkSpaceMemberViewSet(BaseViewSet):
         )
         if request.user.id == workspace_member.member_id:
             return Response(
-                {"error": "You cannot update your own role"},
+                {"error": "You cannot update your own details"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 

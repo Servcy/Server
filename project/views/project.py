@@ -628,7 +628,7 @@ class ProjectMemberViewSet(BaseViewSet):
             and project_member.role != request.data.get("role")
         ):
             return Response(
-                {"error": "You cannot update your own role"},
+                {"error": "You cannot update your own details"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         # Check while updating user roles
@@ -644,7 +644,7 @@ class ProjectMemberViewSet(BaseViewSet):
             > requested_project_member.role
         ):
             return Response(
-                {"error": "You cannot update a role that is higher than your own role"},
+                {"error": "You cannot update a higher role"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         try:
