@@ -21,6 +21,17 @@ class WorkspaceSubscriptionView(BaseAPIView):
         """
         This method will return the workspace subscription details
         """
+        if request.user.is_superuser:
+            return Response(
+                {
+                    "plan_details": {
+                        "name": "Business",
+                    },
+                    "limits": {"invitations": 25},
+                    "subscription_details": {},
+                    "is_active": True,
+                }
+            )
         subscription = Subscription.objects.filter(
             workspace__slug=workspace_slug, is_active=True
         ).first()
