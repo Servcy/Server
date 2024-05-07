@@ -408,6 +408,7 @@ TEST_ACCOUNTS = [
     "william.blake@servcy.com",
     "william.wordsworth@servcy.com",
     "shaan.puri@servcy.com",
+    "alex.hormozi@servcy.com",
     "meghamgarg@gmail.com",
 ]
 
