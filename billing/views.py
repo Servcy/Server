@@ -27,7 +27,7 @@ class WorkspaceSubscriptionView(BaseAPIView):
                     "plan_details": {
                         "name": "Business",
                     },
-                    "limits": {"invitations": 25},
+                    "limits": PLAN_LIMITS["business"],
                     "subscription_details": {},
                     "is_active": True,
                 }
