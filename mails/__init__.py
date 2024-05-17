@@ -19,9 +19,6 @@ SENDGRID_ANALYTICS_EXPORT_TEMPLATE_ID = settings.SENDGRID_ANALYTICS_EXPORT_TEMPL
 class SendGridEmail:
     def __init__(self, to_email):
         self.to_email = to_email
-        if to_email in settings.TEST_ACCOUNTS:
-            username = to_email.split("@")[0]
-            self.to_email = f"contact+{username}@servcy.com"
         self.from_email = SENDGRID_FROM_EMAIL
         self.client = SendGridAPIClient(SENDGRID_API_KEY)
 

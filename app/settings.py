@@ -395,23 +395,6 @@ UNSPLASH_ACCESS_KEY = config.get("unsplash", "access_key")
 UNSPLASH_APP_ID = config.get("unsplash", "app_id")
 UNSPLASH_SECRET_KEY = config.get("unsplash", "secret_key")
 
-TEST_ACCOUNTS = [
-    "peter.pan@servcy.com",
-    "alice.wonderland@servcy.com",
-    "sam.smith@servcy.com",
-    "william.shakespeare@servcy.com",
-    "mark.twain@servcy.com",
-    "george.orwell@servcy.com",
-    "ernest.hemingway@servcy.com",
-    "robert.frost@servcy.com",
-    "emily.dickinson@servcy.com",
-    "william.blake@servcy.com",
-    "william.wordsworth@servcy.com",
-    "shaan.puri@servcy.com",
-    "alex.hormozi@servcy.com",
-    "meghamgarg@gmail.com",
-]
-
 # Razorpay
 RAZORPAY_API_KEY = config.get("razorpay", "api_key")
 RAZORPAY_API_SECRET = config.get("razorpay", "api_secret")

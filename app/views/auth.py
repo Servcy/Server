@@ -32,7 +32,7 @@ class AuthenticationView(BaseAPIView):
                     error_message="Email is required!",
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            if not settings.DEBUG and input not in settings.TEST_ACCOUNTS:
+            if not settings.DEBUG:
                 otp = AccountsService(email, "email").create_login_otp()
                 SendGridEmail(email).send_login_otp(otp)
             return success_response(
@@ -63,7 +63,7 @@ class AuthenticationView(BaseAPIView):
                         error_message="otp, and email are required!",
                         status=status.HTTP_406_NOT_ACCEPTABLE,
                     )
-                if not settings.DEBUG and email not in settings.TEST_ACCOUNTS:
+                if not settings.DEBUG:
                     login_success = AccountsService.verify_login_otp(email, otp)
                 else:
                     login_success = True
