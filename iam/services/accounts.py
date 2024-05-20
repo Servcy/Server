@@ -25,10 +25,10 @@ class AccountsService:
         self.account_repository.create_login_otp(otp)
         return otp
 
-    def create_user_account(self):
+    def create_user_account(self, utm_source, utm_medium, utm_campaign):
         user = self.account_repository.get()
         if not user:
-            user = self.account_repository.create()
+            user = self.account_repository.create(utm_source, utm_medium, utm_campaign)
             if settings.DEBUG:
                 return user
             try:

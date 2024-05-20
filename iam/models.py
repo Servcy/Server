@@ -60,6 +60,10 @@ class User(AbstractBaseUser, PermissionsMixin, TimeStampedModel):
     onboarding_step = models.JSONField(default=get_onboarding_step)
     last_workspace_id = models.IntegerField(null=True, default=None)
 
+    utm_source = models.CharField(max_length=255, null=True, default=None)
+    utm_medium = models.CharField(max_length=255, null=True, default=None)
+    utm_campaign = models.CharField(max_length=255, null=True, default=None)
+
     USERNAME_FIELD = "username"
 
     objects = UserAccountManager()

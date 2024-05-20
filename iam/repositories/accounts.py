@@ -9,7 +9,7 @@ class AccountsRepository:
         self.input = input
         self.input_type = input_type
 
-    def create(self):
+    def create(self, utm_source, utm_medium, utm_campaign):
         user = User.objects.create_user(
             email=self.input if self.input_type == "email" else None,
             phone_number=(
@@ -17,6 +17,9 @@ class AccountsRepository:
             ),
             username=self.input if self.input_type == "email" else f"+{self.input}",
             password=None,
+            utm_source=utm_source,
+            utm_medium=utm_medium,
+            utm_campaign=utm_campaign,
         )
         UserNotificationPreference.objects.create(
             user=user,

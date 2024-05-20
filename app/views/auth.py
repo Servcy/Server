@@ -50,6 +50,9 @@ class AuthenticationView(BaseAPIView):
         """Verify OTP code and SSO flow"""
         try:
             payload = request.data
+            utm_source = payload.get("utm_source", None)
+            utm_medium = payload.get("utm_medium", None)
+            utm_campaign = payload.get("utm_campaign", None)
             type = payload.get("type", None)
             login_success = False
             if type == "google":
@@ -69,7 +72,9 @@ class AuthenticationView(BaseAPIView):
                     login_success = True
             if login_success:
                 account_service = AccountsService(email, "email")
-                user = account_service.create_user_account()
+                user = account_service.create_user_account(
+                    utm_source, utm_medium, utm_campaign
+                )
                 refresh_token = JWTTokenSerializer.get_token(user)
                 tokens = {
                     "refresh_token": str(refresh_token),
