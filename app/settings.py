@@ -392,7 +392,7 @@ CRONJOBS = [
 # paddle
 PADDLE_SECRET_KEY = config.get("paddle", "secret_key")
 PADDLE_WEBHOOK_SECRET = config.get("paddle", "webhook_secret")
-
+PADDLE_PLUS_PRICE_ID = config.get("paddle", "plus_price_id")
 
 # Unsplash
 UNSPLASH_ACCESS_KEY = config.get("unsplash", "access_key")

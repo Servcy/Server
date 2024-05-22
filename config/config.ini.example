@@ -108,3 +108,4 @@ client_secret=
 [paddle]
 secret_key=
 webhook_secret=
+plus_price_id=

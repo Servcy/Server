@@ -8,10 +8,13 @@ class Subscription(TimeStampedModel, CreatorUpdaterModel):
         "iam.Workspace",
         on_delete=models.CASCADE,
         related_name="subscriptions",
+        default=None,
+        null=True,
     )
     is_active = models.BooleanField(default=True)
     plan_details = models.JSONField(default=dict)
-    subscription_details = models.JSONField(default=dict)
+    customer_details = models.JSONField(default=dict)
+    subscription_id = models.CharField(max_length=1000, unique=True)
     limits = models.JSONField(default=dict)
 
     class Meta:
