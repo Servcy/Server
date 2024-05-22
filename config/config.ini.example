@@ -105,6 +105,6 @@ app_id=
 redirect_uri=
 client_secret=
 
-[razorpay]
-api_key=
-api_secret=
+[paddle]
+secret_key=
+webhook_secret=

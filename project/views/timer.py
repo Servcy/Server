@@ -12,8 +12,8 @@ from iam.enums import ERole
 from iam.models import WorkspaceMember
 from project.models import Issue, TrackedTime, TrackedTimeAttachment
 from project.serializers import TrackedTimeAttachmentSerializer, TrackedTimeSerializer
-from project.utils.project_members import add_project_member_if_not_exists
 from project.utils.filters import timesheet_filters
+from project.utils.project_members import add_project_member_if_not_exists
 
 
 class TrackedTimeViewSet(BaseViewSet):

@@ -389,12 +389,12 @@ CRONJOBS = [
     ),
 ]
 
+# paddle
+PADDLE_SECRET_KEY = config.get("paddle", "secret_key")
+PADDLE_WEBHOOK_SECRET = config.get("paddle", "webhook_secret")
+
 
 # Unsplash
 UNSPLASH_ACCESS_KEY = config.get("unsplash", "access_key")
 UNSPLASH_APP_ID = config.get("unsplash", "app_id")
 UNSPLASH_SECRET_KEY = config.get("unsplash", "secret_key")
-
-# Razorpay
-RAZORPAY_API_KEY = config.get("razorpay", "api_key")
-RAZORPAY_API_SECRET = config.get("razorpay", "api_secret")
