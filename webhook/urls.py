@@ -4,7 +4,7 @@ from webhook.figma import figma
 from webhook.github import github
 from webhook.google import google
 from webhook.microsoft import microsoft
-from webhook.paddle import paddle
+from webhook.paddle import paddle_hook
 from webhook.slack import slack
 
 urlpatterns = [
@@ -13,5 +13,5 @@ urlpatterns = [
     path("slack", slack, name="Slack"),
     path("figma", figma, name="Figma"),
     path("github", github, name="Github"),
-    path("paddle", paddle, name="Paddle"),
+    path("paddle", paddle_hook, name="Paddle"),
 ]
