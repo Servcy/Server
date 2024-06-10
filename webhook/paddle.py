@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 @csrf_exempt
 @require_POST
-def paddle(request):
+def paddle_hook(request):
     try:
         paddle = Client(settings.PADDLE_SECRET_KEY)
         body = json.loads(request.body)
